@@ -1,0 +1,2 @@
+#!/bin/sh
+/bin/logspout https://collectors.sumologic.com?http.path=/receiver/v1/http/${SUMO_HTTP_TOKEN}\&http.gzip=true
