@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ "${SUMO_HTTP_TOKEN}z" == "z" ]; then
+  >&2 echo "refusing to start logspout: \$SUMO_HTTP_TOKEN is not set."
+  exit 1
+fi
+
+/bin/logspout https://collectors.sumologic.com?http.path=/receiver/v1/http/${SUMO_HTTP_TOKEN}\&http.gzip=true
