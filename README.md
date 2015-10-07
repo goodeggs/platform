@@ -1,5 +1,5 @@
 platform
---------
+========
 
 The home of all things related to the Good Eggs [12 Factor App](http://12factor.net/) platform, currently based on [Convox](http://convox.com/).
 
