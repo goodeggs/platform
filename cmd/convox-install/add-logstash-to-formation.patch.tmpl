@@ -7,7 +7,7 @@ index d5a5922..4ff0c5c 100644
    "Mappings": {
      "RegionConfig": {
 -      "us-east-1": { "Ami": "ami-c5fa5aae" },
-+      "us-east-1": { "Ami": "{{ami_us_east_1}}" },
++      "us-east-1": { "Ami": "{{.ami_us_east_1}}" },
        "us-west-1": { "Ami": "ami-4b44b80f" },
        "us-west-2": { "Ami": "ami-b7f0f987" },
        "eu-west-1": { "Ami": "ami-c8abfdbf" },
@@ -19,7 +19,7 @@ index d5a5922..4ff0c5c 100644
 +    "SumoCollectorToken": {
 +      "Type": "String",
 +      "Description": "Sumo Logic HTTP Collector Token",
-+      "Default": "{{sumo_collector_token}}"
++      "Default": "{{.sumo_collector_token}}"
      }
    },
    "Resources": {
