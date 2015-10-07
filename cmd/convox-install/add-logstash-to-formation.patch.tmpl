@@ -1,0 +1,99 @@
+diff --git a/api/dist/kernel.json b/api/dist/kernel.json
+index d5a5922..4ff0c5c 100644
+--- a/api/dist/kernel.json
++++ b/api/dist/kernel.json
+@@ -11,7 +11,7 @@
+   },
+   "Mappings": {
+     "RegionConfig": {
+-      "us-east-1": { "Ami": "ami-c5fa5aae" },
++      "us-east-1": { "Ami": "{{ami_us_east_1}}" },
+       "us-west-1": { "Ami": "ami-4b44b80f" },
+       "us-west-2": { "Ami": "ami-b7f0f987" },
+       "eu-west-1": { "Ami": "ami-c8abfdbf" },
+@@ -181,6 +181,11 @@
+       "Description": "Dedicated Hardware",
+       "Default": "default",
+       "AllowedValues": [ "default", "dedicated" ]
++    },
++    "SumoCollectorToken": {
++      "Type": "String",
++      "Description": "Sumo Logic HTTP Collector Token",
++      "Default": "{{sumo_collector_token}}"
+     }
+   },
+   "Resources": {
+@@ -457,7 +462,8 @@
+                     "ecs:Submit*",
+                     "kinesis:PutRecords",
+                     "ec2:DescribeInstances",
+-                    "autoscaling:DescribeAutoScalingInstances"
++                    "autoscaling:DescribeAutoScalingInstances",
++                    "ecs:StartTask"
+                   ],
+                   "Resource": [
+                     "*"
+@@ -478,7 +484,7 @@
+       }
+     },
+     "LaunchConfiguration": {
+-      "DependsOn": [ "Balancer", "Cluster", "InstanceProfile", "SecurityGroup" ],
++      "DependsOn": [ "Balancer", "Cluster", "InstanceProfile", "SecurityGroup", "LogspoutTask" ],
+       "Type": "AWS::AutoScaling::LaunchConfiguration",
+       "Properties": {
+         "AssociatePublicIpAddress": true,
+@@ -508,7 +514,9 @@
+             "mkdir -p /etc/convox",
+             { "Fn::Join": [ "", [ "echo \"", { "Ref": "AWS::Region" }, "\" > /etc/convox/region" ] ] },
+             "curl -s http://convox.s3.amazonaws.com/agent/0.3/convox.conf > /etc/init/convox.conf",
+-            "start convox"
++            "start convox",
++            { "Fn::Join": [ "", [ "echo \"", { "Ref": "LogspoutTask" }, "\" > /etc/logspout-task.arn" ] ] },
++            ""
+           ] ] }
+         }
+       }
+@@ -902,6 +910,43 @@
+       },
+       "Type": "Custom::ECSTaskDefinition",
+       "Version": "1.0"
++    },
++    "LogspoutTask": {
++      "Type": "AWS::ECS::TaskDefinition",
++      "Properties": {
++        "ContainerDefinitions": [
++          {
++            "Name": "logspout",
++            "Image": "goodeggs/logspout-goodeggs",
++            "Cpu": 10,
++            "Memory": 300,
++            "Environment": [
++              {
++                "Name": "LOGSPOUT",
++                "Value": "ignore"
++              },
++              {
++                "Name": "SUMO_HTTP_TOKEN",
++                "Value": { "Ref": "SumoCollectorToken" }
++              }
++            ],
++            "MountPoints": [
++              {
++                "ContainerPath": "/tmp/docker.sock",
++                "SourceVolume": "docker_sock"
++              }
++            ]
++          }
++        ],
++        "Volumes": [
++          {
++            "Name": "docker_sock",
++            "Host": {
++              "SourcePath": "/var/run/docker.sock"
++            }
++          }
++        ]
++      }
+     }
+   }
+ }
