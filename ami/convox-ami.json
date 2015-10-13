@@ -1,6 +1,6 @@
 {
   "variables": {
-    "logspout_image": null,
+    "logspout_tag": null,
     "logspout_token": null,
     "version": "{{isotime \"2006-01-02\"}}"
   },
@@ -32,7 +32,7 @@
       "inline": [
         "# Setup /etc/logspout-goodeggs",
         "sudo mkdir -p /etc/logspout-goodeggs",
-        "echo '{{user `logspout_image`}}' | sudo dd of=/etc/logspout-goodeggs/image",
+        "echo 'goodeggs/logspout-goodeggs:{{user `logspout_tag`}}' | sudo dd of=/etc/logspout-goodeggs/image",
         "echo '{{user `logspout_token`}}' | sudo dd of=/etc/logspout-goodeggs/token",
         "sudo chmod 0600 /etc/logspout-goodeggs/*",
 
