@@ -15,3 +15,7 @@ Contains the [packer.io](https://packer.io/) definition for our custom AMI.
 
 ### [logspout-goodeggs](./logspout-goodeggs)
 Our custom build of [logspout-http](https://github.com/raychaser/logspout-http) that ships docker logs to a [Sumo Logic](https://www.sumologic.com/) collector.
+
+### [ansible](./ansible)
+Ansible playbooks used to manage the platform.
+
