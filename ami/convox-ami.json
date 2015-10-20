@@ -28,6 +28,11 @@
       "destination": "/home/ec2-user/logspout-goodeggs.conf"
     },
     {
+      "type": "file",
+      "source": "logrotate-docker",
+      "destination": "/home/ec2-user/logrotate-docker"
+    },
+    {
       "type": "shell",
       "inline": [
         "# Setup /etc/logspout-goodeggs",
@@ -38,6 +43,9 @@
 
         "# Install logspout-goodeggs.conf",
         "sudo mv {/home/ec2-user,/etc/init}/logspout-goodeggs.conf",
+
+        "# Install logrotate-docker",
+        "sudo mv /home/ec2-user/logrotate-docker /etc/logrotate.d/docker",
 
         "# Reset cloud-init",
         "sudo rm -rf /var/lib/cloud/{sem,instance,instances/*}",
