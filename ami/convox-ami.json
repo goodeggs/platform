@@ -33,6 +33,11 @@
       "destination": "/home/ec2-user/logrotate-docker"
     },
     {
+      "type": "file",
+      "source": "cron-docker-custodian",
+      "destination": "/home/ec2-user/cron-docker-custodian"
+    },
+    {
       "type": "shell",
       "inline": [
         "# Setup /etc/logspout-goodeggs",
@@ -46,6 +51,10 @@
 
         "# Install logrotate-docker",
         "sudo mv /home/ec2-user/logrotate-docker /etc/logrotate.d/docker",
+
+        "# Install docker-custodian",
+        "sudo mv /home/ec2-user/cron-docker-custodian /etc/cron.hourly/docker-custodian",
+        "sudo chmod 0755 /etc/cron.hourly/docker-custodian",
 
         "# Reset cloud-init",
         "sudo rm -rf /var/lib/cloud/{sem,instance,instances/*}",
