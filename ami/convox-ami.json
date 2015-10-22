@@ -1,5 +1,9 @@
 {
   "variables": {
+    "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+    "aws_security_token": "{{env `AWS_SECURITY_TOKEN`}}",
+    "aws_region": "{{env `AWS_REGION`}}",
     "logspout_tag": null,
     "logspout_token": null,
     "version": "{{isotime \"2006-01-02\"}}"
@@ -7,7 +11,10 @@
   "builders": [
     {
       "type": "amazon-ebs",
-      "region": "us-east-1",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "token": "{{user `aws_security_token`}}",
+      "region": "{{user `aws_region`}}",
       "source_ami": "ami-c5fa5aae",
       "instance_type": "t2.micro",
       "ssh_username": "ec2-user",
@@ -28,6 +35,16 @@
       "destination": "/home/ec2-user/logspout-goodeggs.conf"
     },
     {
+      "type": "file",
+      "source": "logrotate-docker",
+      "destination": "/home/ec2-user/logrotate-docker"
+    },
+    {
+      "type": "file",
+      "source": "cron-docker-custodian",
+      "destination": "/home/ec2-user/cron-docker-custodian"
+    },
+    {
       "type": "shell",
       "inline": [
         "# Setup /etc/logspout-goodeggs",
@@ -38,6 +55,13 @@
 
         "# Install logspout-goodeggs.conf",
         "sudo mv {/home/ec2-user,/etc/init}/logspout-goodeggs.conf",
+
+        "# Install logrotate-docker",
+        "sudo mv /home/ec2-user/logrotate-docker /etc/logrotate.d/docker",
+
+        "# Install docker-custodian",
+        "sudo mv /home/ec2-user/cron-docker-custodian /etc/cron.hourly/docker-custodian",
+        "sudo chmod 0755 /etc/cron.hourly/docker-custodian",
 
         "# Reset cloud-init",
         "sudo rm -rf /var/lib/cloud/{sem,instance,instances/*}",
