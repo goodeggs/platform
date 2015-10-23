@@ -6,6 +6,9 @@
     "aws_region": "{{env `AWS_REGION`}}",
     "logspout_tag": null,
     "logspout_token": null,
+    "librato_email": null,
+    "librato_token": null,
+    "env": null,
     "version": "{{isotime \"2006-01-02\"}}"
   },
   "builders": [
@@ -45,6 +48,26 @@
       "destination": "/home/ec2-user/cron-docker-custodian"
     },
     {
+      "type": "file",
+      "source": "collectd.conf",
+      "destination": "/home/ec2-user/collectd.conf"
+    },
+    {
+      "type": "file",
+      "source": "collectd.sysconfig",
+      "destination": "/home/ec2-user/collectd.sysconfig"
+    },
+    {
+      "type": "file",
+      "source": "install-collectd.sh",
+      "destination": "/home/ec2-user/install-collectd.sh"
+    },
+    {
+      "type": "file",
+      "source": "collectd.spec.amzn1",
+      "destination": "/home/ec2-user/collectd.spec.amzn1"
+    },
+    {
       "type": "shell",
       "inline": [
         "# Setup /etc/logspout-goodeggs",
@@ -62,6 +85,16 @@
         "# Install docker-custodian",
         "sudo mv /home/ec2-user/cron-docker-custodian /etc/cron.hourly/docker-custodian",
         "sudo chmod 0755 /etc/cron.hourly/docker-custodian",
+
+        "# Install collectd",
+        "sudo sh /home/ec2-user/install-collectd.sh",
+        "rm /home/ec2-user/install-collectd.sh",
+        "sudo mv {/home/ec2-user,/etc}/collectd.conf",
+        "sudo sed -i -- 's/%LIBRATO_EMAIL%/{{user `librato_email`}}/' /etc/collectd.conf",
+        "sudo sed -i -- 's/%LIBRATO_TOKEN%/{{user `librato_token`}}/' /etc/collectd.conf",
+        "sudo chmod 0600 /etc/collectd.conf",
+        "sudo mv /home/ec2-user/collectd.sysconfig /etc/sysconfig/collectd",
+        "sudo sed -i -- 's/%ENV%/{{user `env`}}/' /etc/sysconfig/collectd",
 
         "# Reset cloud-init",
         "sudo rm -rf /var/lib/cloud/{sem,instance,instances/*}",
