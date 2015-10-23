@@ -59,6 +59,11 @@
     },
     {
       "type": "file",
+      "source": "memory-available.sh",
+      "destination": "/home/ec2-user/memory-available.sh"
+    },
+    {
+      "type": "file",
       "source": "install-collectd.sh",
       "destination": "/home/ec2-user/install-collectd.sh"
     },
@@ -95,6 +100,9 @@
         "sudo chmod 0600 /etc/collectd.conf",
         "sudo mv /home/ec2-user/collectd.sysconfig /etc/sysconfig/collectd",
         "sudo sed -i -- 's/%ENV%/{{user `env`}}/' /etc/sysconfig/collectd",
+        "sudo mkdir -p /var/lib/collectd",
+        "sudo mv {/home/ec2-user,/var/lib/collectd}/memory-available.sh",
+        "sudo chmod 0755 /var/lib/collectd/memory-available.sh",
 
         "# Reset cloud-init",
         "sudo rm -rf /var/lib/cloud/{sem,instance,instances/*}",
