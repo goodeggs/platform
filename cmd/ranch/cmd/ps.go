@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"fmt"
+	"os"
 
 	"github.com/goodeggs/platform/cmd/ranch/util"
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -30,9 +31,13 @@ var psCmd = &cobra.Command{
 			return
 		}
 
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"Id", "Name", "Release", "Started", "Command"})
+
 		for _, p := range ps {
-			fmt.Println(p.Id, p.Name, p.Release, util.HumanizeTime(p.Started), p.Command)
+			table.Append([]string{p.Id, p.Name, p.Release, util.HumanizeTime(p.Started), p.Command})
 		}
 
+		table.Render()
 	},
 }
