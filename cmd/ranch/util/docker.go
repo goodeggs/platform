@@ -15,14 +15,14 @@ func dockerClient() (*docker.Client, error) {
 	}
 }
 
-func DockerBuild(appDir string, appName string, appVersion string) (string, error) {
+func DockerBuild(appDir string, appName string, appVersion int) (string, error) {
 	client, err := dockerClient()
 
 	if err != nil {
 		return "", err
 	}
 
-	imageName := fmt.Sprintf("%s/%s:%s", "goodeggs", appName, appVersion)
+	imageName := fmt.Sprintf("%s/%s:v%d", "goodeggs", appName, appVersion)
 
 	opts := docker.BuildImageOptions{
 		Name:         imageName,

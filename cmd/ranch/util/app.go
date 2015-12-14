@@ -1,18 +1,60 @@
 package util
 
 import (
+	"io/ioutil"
 	"os"
 	"path"
 
+	"github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
 )
+
+type RanchConfig struct {
+	Name    string `json:"name"`
+	Version int    `json:"version"`
+}
+
+func AppConfigPath(cmd *cobra.Command) (string, error) {
+	appDir, err := AppDir(cmd)
+	if err != nil {
+		return "", err
+	}
+	return path.Join(appDir, ".ranch.yaml"), nil
+}
+
+func LoadAppConfig(cmd *cobra.Command) (*RanchConfig, error) {
+	filename, err := AppConfigPath(cmd)
+
+	if err != nil {
+		return nil, err
+	}
+
+	src, err := ioutil.ReadFile(filename)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var config RanchConfig
+	yaml.Unmarshal(src, &config)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &config, nil
+}
 
 func AppDir(_ *cobra.Command) (string, error) {
 	return os.Getwd()
 }
 
-func AppVersion(_ *cobra.Command) (string, error) {
-	return "v1", nil
+func AppVersion(cmd *cobra.Command) (int, error) {
+	config, err := LoadAppConfig(cmd)
+	if err != nil {
+		return -1, err
+	}
+	return config.Version, nil
 }
 
 func AppName(cmd *cobra.Command) (string, error) {
