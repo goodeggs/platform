@@ -32,7 +32,11 @@ var psCmd = &cobra.Command{
 		}
 
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Id", "Name", "Release", "Started", "Command"})
+		table.SetBorder(false)
+		table.SetColumnSeparator("")
+		table.SetCenterSeparator("")
+		table.SetAutoWrapText(false)
+		table.Append([]string{"ID", "NAME", "RELEASE", "STARTED", "COMMAND"})
 
 		for _, p := range ps {
 			table.Append([]string{p.Id, p.Name, p.Release, util.HumanizeTime(p.Started), p.Command})
