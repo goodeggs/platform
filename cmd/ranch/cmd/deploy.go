@@ -18,9 +18,9 @@ MAINTAINER Good Eggs <open-source@goodeggs.com>
 # see https://github.com/goodeggs/cedar
 `
 
-var buildCmd = &cobra.Command{
-	Use:   "build",
-	Short: "Build the application",
+var deployCmd = &cobra.Command{
+	Use:   "deploy",
+	Short: "Deploy the application",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		appName, err := util.AppName(cmd)
@@ -56,5 +56,5 @@ var buildCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(buildCmd)
+	RootCmd.AddCommand(deployCmd)
 }
