@@ -1,0 +1,6 @@
+ranch
+=====
+A CLI interface to the Good Eggs Platform.
+
+![deploy flow image](http://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgUmFuY2ggRGVwbG95IEZsb3cKCkJvYi0-cmFuY2g6IAACBSBpbml0Cm5vdGUgcmlnaHQgb2YAEwY6IC4AIwUueWFtbAoALgUtPkJvYjogdjEANBN2ZXJzaW9uADQWKiB1cGRhdGUARwxcbiogZ2l0IHRhZyB2MgBTDjIAgRUTZACBQgUAgQEIRG9ja2VyOiBkAAMFIGJ1aWxkCgAPBgCBVwlidWlsdCBnb29kZWdncy9hcHA6AF8KADIPcHVzaAAwEHB1c2hlZAAwEQCCFxVnZW5lcmF0ZVxuKiAAgRYGZmlsAAkFAIEcBi1jb21wb3NlLnkAgkMKQ29udm94OiBjAAMFAIFZCAAQBgCDHAkAgXEGZWQgQUJDREVGAIJ8DQATCXYyCg&s=napkin)
+
