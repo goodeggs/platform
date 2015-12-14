@@ -18,18 +18,10 @@ var psCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		app, err := util.AppName(cmd)
-
-		if err != nil {
-			util.Error(err)
-			return
-		}
+		util.Check(err)
 
 		ps, err := util.Convox().GetProcesses(app, false)
-
-		if err != nil {
-			util.Error(err)
-			return
-		}
+		util.Check(err)
 
 		table := tablewriter.NewWriter(os.Stdout)
 		table.SetBorder(false)

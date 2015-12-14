@@ -17,6 +17,10 @@ func Check(err error) {
 	}
 }
 
+func Die(message string) {
+	Error(fmt.Errorf(message))
+}
+
 func Error(err error) {
 	fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 	Exiter(1)
