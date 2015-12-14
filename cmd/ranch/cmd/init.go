@@ -55,7 +55,7 @@ var initCmd = &cobra.Command{
 		err = ioutil.WriteFile(appYaml, buf.Bytes(), 0644)
 		util.Check(err)
 
-		fmt.Println("generated .ranch.yaml")
+		fmt.Println("generated .ranch.yaml -- check it now!")
 	},
 }
 

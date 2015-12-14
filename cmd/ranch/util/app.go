@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -32,6 +33,13 @@ func LoadAppConfig(cmd *cobra.Command) (*RanchConfig, error) {
 	src, err := ioutil.ReadFile(filename)
 
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf(".ranch.yaml does not exist -- try `ranch init`")
+		}
+		return nil, err
+	}
+
+	if err != nil {
 		return nil, err
 	}
 
@@ -61,6 +69,11 @@ func AppName(cmd *cobra.Command) (string, error) {
 	// use flag
 	if app := cmd.Flag("app").Value.String(); app != "" {
 		return app, nil
+	}
+
+	// fall back to config
+	if config, err := LoadAppConfig(cmd); err == nil {
+		return config.Name, nil
 	}
 
 	// fall back to directory name
