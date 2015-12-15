@@ -66,7 +66,9 @@ var versionBumpCmd = &cobra.Command{
 		err = ioutil.WriteFile(appConfigPath, buf.Bytes(), 0644)
 		util.Check(err)
 
-		fmt.Println("TODO: git add .ranch.yaml")
+		err = util.GitAdd(cmd, ".ranch.yaml")
+		util.Check(err)
+
 		fmt.Println("TODO: git commit -m 'v2'")
 		fmt.Println("TODO: git tag -am 'v2'")
 

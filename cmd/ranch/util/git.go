@@ -3,10 +3,23 @@ package util
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"os/exec"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
+
+func GitAdd(_ *cobra.Command, files ...string) error {
+	args := append([]string{"add"}, files...)
+	cmd := exec.Command("git", args...)
+	err := cmd.Run()
+	if err != nil {
+		err = fmt.Errorf("`%s`: %s", strings.Join(cmd.Args, " "), err.Error())
+		return err
+	}
+	return nil
+}
 
 func GitIsClean(_ *cobra.Command) (bool, error) {
 	cmd := exec.Command("git", "status", "--porcelain")
@@ -14,6 +27,7 @@ func GitIsClean(_ *cobra.Command) (bool, error) {
 	cmd.Stdout = &out
 	err := cmd.Run()
 	if err != nil {
+		err = fmt.Errorf("`%s`: %s", strings.Join(cmd.Args, " "), err.Error())
 		return false, err
 	}
 
