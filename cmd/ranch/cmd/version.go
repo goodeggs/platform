@@ -28,6 +28,8 @@ var versionBumpCmd = &cobra.Command{
 	Short: "Increments the application version",
 	Run: func(cmd *cobra.Command, args []string) {
 
+		fmt.Println("TODO: ensure git is clean")
+
 		oldVersion, err := util.AppVersion(cmd)
 		util.Check(err)
 
@@ -58,6 +60,10 @@ var versionBumpCmd = &cobra.Command{
 
 		err = ioutil.WriteFile(appConfigPath, buf.Bytes(), 0644)
 		util.Check(err)
+
+		fmt.Println("TODO: git add .ranch.yaml")
+		fmt.Println("TODO: git commit -m 'v2'")
+		fmt.Println("TODO: git tag -am 'v2'")
 
 		fmt.Printf("v%d\n", newVersion)
 	},
