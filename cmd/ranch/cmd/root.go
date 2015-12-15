@@ -10,6 +10,7 @@ import (
 
 var cfgFile string
 var App string
+var Verbose bool
 
 var RootCmd = &cobra.Command{
 	Use:   "ranch",
@@ -29,6 +30,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.ranch.yaml)")
+	RootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
 	RootCmd.PersistentFlags().StringVarP(&App, "app", "a", "", "application name (defaults to CWD)")
 }
 

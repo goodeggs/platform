@@ -10,24 +10,41 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func GitAdd(_ *cobra.Command, files ...string) error {
-	args := append([]string{"add"}, files...)
-	cmd := exec.Command("git", args...)
-	err := cmd.Run()
+func git(c *cobra.Command, args ...string) ([]byte, error) {
+	git := exec.Command("git", args...)
+	out, err := git.CombinedOutput()
+
 	if err != nil {
-		err = fmt.Errorf("`%s`: %s", strings.Join(cmd.Args, " "), err.Error())
-		return err
+		err = fmt.Errorf("`%s`: %s", strings.Join(git.Args, " "), err.Error())
+		return nil, err
 	}
-	return nil
+
+	return out, nil
+}
+
+func GitTag(c *cobra.Command, tag string, message string) error {
+	_, err := git(c, "tag", "-am", message, tag)
+	return err
+}
+
+func GitCommit(c *cobra.Command, message string) error {
+	_, err := git(c, "commit", "-m", message)
+	return err
+}
+
+func GitAdd(c *cobra.Command, files ...string) error {
+	args := append([]string{"add"}, files...)
+	_, err := git(c, args...)
+	return err
 }
 
 func GitIsClean(_ *cobra.Command) (bool, error) {
-	cmd := exec.Command("git", "status", "--porcelain")
+	git := exec.Command("git", "status", "--porcelain")
 	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
+	git.Stdout = &out
+	err := git.Run()
 	if err != nil {
-		err = fmt.Errorf("`%s`: %s", strings.Join(cmd.Args, " "), err.Error())
+		err = fmt.Errorf("`%s`: %s", strings.Join(git.Args, " "), err.Error())
 		return false, err
 	}
 

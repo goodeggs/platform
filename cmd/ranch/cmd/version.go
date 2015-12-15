@@ -69,8 +69,14 @@ var versionBumpCmd = &cobra.Command{
 		err = util.GitAdd(cmd, ".ranch.yaml")
 		util.Check(err)
 
-		fmt.Println("TODO: git commit -m 'v2'")
-		fmt.Println("TODO: git tag -am 'v2'")
+		tag := fmt.Sprintf("v%d", newVersion)
+		commitMessage := tag
+
+		err = util.GitCommit(cmd, commitMessage)
+		util.Check(err)
+
+		err = util.GitTag(cmd, tag, commitMessage)
+		util.Check(err)
 
 		fmt.Printf("v%d\n", newVersion)
 	},
