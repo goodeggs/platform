@@ -28,7 +28,12 @@ var versionBumpCmd = &cobra.Command{
 	Short: "Increments the application version",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		fmt.Println("TODO: ensure git is clean")
+		isClean, err := util.GitIsClean(cmd)
+		util.Check(err)
+
+		if !isClean {
+			util.Die("git working directory not clean.")
+		}
 
 		oldVersion, err := util.AppVersion(cmd)
 		util.Check(err)
