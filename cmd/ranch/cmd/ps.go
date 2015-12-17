@@ -17,10 +17,10 @@ var psCmd = &cobra.Command{
 	Short: "List an app's processes",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		app, err := util.AppName(cmd)
+		appName, err := util.AppName(cmd)
 		util.Check(err)
 
-		ps, err := util.Convox().GetProcesses(app, false)
+		ps, err := util.ConvoxPs(appName)
 		util.Check(err)
 
 		table := tablewriter.NewWriter(os.Stdout)
