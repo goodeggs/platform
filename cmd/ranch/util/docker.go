@@ -15,14 +15,21 @@ func dockerClient() (*docker.Client, error) {
 	}
 }
 
-func DockerBuild(appDir string, appName string, appVersion int) (string, error) {
+func DockerPush(imageName string) error {
+	fmt.Println("TODO: docker push $imageName")
+	return nil
+}
+
+func DockerImageName(appName string, appVersion int) string {
+	return fmt.Sprintf("%s/%s:v%d", "goodeggs", appName, appVersion)
+}
+
+func DockerBuild(appDir string, imageName string) error {
 	client, err := dockerClient()
 
 	if err != nil {
-		return "", err
+		return err
 	}
-
-	imageName := fmt.Sprintf("%s/%s:v%d", "goodeggs", appName, appVersion)
 
 	opts := docker.BuildImageOptions{
 		Name:         imageName,
@@ -31,11 +38,5 @@ func DockerBuild(appDir string, appName string, appVersion int) (string, error) 
 		Pull:         true,
 	}
 
-	err = client.BuildImage(opts)
-
-	if err != nil {
-		return "", err
-	}
-
-	return imageName, nil
+	return client.BuildImage(opts)
 }

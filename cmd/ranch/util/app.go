@@ -10,11 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type RanchConfig struct {
-	Name    string `json:"name"`
-	Version int    `json:"version"`
-}
-
 func AppConfigPath(cmd *cobra.Command) (string, error) {
 	appDir, err := AppDir(cmd)
 	if err != nil {
@@ -36,10 +31,6 @@ func LoadAppConfig(cmd *cobra.Command) (*RanchConfig, error) {
 		if os.IsNotExist(err) {
 			return nil, fmt.Errorf(".ranch.yaml does not exist -- try `ranch init`")
 		}
-		return nil, err
-	}
-
-	if err != nil {
 		return nil, err
 	}
 
