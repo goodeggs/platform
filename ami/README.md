@@ -7,22 +7,35 @@ Our custom AMI runs a script on first boot that creates a [logspout ECS task](..
 
 ## Development
 
-We use [packer](https://packer.io/) to build the custom AMI.
+We use [packer](https://packer.io/) to build the custom AMI.  This step should be done in the `dev` AWS account!
 
-   $ brew install packer
-   $ packer build convox-ami.json
+    $ brew install packer
+    $ packer build \
+      -var 'env=dev' \
+      -var 'librato_email=...' \
+      -var 'librato_token=...' \
+      -var 'logspout_token=...' \
+      convox-ami.json
 
 ## Test
 
-Once you have an AMI candidate, you should boot a new Convox rack and verify the instance associated to the ECS cluster correctly.
+Once you have an AMI candidate, you should update the `Ami` CloudFormation parameter in the dev cluster and verify:
 
-   $ convox install --ami <new ami> --instance-count 1 --stack-name test --key goodeggs-aws
+1. That `convox rack` still works and returns the correct information
+2. The `hello-world` app is accessible via its ELB
+3. The HTTP logs from step 1 made it into SumoLogic
 
 ## Release
 
-??
+Switch to the `prod` AWS account and rebuild the AMI.  You should use the short git SHA as the version:
 
-## TODO
+    $ packer build \
+      -var 'env=prod' \
+      -var 'version=abcdef2' \
+      -var 'librato_email=...' \
+      -var 'librato_token=...' \
+      -var 'logspout_token=...' \
+      convox-ami.json
 
-* document how to update the Convox rack once you have a new AMI.
+Now you can update the `Ami` CloudFormation parameter and verify as before.
 
