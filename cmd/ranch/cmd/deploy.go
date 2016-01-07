@@ -93,19 +93,15 @@ func init() {
 }
 
 func convoxScale(appName string, config *util.RanchConfig) error {
+	var err error
+
 	for processName, processConfig := range config.Processes {
-		fmt.Printf("TODO: convox scale %s --count %s --memory %s --app %s", processName, processConfig.Instances, processConfig.Memory, appName)
+		err = util.ConvoxScale(appName, processName, processConfig.Instances, processConfig.Memory)
+		if err != nil {
+			return err
+		}
 	}
 
-	fmt.Printf("waiting for 'running' status... ")
-	err := util.WaitForStatus(appName, "running")
-
-	if err != nil {
-		fmt.Println("ERR")
-		return err
-	}
-
-	fmt.Println("OK")
 	return nil
 }
 

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strconv"
 	"time"
 
 	"github.com/convox/rack/client"
@@ -22,6 +23,16 @@ func convoxClient() (*client.Client, error) {
 	password := viper.GetString("convox.password")
 	version := "20151211151200"
 	return client.New(host, password, version), nil
+}
+
+func ConvoxScale(appName, processName string, instances, memory int) error {
+	client, err := convoxClient()
+
+	if err != nil {
+		return err
+	}
+
+	return client.SetFormation(appName, processName, strconv.Itoa(instances), strconv.Itoa(memory))
 }
 
 func ConvoxPromote(appName string, releaseId string) error {
