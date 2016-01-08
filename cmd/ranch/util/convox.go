@@ -25,6 +25,16 @@ func convoxClient() (*client.Client, error) {
 	return client.New(host, password, version), nil
 }
 
+func ConvoxRunAttached(appName, process, command string, input io.Reader, output io.WriteCloser) (int, error) {
+	client, err := convoxClient()
+
+	if err != nil {
+		return -1, err
+	}
+
+	return client.RunProcessAttached(appName, process, command, input, output)
+}
+
 func ConvoxLogs(appName string, output io.WriteCloser) error {
 	client, err := convoxClient()
 
