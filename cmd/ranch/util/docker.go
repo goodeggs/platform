@@ -55,8 +55,8 @@ func DockerPush(imageName string) error {
 	return nil
 }
 
-func DockerImageName(appName string, appVersion int) string {
-	return fmt.Sprintf("%s/%s:v%d", "goodeggs", appName, appVersion)
+func DockerImageName(appName string, sha string) string {
+	return fmt.Sprintf("%s/%s:%s", "goodeggs", appName, sha)
 }
 
 func DockerBuild(appDir string, imageName string) error {

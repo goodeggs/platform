@@ -6,40 +6,48 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
-
-	"github.com/spf13/cobra"
 )
 
-func git(c *cobra.Command, args ...string) ([]byte, error) {
+func git(appDir string, args ...string) (string, error) {
 	git := exec.Command("git", args...)
+	git.Dir = appDir
 	out, err := git.CombinedOutput()
 
 	if err != nil {
 		err = fmt.Errorf("`%s`: %s", strings.Join(git.Args, " "), err.Error())
-		return nil, err
+		return "", err
 	}
 
-	return out, nil
+	return string(out), nil
 }
 
-func GitTag(c *cobra.Command, tag string, message string) error {
-	_, err := git(c, "tag", "-am", message, tag)
+func GitTag(appDir string, tag string, message string) error {
+	_, err := git(appDir, "tag", "-am", message, tag)
 	return err
 }
 
-func GitCommit(c *cobra.Command, message string) error {
-	_, err := git(c, "commit", "-m", message)
+func GitCommit(appDir string, message string) error {
+	_, err := git(appDir, "commit", "-m", message)
 	return err
 }
 
-func GitAdd(c *cobra.Command, files ...string) error {
+func GitAdd(appDir string, files ...string) error {
 	args := append([]string{"add"}, files...)
-	_, err := git(c, args...)
+	_, err := git(appDir, args...)
 	return err
 }
 
-func GitIsClean(_ *cobra.Command) (bool, error) {
+func GitCurrentSha(appDir string) (string, error) {
+	out, err := git(appDir, "rev-parse", "--short", "HEAD")
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(out), nil
+}
+
+func GitIsClean(appDir string) (bool, error) {
 	git := exec.Command("git", "status", "--porcelain")
+	git.Dir = appDir
 	var out bytes.Buffer
 	git.Stdout = &out
 	err := git.Run()

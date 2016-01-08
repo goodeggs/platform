@@ -48,12 +48,14 @@ func AppDir(_ *cobra.Command) (string, error) {
 	return os.Getwd()
 }
 
-func AppVersion(cmd *cobra.Command) (int, error) {
-	config, err := LoadAppConfig(cmd)
+func AppVersion(cmd *cobra.Command) (string, error) {
+	appDir, err := AppDir(cmd)
+
 	if err != nil {
-		return -1, err
+		return "", err
 	}
-	return config.Version, nil
+
+	return GitCurrentSha(appDir)
 }
 
 func AppName(cmd *cobra.Command) (string, error) {

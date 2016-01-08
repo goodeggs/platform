@@ -50,16 +50,24 @@ var deployCmd = &cobra.Command{
 	Short: "Deploy the application",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		appName, err := util.AppName(cmd)
+		appDir, err := util.AppDir(cmd)
 		util.Check(err)
 
-		appDir, err := util.AppDir(cmd)
+		clean, err := util.GitIsClean(appDir)
+		util.Check(err)
+
+		if !clean {
+			util.Die("git working directory not clean.")
+		}
+
+		appName, err := util.AppName(cmd)
 		util.Check(err)
 
 		config, err := util.LoadAppConfig(cmd)
 		util.Check(err)
 
-		appVersion := config.Version
+		appVersion, err := util.AppVersion(cmd)
+		util.Check(err)
 
 		imageName := util.DockerImageName(appName, appVersion)
 

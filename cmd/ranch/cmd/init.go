@@ -14,7 +14,6 @@ import (
 
 const yamlTemplate string = `
 name: {{.AppName}}
-version: 1
 
 processes:
   web:
