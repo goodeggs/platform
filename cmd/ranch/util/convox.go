@@ -25,6 +25,16 @@ func convoxClient() (*client.Client, error) {
 	return client.New(host, password, version), nil
 }
 
+func ConvoxLogs(appName string, output io.WriteCloser) error {
+	client, err := convoxClient()
+
+	if err != nil {
+		return err
+	}
+
+	return client.StreamAppLogs(appName, output)
+}
+
 func ConvoxScale(appName, processName string, instances, memory int) error {
 	client, err := convoxClient()
 
