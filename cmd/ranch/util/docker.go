@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/fsouza/go-dockerclient"
+	"github.com/spf13/viper"
 )
 
 func dockerClient() (*docker.Client, error) {
@@ -13,6 +14,18 @@ func dockerClient() (*docker.Client, error) {
 		return docker.NewClientFromEnv()
 	} else {
 		return docker.NewClient("unix:///var/run/docker.sock")
+	}
+}
+
+func registry() string {
+	return fmt.Sprintf("%s:5000", viper.GetString("convox.host"))
+}
+
+func registryAuth() docker.AuthConfiguration {
+	return docker.AuthConfiguration{
+		Username:      "convox",
+		Password:      viper.GetString("convox.password"),
+		ServerAddress: registry(),
 	}
 }
 
@@ -27,19 +40,13 @@ func DockerPush(imageName string) error {
 	}
 
 	opts := docker.PushImageOptions{
-		Name:         name,
+		Name:         fmt.Sprintf("https://%s/%s", registry(), name),
 		Tag:          tag,
-		Registry:     "https://index.docker.io/v1/",
+		Registry:     registry(), // deprecated see https://github.com/fsouza/go-dockerclient/issues/377
 		OutputStream: os.Stdout,
 	}
 
-	auths, err := docker.NewAuthConfigurationsFromDockerCfg()
-
-	if err != nil {
-		return err
-	}
-
-	err = client.PushImage(opts, auths.Configs["https://index.docker.io/v1/"])
+	err = client.PushImage(opts, registryAuth())
 
 	if err != nil {
 		return err
