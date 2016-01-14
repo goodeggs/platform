@@ -59,9 +59,9 @@ func GitIsClean(appDir string) (bool, error) {
 	var line string
 	scanner := bufio.NewScanner(bytes.NewReader(out.Bytes()))
 	for scanner.Scan() {
-		// if any line starts with ?? it ain't clean
+		// if any line doesn't start with ?? it ain't clean
 		line = scanner.Text()
-		if line[:2] == "??" {
+		if line[:2] != "??" {
 			return false, nil
 		}
 	}
