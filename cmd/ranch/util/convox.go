@@ -25,6 +25,49 @@ func convoxClient() (*client.Client, error) {
 	return client.New(host, password, version), nil
 }
 
+func ConvoxReleases(appName string) (Releases, error) {
+	client, err := convoxClient()
+
+	if err != nil {
+		return nil, err
+	}
+
+	app, err := client.GetApp(appName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	convoxReleases, err := client.GetReleases(appName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	releases := make(Releases, len(convoxReleases))
+
+	for idx, convoxRelease := range convoxReleases {
+		status := ""
+
+		if app.Release == convoxRelease.Id {
+			status = "active"
+		}
+
+		appVersion := app.Release //TODO(bobzoller): map convox release to git sha
+
+		release := Release{
+			Id:      appVersion,
+			App:     appName,
+			Created: convoxRelease.Created,
+			Status:  status,
+		}
+
+		releases[idx] = release
+	}
+
+	return releases, nil
+}
+
 func ConvoxRunDetached(appName, process, command string) error {
 	client, err := convoxClient()
 

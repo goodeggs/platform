@@ -31,3 +31,12 @@ type Process struct {
 }
 
 type Processes []Process
+
+type Release struct {
+	Id      string    `json:"id"`
+	App     string    `json:"app"`
+	Created time.Time `json:"created"`
+	Status  string    `json:"status"`
+}
+
+type Releases []Release
