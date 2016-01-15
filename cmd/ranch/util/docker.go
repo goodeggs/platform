@@ -17,15 +17,16 @@ func dockerClient() (*docker.Client, error) {
 	}
 }
 
-func registry() string {
+func DockerRegistry() string {
 	return fmt.Sprintf("%s:5000", viper.GetString("convox.host"))
 }
 
 func registryAuth() docker.AuthConfiguration {
 	return docker.AuthConfiguration{
+		Email:         "user@convox.io",
 		Username:      "convox",
 		Password:      viper.GetString("convox.password"),
-		ServerAddress: registry(),
+		ServerAddress: DockerRegistry(),
 	}
 }
 
@@ -40,9 +41,9 @@ func DockerPush(imageName string) error {
 	}
 
 	opts := docker.PushImageOptions{
-		Name:         fmt.Sprintf("https://%s/%s", registry(), name),
+		Name:         fmt.Sprintf("%s/%s", DockerRegistry(), name),
 		Tag:          tag,
-		Registry:     registry(), // deprecated see https://github.com/fsouza/go-dockerclient/issues/377
+		Registry:     DockerRegistry(), // deprecated see https://github.com/fsouza/go-dockerclient/issues/377
 		OutputStream: os.Stdout,
 	}
 
@@ -56,7 +57,7 @@ func DockerPush(imageName string) error {
 }
 
 func DockerImageName(appName string, sha string) string {
-	return fmt.Sprintf("%s/%s:%s", "goodeggs", appName, sha)
+	return fmt.Sprintf("%s:%s", appName, sha)
 }
 
 func DockerBuild(appDir string, imageName string) error {
@@ -73,7 +74,7 @@ func DockerBuild(appDir string, imageName string) error {
 	}
 
 	opts := docker.BuildImageOptions{
-		Name:         imageName,
+		Name:         fmt.Sprintf("%s/%s", DockerRegistry(), imageName),
 		OutputStream: os.Stdout,
 		ContextDir:   appDir,
 		Pull:         true,

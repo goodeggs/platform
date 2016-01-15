@@ -144,7 +144,7 @@ func generateDockerCompose(imageName string, config *util.RanchConfig, buildDir 
 	var out bytes.Buffer
 
 	err := dockerComposeTemplate.Execute(&out, templateVars{
-		ImageName: imageName,
+		ImageName: fmt.Sprintf("%s/%s", util.DockerRegistry(), imageName),
 		Config:    config,
 	})
 
