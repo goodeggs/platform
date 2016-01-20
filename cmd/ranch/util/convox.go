@@ -44,6 +44,12 @@ func ConvoxReleases(appName string) (Releases, error) {
 		return nil, err
 	}
 
+	shaMap, err := buildShaMap(appName)
+
+	if err != nil {
+		return nil, err
+	}
+
 	releases := make(Releases, len(convoxReleases))
 
 	for idx, convoxRelease := range convoxReleases {
@@ -53,7 +59,13 @@ func ConvoxReleases(appName string) (Releases, error) {
 			status = "active"
 		}
 
-		appVersion := app.Release //TODO(bobzoller): map convox release to git sha
+		appVersion, ok := shaMap[convoxRelease.Id]
+
+		if ok {
+			appVersion = appVersion[0:7]
+		} else {
+			appVersion = "??"
+		}
 
 		release := Release{
 			Id:      appVersion,
@@ -279,4 +291,20 @@ func ConvoxPs(appName string) (Processes, error) {
 	}
 
 	return ps, nil
+}
+
+func buildShaMap(appName string) (map[string]string, error) {
+	ecruReleases, err := EcruReleases(appName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	shaMap := make(map[string]string)
+
+	for _, ecruRelease := range ecruReleases {
+		shaMap[ecruRelease.ConvoxRelease] = ecruRelease.Sha
+	}
+
+	return shaMap, nil
 }
