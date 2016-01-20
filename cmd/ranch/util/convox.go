@@ -61,9 +61,7 @@ func ConvoxReleases(appName string) (Releases, error) {
 
 		appVersion, ok := shaMap[convoxRelease.Id]
 
-		if ok {
-			appVersion = appVersion[0:7]
-		} else {
+		if !ok {
 			appVersion = "??"
 		}
 

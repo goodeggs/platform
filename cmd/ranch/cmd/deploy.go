@@ -86,7 +86,7 @@ var deployCmd = &cobra.Command{
 		err = generateDockerCompose(imageName, config, buildDir)
 		util.Check(err)
 
-		err = convoxDeploy(appName, buildDir)
+		err = convoxDeploy(appName, appVersion, buildDir)
 		util.Check(err)
 
 		err = convoxScale(appName, config)
@@ -113,14 +113,20 @@ func convoxScale(appName string, config *util.RanchConfig) error {
 	return nil
 }
 
-func convoxDeploy(appName, buildDir string) error {
+func convoxDeploy(appName, appVersion, buildDir string) error {
 	releaseId, err := util.ConvoxDeploy(appName, buildDir)
 
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("promoting new release %s\n", releaseId)
+	err = util.EcruCreateRelease(appName, appVersion, releaseId)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("promoting release %s\n", appVersion)
 
 	err = util.ConvoxPromote(appName, releaseId)
 
