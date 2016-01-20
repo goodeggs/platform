@@ -50,9 +50,9 @@ func ConvoxReleases(appName string) (Releases, error) {
 		return nil, err
 	}
 
-	releases := make(Releases, len(convoxReleases))
+	var releases Releases
 
-	for idx, convoxRelease := range convoxReleases {
+	for _, convoxRelease := range convoxReleases {
 		status := ""
 
 		if app.Release == convoxRelease.Id {
@@ -62,7 +62,7 @@ func ConvoxReleases(appName string) (Releases, error) {
 		appVersion, ok := shaMap[convoxRelease.Id]
 
 		if !ok {
-			appVersion = "??"
+			continue
 		}
 
 		release := Release{
@@ -72,7 +72,7 @@ func ConvoxReleases(appName string) (Releases, error) {
 			Status:  status,
 		}
 
-		releases[idx] = release
+		releases = append(releases, release)
 	}
 
 	return releases, nil
