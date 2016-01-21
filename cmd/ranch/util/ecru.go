@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/parnurzeal/gorequest"
+	"github.com/spf13/viper"
 )
 
 type EcruError struct {
@@ -18,21 +19,36 @@ type EcruRelease struct {
 	Sha           string `json:"sha"`
 }
 
-func EcruCreateRelease(appName, sha, convoxRelease string) error {
+func noRedirects(req gorequest.Request, via []gorequest.Request) error {
+	return fmt.Errorf("refusing to follow redirect")
+}
 
-	request := gorequest.New()
-
-	url := fmt.Sprintf("https://ecru.goodeggs.com/api/v1/projects/%s/releases", appName)
-
-	noRedirects := func(req gorequest.Request, via []gorequest.Request) error {
-		return fmt.Errorf("refusing to follow redirect")
+func ecruClient() (*gorequest.SuperAgent, error) {
+	if !viper.IsSet("convox.password") {
+		return nil, fmt.Errorf("must set 'convox.password' in $HOME/.ranch.yaml")
 	}
 
-	resp, body, errs := request.
-		Post(url).
+	request := gorequest.New().
 		RedirectPolicy(noRedirects).
-		Send(fmt.Sprintf(`{"sha":"%s","convoxRelease":"%s"}`, sha, convoxRelease)).
-		End()
+		SetBasicAuth(viper.GetString("convox.password"), "x-auth-token").
+		Set("Accept", "application/json").
+		Set("Content-Type", "application/json")
+
+	return request, nil
+}
+
+func EcruCreateRelease(appName, sha, convoxRelease string) error {
+
+	client, err := ecruClient()
+
+	if err != nil {
+		return err
+	}
+
+	url := fmt.Sprintf("https://ecru.goodeggs.com/api/v1/projects/%s/releases", appName)
+	reqBody := fmt.Sprintf(`{"sha":"%s","convoxRelease":"%s"}`, sha, convoxRelease)
+
+	resp, body, errs := client.Post(url).Send(reqBody).End()
 
 	if len(errs) > 0 {
 		return errs[0]
@@ -58,18 +74,15 @@ func EcruCreateRelease(appName, sha, convoxRelease string) error {
 
 func EcruReleases(appName string) ([]EcruRelease, error) {
 
-	request := gorequest.New()
+	client, err := ecruClient()
+
+	if err != nil {
+		return nil, err
+	}
 
 	url := fmt.Sprintf("https://ecru.goodeggs.com/api/v1/projects/%s/releases", appName)
 
-	noRedirects := func(req gorequest.Request, via []gorequest.Request) error {
-		return fmt.Errorf("refusing to follow redirect")
-	}
-
-	resp, body, errs := request.
-		Get(url).
-		RedirectPolicy(noRedirects).
-		End()
+	resp, body, errs := client.Get(url).End()
 
 	if len(errs) > 0 {
 		return nil, errs[0]
@@ -80,7 +93,7 @@ func EcruReleases(appName string) ([]EcruRelease, error) {
 	}
 
 	var ecruReleases []EcruRelease
-	err := json.Unmarshal([]byte(body), &ecruReleases)
+	err = json.Unmarshal([]byte(body), &ecruReleases)
 
 	if err != nil {
 		return nil, err
