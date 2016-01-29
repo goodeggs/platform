@@ -15,7 +15,7 @@ We use [packer](https://packer.io/) to build the custom AMI.  This step should b
       -var 'librato_email=...' \
       -var 'librato_token=...' \
       -var 'logspout_token=...' \
-      convox-ami.json
+      packer.json
 
 ## Test
 
@@ -35,7 +35,7 @@ Switch to the `prod` AWS account and rebuild the AMI.  You should use the short 
       -var 'librato_email=...' \
       -var 'librato_token=...' \
       -var 'logspout_token=...' \
-      convox-ami.json
+      packer.json
 
 Now you can update the `Ami` CloudFormation parameter and verify as before.
 
