@@ -4,7 +4,7 @@ import "time"
 
 type RanchConfig struct {
 	Name      string                `json:"name"`
-	Version   int                   `json:"version"`
+	EnvId     string                `json:"env_id"`
 	Processes RanchConfigProcessMap `json:"processes"`
 }
 

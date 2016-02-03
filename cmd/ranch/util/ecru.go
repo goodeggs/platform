@@ -101,3 +101,26 @@ func EcruReleases(appName string) ([]EcruRelease, error) {
 
 	return ecruReleases, nil
 }
+
+func EcruGetSecret(appName, secretId string) (plaintext string, err error) {
+
+	client, err := ecruClient()
+
+	if err != nil {
+		return "", err
+	}
+
+	url := fmt.Sprintf("https://ecru.goodeggs.com/api/v1/projects/%s/secrets/%s", appName, secretId)
+
+	resp, body, errs := client.Get(url).End()
+
+	if len(errs) > 0 {
+		return "", errs[0]
+	}
+
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("Error fetching secret from Ecru: status code %d", resp.StatusCode)
+	}
+
+	return body, nil
+}
