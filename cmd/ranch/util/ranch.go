@@ -1,6 +1,12 @@
 package util
 
-import "time"
+import (
+	"bytes"
+	"io/ioutil"
+	"path"
+	"regexp"
+	"time"
+)
 
 type RanchConfig struct {
 	Name      string                `json:"name"`
@@ -40,3 +46,30 @@ type Release struct {
 }
 
 type Releases []Release
+
+func RanchUpdateEnvId(appDir, envId string) (err error) {
+	ranchFile := path.Join(appDir, ".ranch.yaml")
+
+	contents, err := ioutil.ReadFile(ranchFile)
+	if err != nil {
+		return err
+	}
+
+	re, err := regexp.Compile(`(?m)^(\s*env_id\s*:\s*)(['"\w]+)?(.*)$`)
+	if err != nil {
+		return err
+	}
+
+	updatedContents := re.ReplaceAll(contents, []byte("${1}"+envId+"${3}"))
+	if bytes.Equal(updatedContents, contents) {
+		// if we didn't find it, we'll prepend
+		updatedContents = bytes.Join([][]byte{[]byte("env_id: " + envId), contents}, []byte("\n"))
+	}
+
+	err = ioutil.WriteFile(ranchFile, updatedContents, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

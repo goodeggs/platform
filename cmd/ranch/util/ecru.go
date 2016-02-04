@@ -13,10 +13,14 @@ type EcruError struct {
 }
 
 type EcruRelease struct {
-	Id            string `json:"id"`
+	Id            string `json:"_id"`
 	ProjectId     string `json:"project"`
 	ConvoxRelease string `json:"convoxRelease"`
 	Sha           string `json:"sha"`
+}
+
+type EcruSecret struct {
+	Id string `json:"_id"`
 }
 
 func noRedirects(req gorequest.Request, via []gorequest.Request) error {
@@ -123,4 +127,38 @@ func EcruGetSecret(appName, secretId string) (plaintext string, err error) {
 	}
 
 	return body, nil
+}
+
+func EcruCreateSecret(appName, plaintext string) (secretId string, err error) {
+
+	client, err := ecruClient()
+
+	if err != nil {
+		return "", err
+	}
+
+	url := fmt.Sprintf("https://ecru.goodeggs.com/api/v1/projects/%s/secrets", appName)
+
+	resp, body, errs := client.
+		Post(url).
+		Set("Content-Type", "text/plain").
+		Send(plaintext).
+		End()
+
+	if len(errs) > 0 {
+		return "", errs[0]
+	}
+
+	if resp.StatusCode != 201 {
+		return "", fmt.Errorf("Error creating secret in Ecru: status code %d", resp.StatusCode)
+	}
+
+	var ecruSecret EcruSecret
+	err = json.Unmarshal([]byte(body), &ecruSecret)
+
+	if err != nil {
+		return "", err
+	}
+
+	return ecruSecret.Id, nil
 }
