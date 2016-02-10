@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/convox/rack/client"
-	"github.com/jhoonb/archivex"
-	"github.com/spf13/viper"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/convox/rack/client"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/jhoonb/archivex"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/viper"
 )
 
 func convoxClient() (*client.Client, error) {

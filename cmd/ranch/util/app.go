@@ -6,8 +6,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/ghodss/yaml"
-	"github.com/spf13/cobra"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/ghodss/yaml"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra"
 )
 
 func AppConfigPath(cmd *cobra.Command) (string, error) {

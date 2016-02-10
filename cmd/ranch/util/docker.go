@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fsouza/go-dockerclient"
-	"github.com/spf13/viper"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/viper"
 )
 
 func dockerClient() (*docker.Client, error) {

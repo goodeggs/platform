@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/imdario/mergo"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra"
 	"github.com/goodeggs/platform/cmd/ranch/util"
-	"github.com/imdario/mergo"
-	"github.com/spf13/cobra"
 )
 
 var envSetCmd = &cobra.Command{

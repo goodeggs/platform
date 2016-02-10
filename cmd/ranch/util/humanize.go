@@ -3,7 +3,7 @@ package util
 import (
 	"time"
 
-	"github.com/dustin/go-humanize"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/dustin/go-humanize"
 )
 
 func HumanizeTime(t time.Time) string {
