@@ -19,3 +19,6 @@ Our custom build of [logspout-http](https://github.com/raychaser/logspout-http) 
 ### [ansible](./ansible)
 Ansible playbooks used to manage the platform.
 
+### [ranch](./cmd/ranch)
+The platform's CLI.
+
