@@ -37,7 +37,7 @@ var dockerComposeTemplate = template.Must(template.New("docker-compose").Parse(`
     - 443:4443
   {{ end }}
   environment:
-{{ range $k, $v := $.Environment }}{{ printf "    - %s=%q\n" $k $v }}{{ end }}
+{{ range $k, $v := $.Environment }}{{ printf "    - %s=%s\n" $k $v }}{{ end }}
 {{ end }}
 `))
 
