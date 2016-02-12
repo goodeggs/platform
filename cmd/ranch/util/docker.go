@@ -10,11 +10,7 @@ import (
 )
 
 func dockerClient() (*docker.Client, error) {
-	if os.Getenv("DOCKER_HOST") != "" {
-		return docker.NewClientFromEnv()
-	} else {
-		return docker.NewClient("unix:///var/run/docker.sock")
-	}
+	return docker.NewClientFromEnv()
 }
 
 func DockerRegistry() string {
@@ -67,18 +63,21 @@ func DockerBuild(appDir string, imageName string) error {
 		return err
 	}
 
-	auth, err := docker.NewAuthConfigurationsFromDockerCfg()
-
-	if err != nil {
-		return err
-	}
-
 	opts := docker.BuildImageOptions{
 		Name:         fmt.Sprintf("%s/%s", DockerRegistry(), imageName),
 		OutputStream: os.Stdout,
 		ContextDir:   appDir,
 		Pull:         true,
-		AuthConfigs:  *auth,
+	}
+
+	auth, err := docker.NewAuthConfigurationsFromDockerCfg()
+
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	if auth != nil {
+		opts.AuthConfigs = *auth
 	}
 
 	return client.BuildImage(opts)
