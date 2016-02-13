@@ -71,6 +71,12 @@ var deployCmd = &cobra.Command{
 		appVersion, err := util.AppVersion(cmd)
 		util.Check(err)
 
+		exists, err := util.EcruReleaseExists(appName, appVersion)
+		util.Check(err)
+		if exists {
+			util.Die(fmt.Sprintf("release %s already exists.", appVersion))
+		}
+
 		imageName := util.DockerImageName(appName, appVersion)
 
 		if Build {
