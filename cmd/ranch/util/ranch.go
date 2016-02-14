@@ -22,6 +22,14 @@ type RanchConfigProcess struct {
 
 type RanchConfigProcessMap map[string]RanchConfigProcess
 
+type RanchFormationEntry struct {
+	Balancer  string `json:"balancer"`
+	Instances int    `json:"instances"`
+	Memory    int    `json:"memory"`
+}
+
+type RanchFormation map[string]RanchFormationEntry
+
 type Process struct {
 	Id      string    `json:"id"`
 	App     string    `json:"app"`
