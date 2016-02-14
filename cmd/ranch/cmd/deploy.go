@@ -106,7 +106,7 @@ var deployCmd = &cobra.Command{
 		err = convoxDeploy(appName, appVersion, buildDir)
 		util.Check(err)
 
-		err = convoxScale(appName, config)
+		err = util.ConvoxScale(appName, config)
 		util.Check(err)
 
 	},
@@ -115,19 +115,6 @@ var deployCmd = &cobra.Command{
 func init() {
 	deployCmd.Flags().BoolVar(&Build, "build", true, "Build and push the Docker image")
 	RootCmd.AddCommand(deployCmd)
-}
-
-func convoxScale(appName string, config *util.RanchConfig) error {
-	var err error
-
-	for processName, processConfig := range config.Processes {
-		err = util.ConvoxScale(appName, processName, processConfig.Instances, processConfig.Memory)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func convoxDeploy(appName, appVersion, buildDir string) error {

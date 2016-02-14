@@ -108,14 +108,63 @@ func ConvoxLogs(appName string, output io.WriteCloser) error {
 	return client.StreamAppLogs(appName, output)
 }
 
-func ConvoxScale(appName, processName string, instances, memory int) error {
+func ConvoxGetFormation(appName string) (formation RanchFormation, err error) {
+
+	formation = make(RanchFormation)
+
+	client, err := convoxClient()
+
+	if err != nil {
+		return nil, err
+	}
+
+	convoxFormation, err := client.ListFormation(appName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, convoxFormationEntry := range convoxFormation {
+		formation[convoxFormationEntry.Name] = RanchFormationEntry{
+			Instances: convoxFormationEntry.Count,
+			Memory:    convoxFormationEntry.Memory,
+			Balancer:  convoxFormationEntry.Balancer,
+		}
+	}
+
+	return formation, nil
+}
+
+func ConvoxScale(appName string, config *RanchConfig) (err error) {
+
 	client, err := convoxClient()
 
 	if err != nil {
 		return err
 	}
 
-	return client.SetFormation(appName, processName, strconv.Itoa(instances), strconv.Itoa(memory))
+	existingFormation, err := ConvoxGetFormation(appName)
+
+	if err != nil {
+		return err
+	}
+
+	for processName, processConfig := range config.Processes {
+		if existingEntry, ok := existingFormation[processName]; ok {
+			if existingEntry.Instances == processConfig.Instances && existingEntry.Memory == processConfig.Memory {
+				fmt.Printf("%s already scaled to instances=%d memory=%d\n", processName, processConfig.Instances, processConfig.Memory)
+				continue
+			}
+		}
+
+		fmt.Printf("scaling %s to instances=%d memory=%d\n", processName, processConfig.Instances, processConfig.Memory)
+		err = client.SetFormation(appName, processName, strconv.Itoa(processConfig.Instances), strconv.Itoa(processConfig.Memory))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func ConvoxPromote(appName string, releaseId string) error {
