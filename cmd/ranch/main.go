@@ -7,13 +7,13 @@ import (
 	"github.com/goodeggs/platform/cmd/ranch/cmd"
 )
 
-const Version = "dev"
+var VERSION = "dev"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Prints the ranch CLI version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(Version)
+		fmt.Println(VERSION)
 	},
 }
 
