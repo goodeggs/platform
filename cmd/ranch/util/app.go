@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/ghodss/yaml"
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra"
@@ -45,7 +46,13 @@ func LoadAppConfig(cmd *cobra.Command) (*RanchConfig, error) {
 }
 
 func AppDir(_ *cobra.Command) (string, error) {
-	return os.Getwd()
+	wd, err := os.Getwd()
+
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.EvalSymlinks(wd)
 }
 
 func AppVersion(cmd *cobra.Command) (string, error) {
