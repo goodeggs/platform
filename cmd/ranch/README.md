@@ -26,10 +26,19 @@ $ go get ...
 Releasing
 ---------
 
+One time, you'll need to install [goxc](https://github.com/laher/goxc) and set your Github API Token so that we can automatically create a release:
+
 ```
-$ VERSION=x.x.x make version
-$ git push
+$ go get github.com/laher/goxc
+$ goxc -wlc default publish-github -apikey=123456789012
 ```
 
-Then upload `ranch-osx-VERSION.tar.gz` to the Github Release page, and go update the [homebrew formula](https://github.com/goodeggs/homebrew-delivery-eng/blob/master/Formula/ranch.rb) with the new url and shasum.
+Then, to create a release:
+
+```
+$ goxc bump
+$ goxc
+```
+
+Don't forget to update the [homebrew formula](https://github.com/goodeggs/homebrew-delivery-eng/blob/master/Formula/ranch.rb) with the new url and shasum.
 
