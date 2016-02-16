@@ -16,4 +16,7 @@ version:
 	sed -i '/^const Version =/c\const Version = "$(VERSION)"' util/version.go
 	git commit -a -m 'v$(VERSION)'
 	git tag -am 'v$(VERSION)' v$(VERSION)
+	go build
+	tar czf ranch-osx-$(VERSION).tar.gz ranch
+	shasum -a 256 ranch-osx-$(VERSION).tar.gz
 

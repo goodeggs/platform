@@ -31,5 +31,5 @@ $ VERSION=x.x.x make version
 $ git push
 ```
 
-And then go update the [homebrew formula](https://github.com/goodeggs/homebrew-delivery-eng/blob/master/Formula/ranch.rb).
+Then upload `ranch-osx-VERSION.tar.gz` to the Github Release page, and go update the [homebrew formula](https://github.com/goodeggs/homebrew-delivery-eng/blob/master/Formula/ranch.rb) with the new url and shasum.
 
