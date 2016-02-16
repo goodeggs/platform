@@ -40,5 +40,5 @@ $ goxc bump
 $ goxc
 ```
 
-Don't forget to update the [homebrew formula](https://github.com/goodeggs/homebrew-delivery-eng/blob/master/Formula/ranch.rb) with the new url and shasum.
+Don't forget to update the [homebrew formula](https://github.com/goodeggs/homebrew-delivery-eng/blob/master/Formula/ranch.rb) with the new version and shasum.
 
