@@ -1,6 +1,21 @@
-#!/bin/sh
+#cloud-config
 
-# NOTE: this exists because the ECS AMI does not include scp.
-# we can kill this and the hacky sleep 30 off once https://github.com/mitchellh/packer/pull/2504 is merged.
+# attempt to disable everything except ssh and the initial yum update
 
-yum install -y openssh-clients
+cloud_init_modules:
+  - users-groups
+  - ssh
+
+cloud_config_modules:
+  - yum-configure
+  - yum-add-repo
+  - package-update-upgrade-install
+
+packages: []
+
+cloud_final_modules: []
+
+bootcmd: []
+
+runcmd: []
+
