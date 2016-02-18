@@ -7,6 +7,14 @@ Our custom AMI runs a script on first boot that creates a [logspout ECS task](..
 
 ## Development
 
+```
+$ CONVOX_VERSION=$( curl http://convox.s3.amazonaws.com/release/versions.json | jq -r 'map(select(.published)) | map(.version) | sort | last') )
+$ curl https://convox.s3.amazonaws.com/release/$CONVOX_VERSION/formation.json > convox-formation.json
+$ SOURCE_AMI=$( cat convox-formation.json | jq -r '.Mappings.RegionConfig["us-east-1"].Ami' )
+```
+
+Update `packer.json` with the new `source_ami` value from above.
+
 We use [packer](https://packer.io/) to build the custom AMI.  This step should be done in the `dev` AWS account!
 
     $ brew install packer
@@ -19,7 +27,7 @@ We use [packer](https://packer.io/) to build the custom AMI.  This step should b
 
 ## Test
 
-Once you have an AMI candidate, you should update the `Ami` CloudFormation parameter in the dev cluster and verify:
+Once you have an AMI candidate, you should upload the `convox-formation.json` file, update the `Ami` CloudFormation parameter in the dev cluster and verify:
 
 1. That `convox rack` still works and returns the correct information
 2. The `hello-world` app is accessible via its ELB
@@ -37,5 +45,5 @@ Switch to the `prod` AWS account and rebuild the AMI.  You should use the short 
       -var 'logspout_token=...' \
       packer.json
 
-Now you can update the `Ami` CloudFormation parameter and verify as before.
+Now you can upload the `convox-formation.json`, update the `Ami` CloudFormation parameter, and verify as before.
 

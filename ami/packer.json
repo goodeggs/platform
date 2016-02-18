@@ -39,11 +39,6 @@
     },
     {
       "type": "file",
-      "source": "logrotate-docker",
-      "destination": "/home/ec2-user/logrotate-docker"
-    },
-    {
-      "type": "file",
       "source": "cron-docker-custodian",
       "destination": "/home/ec2-user/cron-docker-custodian"
     },
@@ -83,9 +78,6 @@
 
         "# Install logspout-goodeggs.conf",
         "sudo mv {/home/ec2-user,/etc/init}/logspout-goodeggs.conf",
-
-        "# Install logrotate-docker",
-        "sudo mv /home/ec2-user/logrotate-docker /etc/logrotate.d/docker",
 
         "# Install docker-custodian",
         "sudo mv /home/ec2-user/cron-docker-custodian /etc/cron.hourly/docker-custodian",
