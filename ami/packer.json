@@ -29,10 +29,6 @@
   ],
   "provisioners": [
     {
-      "type": "shell-local",
-      "command": "echo wait for scp to install; sleep 30"
-    },
-    {
       "type": "file",
       "source": "logspout-goodeggs.conf",
       "destination": "/home/ec2-user/logspout-goodeggs.conf"
