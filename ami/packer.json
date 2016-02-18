@@ -92,13 +92,12 @@
         "sudo mv {/home/ec2-user,/var/lib/collectd}/memory-available.sh",
         "sudo chmod 0755 /var/lib/collectd/memory-available.sh",
 
-        "# Reset cloud-init",
-        "sudo rm -rf /var/lib/cloud/{sem,instance,instances/*}",
+        "# Clear docker fs",
+        "sudo service docker stop",
+        "sudo rm -rf /var/lib/docker/*",
 
-        "# Remove all ECS execution traces added while running packer",
-        "sudo stop ecs 2> /dev/null || true",
-        "sudo docker rm ecs-agent 2> /dev/null || true",
-        "sudo rm -rf /var/log/ecs/* /var/lib/ecs/data/*"
+        "# Reset cloud-init",
+        "sudo rm -rf /var/lib/cloud/{sem,instance,instances/*}"
       ]
     }
   ]
