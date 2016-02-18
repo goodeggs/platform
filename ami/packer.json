@@ -9,7 +9,7 @@
     "librato_email": null,
     "librato_token": null,
     "env": null,
-    "version": "{{isotime \"2006-01-02\"}}"
+    "version": "{{isotime \"20060102T150405\"}}"
   },
   "builders": [
     {
