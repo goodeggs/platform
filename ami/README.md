@@ -27,11 +27,12 @@ We use [packer](https://packer.io/) to build the custom AMI.  This step should b
 
 ## Test
 
-Once you have an AMI candidate, you should upload the `convox-formation.json` file, update the `Ami` CloudFormation parameter in the dev cluster and verify:
+Once you have an AMI candidate, you should upload the `convox-formation.json` file, update the `Ami` and `Version` CloudFormation parameters in the dev cluster and verify:
 
 1. That `convox rack` still works and returns the correct information
 2. The `hello-world` app is accessible via its ELB
 3. The HTTP logs from step 1 made it into SumoLogic
+4. The collectd metrics made it into Librato (try [here](https://metrics.librato.com/s/metrics/collectd.cpu.percent.user?q=collectd.cpu&source=aws.dev.%2a))
 
 ## Release
 
@@ -45,5 +46,5 @@ Switch to the `prod` AWS account and rebuild the AMI.  You should use the short 
       -var 'logspout_token=...' \
       packer.json
 
-Now you can upload the `convox-formation.json`, update the `Ami` CloudFormation parameter, and verify as before.
+Now you can upload the `convox-formation.json`, update the `Ami` and `Version` CloudFormation parameters, and verify as before.
 
