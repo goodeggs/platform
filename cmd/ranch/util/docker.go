@@ -1,7 +1,7 @@
 package util
 
 import (
-	"fmt"
+	"net/url"
 	"os"
 	"strings"
 
@@ -13,22 +13,38 @@ func dockerClient() (*docker.Client, error) {
 	return docker.NewClientFromEnv()
 }
 
-func DockerRegistry() string {
-	return fmt.Sprintf("%s:5000", viper.GetString("convox.host"))
+func DockerResolveImageName(imageName string) (string, error) {
+	host := viper.GetString("docker.registry.host")
+
+	registryUrl, err := url.Parse(host)
+
+	if err != nil {
+		return "", err
+	}
+
+	hostname := registryUrl.Host
+
+	org := viper.GetString("docker.registry.org")
+
+	if org == "" {
+		return strings.Join([]string{hostname, imageName}, "/"), nil
+	}
+
+	return strings.Join([]string{hostname, org, imageName}, "/"), nil
 }
 
 func registryAuth() docker.AuthConfiguration {
 	return docker.AuthConfiguration{
-		Email:         "user@convox.io",
-		Username:      "convox",
-		Password:      viper.GetString("convox.password"),
-		ServerAddress: DockerRegistry(),
+		Email:         viper.GetString("docker.registry.email"),
+		Username:      viper.GetString("docker.registry.username"),
+		Password:      viper.GetString("docker.registry.password"),
+		ServerAddress: viper.GetString("docker.registry.host"),
 	}
 }
 
-func DockerPush(imageName string) error {
-	parts := strings.Split(imageName, ":")
-	name, tag := parts[0], parts[1]
+func DockerPush(imageNameWithTag string) error {
+	parts := strings.Split(imageNameWithTag, ":")
+	imageName, tag := parts[0], parts[1]
 
 	client, err := dockerClient()
 
@@ -36,10 +52,15 @@ func DockerPush(imageName string) error {
 		return err
 	}
 
+	absoluteImageName, err := DockerResolveImageName(imageName)
+
+	if err != nil {
+		return err
+	}
+
 	opts := docker.PushImageOptions{
-		Name:         fmt.Sprintf("%s/%s", DockerRegistry(), name),
+		Name:         absoluteImageName,
 		Tag:          tag,
-		Registry:     DockerRegistry(), // deprecated see https://github.com/fsouza/go-dockerclient/issues/377
 		OutputStream: os.Stdout,
 	}
 
@@ -52,10 +73,6 @@ func DockerPush(imageName string) error {
 	return nil
 }
 
-func DockerImageName(appName string, sha string) string {
-	return fmt.Sprintf("%s:%s", appName, sha)
-}
-
 func DockerBuild(appDir string, imageName string) error {
 	client, err := dockerClient()
 
@@ -63,8 +80,14 @@ func DockerBuild(appDir string, imageName string) error {
 		return err
 	}
 
+	absoluteImageName, err := DockerResolveImageName(imageName)
+
+	if err != nil {
+		return err
+	}
+
 	opts := docker.BuildImageOptions{
-		Name:         fmt.Sprintf("%s/%s", DockerRegistry(), imageName),
+		Name:         absoluteImageName,
 		OutputStream: os.Stdout,
 		ContextDir:   appDir,
 		Pull:         true,
