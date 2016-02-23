@@ -1,6 +1,14 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Conditions": {
+    "Autoscale": {
+      "Fn::Equals": [
+        {
+          "Ref": "Autoscale"
+        },
+        "Yes"
+      ]
+    },
     "BlankAmi": {
       "Fn::Equals": [
         {
@@ -49,10 +57,18 @@
         "Yes"
       ]
     },
-    "Encryption": {
+    "Private": {
       "Fn::Equals": [
         {
-          "Ref": "Encryption"
+          "Ref": "Private"
+        },
+        "Yes"
+      ]
+    },
+    "PrivateApi": {
+      "Fn::Equals": [
+        {
+          "Ref": "PrivateApi"
         },
         "Yes"
       ]
@@ -87,6 +103,16 @@
     }
   },
   "Outputs": {
+    "Autoscale": {
+      "Condition": "Development",
+      "Value": {
+        "Fn::If": [
+          "Autoscale",
+          "true",
+          "false"
+        ]
+      }
+    },
     "AwsRegion": {
       "Condition": "Development",
       "Value": {
@@ -168,15 +194,7 @@
     "EncryptionKey": {
       "Condition": "Development",
       "Value": {
-        "Fn::If": [
-          "Encryption",
-          {
-            "Ref": "EncryptionKey"
-          },
-          {
-            "Ref": "AWS::NoValue"
-          }
-        ]
+        "Ref": "EncryptionKey"
       }
     },
     "Kinesis": {
@@ -209,6 +227,10 @@
       "Value": {
         "Ref": "Password"
       }
+    },
+    "Provider": {
+      "Condition": "Development",
+      "Value": "aws"
     },
     "Rack": {
       "Condition": "Development",
@@ -276,6 +298,31 @@
         ]
       }
     },
+    "SubnetsPrivate": {
+      "Condition": "Development",
+      "Value": {
+        "Fn::If": [
+          "Private",
+          {
+            "Fn::Join": [
+              ",",
+              [
+                {
+                  "Ref": "SubnetPrivate0"
+                },
+                {
+                  "Ref": "SubnetPrivate1"
+                },
+                {
+                  "Ref": "SubnetPrivate2"
+                }
+              ]
+            ]
+          },
+          ""
+        ]
+      }
+    },
     "StackId": {
       "Condition": "Development",
       "Value": {
@@ -294,6 +341,15 @@
       "Type": "String",
       "Description": "Amazon Machine Image: http://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_container_instance.html",
       "Default": ""
+    },
+    "Autoscale": {
+      "Type": "String",
+      "Description": "Autoscale rack instances",
+      "Default": "No",
+      "AllowedValues": [
+        "Yes",
+        "No"
+      ]
     },
     "ClientId": {
       "Type": "String",
@@ -364,6 +420,24 @@
       "MinLength": "1",
       "MaxLength": "50"
     },
+    "Private": {
+      "Type": "String",
+      "Description": "Create non publicly routable resources",
+      "Default": "No",
+      "AllowedValues": [
+        "Yes",
+        "No"
+      ]
+    },
+    "PrivateApi": {
+      "Type": "String",
+      "Description": "Put Rack API Load Balancer in private network",
+      "Default": "No",
+      "AllowedValues": [
+        "Yes",
+        "No"
+      ]
+    },
     "RegistryHost": {
       "Type": "String",
       "Description": "Registry host",
@@ -376,24 +450,39 @@
     },
     "Subnet0CIDR": {
       "Default": "10.0.1.0/24",
-      "Description": "Subnet 0 CIDR Block",
+      "Description": "Public Subnet 0 CIDR Block",
       "Type": "String"
     },
     "Subnet1CIDR": {
       "Default": "10.0.2.0/24",
-      "Description": "Subnet 0 CIDR Block",
+      "Description": "Public Subnet 1 CIDR Block",
       "Type": "String"
     },
     "Subnet2CIDR": {
       "Default": "10.0.3.0/24",
-      "Description": "Subnet 0 CIDR Block",
+      "Description": "Public Subnet 2 CIDR Block",
+      "Type": "String"
+    },
+    "SubnetPrivate0CIDR": {
+      "Default": "10.0.4.0/24",
+      "Description": "Private Subnet 0 CIDR Block",
+      "Type": "String"
+    },
+    "SubnetPrivate1CIDR": {
+      "Default": "10.0.5.0/24",
+      "Description": "Private Subnet 1 CIDR Block",
+      "Type": "String"
+    },
+    "SubnetPrivate2CIDR": {
+      "Default": "10.0.6.0/24",
+      "Description": "Private Subnet 2 CIDR Block",
       "Type": "String"
     },
     "Version": {
       "Description": "(REQUIRED) Convox release version",
       "MinLength": "1",
       "Type": "String",
-      "Default": "20160213224638"
+      "Default": "20160223035816-compose-env"
     },
     "VolumeSize": {
       "Type": "Number",
@@ -417,7 +506,6 @@
   },
   "Resources": {
     "EncryptionKey": {
-      "Condition": "Encryption",
       "DependsOn": "CustomTopic",
       "Type": "Custom::KMSKey",
       "Properties": {
@@ -795,6 +883,90 @@
         }
       }
     },
+    "NatGateway0": {
+      "Condition": "Private",
+      "Type": "Custom::EC2NatGateway",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomTopic",
+            "Arn"
+          ]
+        },
+        "AllocationId": {
+          "Fn::GetAtt": [
+            "NatIp0",
+            "AllocationId"
+          ]
+        },
+        "SubnetId": {
+          "Ref": "Subnet0"
+        }
+      }
+    },
+    "NatGateway1": {
+      "Condition": "Private",
+      "Type": "Custom::EC2NatGateway",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomTopic",
+            "Arn"
+          ]
+        },
+        "AllocationId": {
+          "Fn::GetAtt": [
+            "NatIp1",
+            "AllocationId"
+          ]
+        },
+        "SubnetId": {
+          "Ref": "Subnet1"
+        }
+      }
+    },
+    "NatGateway2": {
+      "Condition": "Private",
+      "Type": "Custom::EC2NatGateway",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomTopic",
+            "Arn"
+          ]
+        },
+        "AllocationId": {
+          "Fn::GetAtt": [
+            "NatIp2",
+            "AllocationId"
+          ]
+        },
+        "SubnetId": {
+          "Ref": "Subnet2"
+        }
+      }
+    },
+    "NatIp0": {
+      "Condition": "Private",
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Domain": "vpc"
+      }
+    },
+    "NatIp1": {
+      "Condition": "Private",
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Domain": "vpc"
+      }
+    },
+    "NatIp2": {
+      "Condition": "Private",
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Domain": "vpc"
+      }
+    },
     "Subnet0": {
       "DependsOn": [
         "AvailabilityZones",
@@ -858,6 +1030,72 @@
         }
       }
     },
+    "SubnetPrivate0": {
+      "Condition": "Private",
+      "DependsOn": [
+        "AvailabilityZones",
+        "Vpc"
+      ],
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::GetAtt": [
+            "AvailabilityZones",
+            "AvailabilityZone0"
+          ]
+        },
+        "CidrBlock": {
+          "Ref": "SubnetPrivate0CIDR"
+        },
+        "VpcId": {
+          "Ref": "Vpc"
+        }
+      }
+    },
+    "SubnetPrivate1": {
+      "Condition": "Private",
+      "DependsOn": [
+        "AvailabilityZones",
+        "Vpc"
+      ],
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::GetAtt": [
+            "AvailabilityZones",
+            "AvailabilityZone1"
+          ]
+        },
+        "CidrBlock": {
+          "Ref": "SubnetPrivate1CIDR"
+        },
+        "VpcId": {
+          "Ref": "Vpc"
+        }
+      }
+    },
+    "SubnetPrivate2": {
+      "Condition": "Private",
+      "DependsOn": [
+        "AvailabilityZones",
+        "Vpc"
+      ],
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::GetAtt": [
+            "AvailabilityZones",
+            "AvailabilityZone2"
+          ]
+        },
+        "CidrBlock": {
+          "Ref": "SubnetPrivate2CIDR"
+        },
+        "VpcId": {
+          "Ref": "Vpc"
+        }
+      }
+    },
     "Routes": {
       "DependsOn": [
         "Gateway",
@@ -885,6 +1123,114 @@
         },
         "RouteTableId": {
           "Ref": "Routes"
+        }
+      }
+    },
+    "RoutesPrivate0": {
+      "Condition": "Private",
+      "DependsOn": [
+        "NatGateway0",
+        "Vpc"
+      ],
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        }
+      }
+    },
+    "RoutesPrivate1": {
+      "Condition": "Private",
+      "DependsOn": [
+        "NatGateway1",
+        "Vpc"
+      ],
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        }
+      }
+    },
+    "RoutesPrivate2": {
+      "Condition": "Private",
+      "DependsOn": [
+        "NatGateway2",
+        "Vpc"
+      ],
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        }
+      }
+    },
+    "RoutePrivateDefault0": {
+      "Condition": "Private",
+      "DependsOn": [
+        "NatGateway0",
+        "RoutesPrivate0"
+      ],
+      "Type": "Custom::EC2Route",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomTopic",
+            "Arn"
+          ]
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": {
+          "Ref": "NatGateway0"
+        },
+        "RouteTableId": {
+          "Ref": "RoutesPrivate0"
+        }
+      }
+    },
+    "RoutePrivateDefault1": {
+      "Condition": "Private",
+      "DependsOn": [
+        "NatGateway1",
+        "RoutesPrivate1"
+      ],
+      "Type": "Custom::EC2Route",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomTopic",
+            "Arn"
+          ]
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": {
+          "Ref": "NatGateway1"
+        },
+        "RouteTableId": {
+          "Ref": "RoutesPrivate1"
+        }
+      }
+    },
+    "RoutePrivateDefault2": {
+      "Condition": "Private",
+      "DependsOn": [
+        "NatGateway2",
+        "RoutesPrivate2"
+      ],
+      "Type": "Custom::EC2Route",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomTopic",
+            "Arn"
+          ]
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": {
+          "Ref": "NatGateway2"
+        },
+        "RouteTableId": {
+          "Ref": "RoutesPrivate2"
         }
       }
     },
@@ -930,6 +1276,54 @@
         },
         "RouteTableId": {
           "Ref": "Routes"
+        }
+      }
+    },
+    "SubnetPrivate0Routes": {
+      "Condition": "Private",
+      "DependsOn": [
+        "SubnetPrivate0",
+        "RoutesPrivate0"
+      ],
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetPrivate0"
+        },
+        "RouteTableId": {
+          "Ref": "RoutesPrivate0"
+        }
+      }
+    },
+    "SubnetPrivate1Routes": {
+      "Condition": "Private",
+      "DependsOn": [
+        "SubnetPrivate1",
+        "RoutesPrivate1"
+      ],
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetPrivate1"
+        },
+        "RouteTableId": {
+          "Ref": "RoutesPrivate1"
+        }
+      }
+    },
+    "SubnetPrivate2Routes": {
+      "Condition": "Private",
+      "DependsOn": [
+        "SubnetPrivate2",
+        "RoutesPrivate2"
+      ],
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetPrivate2"
+        },
+        "RouteTableId": {
+          "Ref": "RoutesPrivate2"
         }
       }
     },
@@ -1329,17 +1723,33 @@
             ]
           }
         ],
-        "VPCZoneIdentifier": [
-          {
-            "Ref": "Subnet0"
-          },
-          {
-            "Ref": "Subnet1"
-          },
-          {
-            "Ref": "Subnet2"
-          }
-        ],
+        "VPCZoneIdentifier": {
+          "Fn::If": [
+            "Private",
+            [
+              {
+                "Ref": "SubnetPrivate0"
+              },
+              {
+                "Ref": "SubnetPrivate1"
+              },
+              {
+                "Ref": "SubnetPrivate2"
+              }
+            ],
+            [
+              {
+                "Ref": "Subnet0"
+              },
+              {
+                "Ref": "Subnet1"
+              },
+              {
+                "Ref": "Subnet2"
+              }
+            ]
+          ]
+        },
         "Cooldown": 5,
         "DesiredCapacity": {
           "Ref": "InstanceCount"
@@ -1423,10 +1833,7 @@
     "Balancer": {
       "DependsOn": [
         "BalancerSecurityGroup",
-        "GatewayAttachment",
-        "Subnet0",
-        "Subnet1",
-        "Subnet2"
+        "GatewayAttachment"
       ],
       "Properties": {
         "ConnectionDrainingPolicy": {
@@ -1500,22 +1907,47 @@
         "LoadBalancerName": {
           "Ref": "AWS::StackName"
         },
+        "Scheme": {
+          "Fn::If": [
+            "PrivateApi",
+            "internal",
+            {
+              "Ref": "AWS::NoValue"
+            }
+          ]
+        },
         "SecurityGroups": [
           {
             "Ref": "BalancerSecurityGroup"
           }
         ],
-        "Subnets": [
-          {
-            "Ref": "Subnet0"
-          },
-          {
-            "Ref": "Subnet1"
-          },
-          {
-            "Ref": "Subnet2"
-          }
-        ]
+        "Subnets": {
+          "Fn::If": [
+            "PrivateApi",
+            [
+              {
+                "Ref": "SubnetPrivate0"
+              },
+              {
+                "Ref": "SubnetPrivate1"
+              },
+              {
+                "Ref": "SubnetPrivate2"
+              }
+            ],
+            [
+              {
+                "Ref": "Subnet0"
+              },
+              {
+                "Ref": "Subnet1"
+              },
+              {
+                "Ref": "Subnet2"
+              }
+            ]
+          ]
+        }
       },
       "Type": "AWS::ElasticLoadBalancing::LoadBalancer"
     },
@@ -1959,13 +2391,7 @@
                 "Ref": "DynamoReleases"
               },
               "ENCRYPTION_KEY": {
-                "Fn::If": [
-                  "Encryption",
-                  {
-                    "Ref": "EncryptionKey"
-                  },
-                  ""
-                ]
+                "Ref": "EncryptionKey"
               },
               "KINESIS": {
                 "Ref": "Kinesis"
@@ -1985,7 +2411,11 @@
               "PASSWORD": {
                 "Ref": "Password"
               },
+              "PRIVATE": {
+                "Ref": "Private"
+              },
               "PROCESS": "web",
+              "PROVIDER": "aws",
               "RACK": {
                 "Ref": "AWS::StackName"
               },
@@ -2045,19 +2475,49 @@
                   ]
                 ]
               },
+              "SUBNETS_PRIVATE": {
+                "Fn::If": [
+                  "Private",
+                  {
+                    "Fn::Join": [
+                      ",",
+                      [
+                        {
+                          "Ref": "SubnetPrivate0"
+                        },
+                        {
+                          "Ref": "SubnetPrivate1"
+                        },
+                        {
+                          "Ref": "SubnetPrivate2"
+                        }
+                      ]
+                    ]
+                  },
+                  ""
+                ]
+              },
               "VPC": {
                 "Ref": "Vpc"
               }
             },
             "Image": {
-              "Fn::Join": [
-                ":",
-                [
-                  "convox/api",
-                  {
-                    "Ref": "Version"
-                  }
-                ]
+              "Fn::If": [
+                "BlankDockerImageApi",
+                {
+                  "Fn::Join": [
+                    ":",
+                    [
+                      "convox/api",
+                      {
+                        "Ref": "Version"
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "Ref": "DockerImageApi"
+                }
               ]
             },
             "Links": [],
@@ -2167,6 +2627,13 @@
             "Command": "api/bin/monitor",
             "CPU": "64",
             "Environment": {
+              "AUTOSCALE": {
+                "Fn::If": [
+                  "Autoscale",
+                  "true",
+                  "false"
+                ]
+              },
               "AWS_REGION": {
                 "Ref": "AWS::Region"
               },
@@ -2217,13 +2684,7 @@
                 "Ref": "DynamoReleases"
               },
               "ENCRYPTION_KEY": {
-                "Fn::If": [
-                  "Encryption",
-                  {
-                    "Ref": "EncryptionKey"
-                  },
-                  ""
-                ]
+                "Ref": "EncryptionKey"
               },
               "KINESIS": {
                 "Ref": "Kinesis"
@@ -2243,7 +2704,11 @@
               "PASSWORD": {
                 "Ref": "Password"
               },
+              "PRIVATE": {
+                "Ref": "Private"
+              },
               "PROCESS": "web",
+              "PROVIDER": "aws",
               "RACK": {
                 "Ref": "AWS::StackName"
               },
@@ -2303,19 +2768,49 @@
                   ]
                 ]
               },
+              "SUBNETS_PRIVATE": {
+                "Fn::If": [
+                  "Private",
+                  {
+                    "Fn::Join": [
+                      ",",
+                      [
+                        {
+                          "Ref": "SubnetPrivate0"
+                        },
+                        {
+                          "Ref": "SubnetPrivate1"
+                        },
+                        {
+                          "Ref": "SubnetPrivate2"
+                        }
+                      ]
+                    ]
+                  },
+                  ""
+                ]
+              },
               "VPC": {
                 "Ref": "Vpc"
               }
             },
             "Image": {
-              "Fn::Join": [
-                ":",
-                [
-                  "convox/api",
-                  {
-                    "Ref": "Version"
-                  }
-                ]
+              "Fn::If": [
+                "BlankDockerImageApi",
+                {
+                  "Fn::Join": [
+                    ":",
+                    [
+                      "convox/api",
+                      {
+                        "Ref": "Version"
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "Ref": "DockerImageApi"
+                }
               ]
             },
             "Links": [],
