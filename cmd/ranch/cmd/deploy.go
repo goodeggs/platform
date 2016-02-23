@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 	"text/template"
 
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra"
@@ -77,7 +78,7 @@ var deployCmd = &cobra.Command{
 			util.Die(fmt.Sprintf("release %s already exists.", appVersion))
 		}
 
-		imageName := util.DockerImageName(appName, appVersion)
+		imageName := strings.Join([]string{appName, appVersion}, ":")
 
 		if Build {
 			err = dockerBuildAndPush(appDir, imageName, config)
@@ -153,8 +154,14 @@ func convoxDeploy(appName, appVersion, buildDir string) error {
 func generateDockerCompose(imageName string, config *util.RanchConfig, env map[string]string, buildDir string) error {
 	var out bytes.Buffer
 
-	err := dockerComposeTemplate.Execute(&out, templateVars{
-		ImageName:   fmt.Sprintf("%s/%s", util.DockerRegistry(), imageName),
+	absoluteImageName, err := util.DockerResolveImageName(imageName)
+
+	if err != nil {
+		return err
+	}
+
+	err = dockerComposeTemplate.Execute(&out, templateVars{
+		ImageName:   absoluteImageName,
 		Environment: env,
 		Config:      config,
 	})
