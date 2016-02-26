@@ -330,10 +330,25 @@ func ConvoxPs(appName string) (Processes, error) {
 		return nil, err
 	}
 
+	shaMap, err := buildShaMap(appName)
+
+	if err != nil {
+		return nil, err
+	}
+
 	var ps Processes
 
 	for _, v := range convoxPs {
 		p := Process(v)
+
+		sha, ok := shaMap[p.Release]
+
+		if !ok {
+			p.Release = "convox:" + p.Release
+		} else {
+			p.Release = sha
+		}
+
 		ps = append(ps, p)
 	}
 
