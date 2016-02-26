@@ -59,8 +59,15 @@ var envSetCmd = &cobra.Command{
 		err = util.GitAdd(appDir, ".ranch.yaml")
 		util.Check(err)
 
-		err = util.GitCommit(appDir, fmt.Sprintf("set env %s", strings.Join(updatedKeys, ",")))
+		message := fmt.Sprintf("set env %s", strings.Join(updatedKeys, ","))
+
+		err = util.GitCommit(appDir, message)
 		util.Check(err)
+
+		sha, err := util.GitCurrentSha(appDir)
+		util.Check(err)
+
+		fmt.Printf("[%s] %s\n", sha, message)
 	},
 }
 
