@@ -133,7 +133,7 @@ func convoxDeploy(appName, appVersion, buildDir string) error {
 
 	fmt.Printf("promoting release %s\n", appVersion)
 
-	err = util.ConvoxPromote(appName, releaseId)
+	err = util.ConvoxPromote(appName, appVersion)
 
 	if err != nil {
 		return err
