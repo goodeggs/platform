@@ -6,6 +6,25 @@ import (
 	"strings"
 )
 
+func EnvGet(appName, envId string) (env map[string]string, err error) {
+
+	if envId == "" {
+		return env, nil
+	}
+
+	plaintext, err := EcruGetSecret(appName, envId)
+	if err != nil {
+		return nil, err
+	}
+
+	env, err = ParseEnv(plaintext)
+	if err != nil {
+		return nil, err
+	}
+
+	return env, nil
+}
+
 func ParseEnv(content string) (envMap map[string]string, err error) {
 	envMap = make(map[string]string)
 

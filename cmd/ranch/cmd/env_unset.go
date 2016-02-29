@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strings"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/imdario/mergo"
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra"
 	"github.com/goodeggs/platform/cmd/ranch/util"
 )
 
-var envSetCmd = &cobra.Command{
-	Use:   "env:set",
-	Short: "Set environment variables",
+var envUnsetCmd = &cobra.Command{
+	Use:   "env:unset",
+	Short: "Un-set environment variables",
 	Run: func(cmd *cobra.Command, args []string) {
 		appDir, err := util.AppDir(cmd)
 		util.Check(err)
@@ -25,12 +25,13 @@ var envSetCmd = &cobra.Command{
 			util.Die("git working directory not clean.")
 		}
 
-		newEnv, err := readEnvChanges(args)
+		keysToDelete, err := readKeysFromEnv(args)
 		util.Check(err)
 
-		var updatedKeys []string
-		for k, _ := range newEnv {
-			updatedKeys = append(updatedKeys, k)
+		keysToDeleteMap := make(map[string]int, len(keysToDelete))
+
+		for _, key := range keysToDelete {
+			keysToDeleteMap[key] = 1
 		}
 
 		config, err := util.LoadAppConfig(cmd)
@@ -42,8 +43,21 @@ var envSetCmd = &cobra.Command{
 		oldEnv, err := util.EnvGet(appName, config.EnvId)
 		util.Check(err)
 
-		err = mergo.Merge(&newEnv, oldEnv)
-		util.Check(err)
+		newEnv := make(map[string]string)
+		var deletedKeys []string
+
+		for k, v := range oldEnv {
+			_, ok := keysToDeleteMap[k]
+			if !ok {
+				newEnv[k] = v
+			} else {
+				deletedKeys = append(deletedKeys, k)
+			}
+		}
+
+		if len(deletedKeys) == 0 {
+			util.Die("key(s) not found... nothing to do.")
+		}
 
 		data := ""
 		for k, v := range newEnv {
@@ -59,7 +73,7 @@ var envSetCmd = &cobra.Command{
 		err = util.GitAdd(appDir, ".ranch.yaml")
 		util.Check(err)
 
-		message := fmt.Sprintf("set env %s", strings.Join(updatedKeys, ","))
+		message := fmt.Sprintf("unset env %s", strings.Join(deletedKeys, ","))
 
 		err = util.GitCommit(appDir, message)
 		util.Check(err)
@@ -71,7 +85,7 @@ var envSetCmd = &cobra.Command{
 	},
 }
 
-func readEnvChanges(args []string) (env map[string]string, err error) {
+func readKeysFromEnv(args []string) (keys []string, err error) {
 
 	data := ""
 
@@ -90,17 +104,14 @@ func readEnvChanges(args []string) (env map[string]string, err error) {
 	}
 
 	for _, value := range args {
-		data += fmt.Sprintf("%s\n", value)
+		data += fmt.Sprintf(" %s", value)
 	}
 
-	env, err = util.ParseEnv(data)
-	if err != nil {
-		return nil, err
-	}
+	keys = regexp.MustCompile(`\s+`).Split(data, -1)
 
-	return env, nil
+	return keys, nil
 }
 
 func init() {
-	RootCmd.AddCommand(envSetCmd)
+	RootCmd.AddCommand(envUnsetCmd)
 }
