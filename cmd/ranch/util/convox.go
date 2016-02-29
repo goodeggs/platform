@@ -295,25 +295,30 @@ func waitForBuild(client *client.Client, appName, buildId string) (string, error
 	return "", fmt.Errorf("can't get here")
 }
 
-func WaitForStatus(appName, status string) error {
+func ConvoxWaitForStatus(appName, status string) error {
 	client, err := convoxClient()
 
 	if err != nil {
 		return err
 	}
 
+	fmt.Printf("waiting for '%s' status", status)
+
 	for {
 		app, err := client.GetApp(appName)
 
 		if err != nil {
+			fmt.Println(" ERROR")
 			return err
 		}
 
 		if app.Status == status {
+			fmt.Println(" OK")
 			return nil
 		}
 
-		time.Sleep(1 * time.Second)
+		fmt.Print(".")
+		time.Sleep(5 * time.Second)
 	}
 
 	return fmt.Errorf("can't get here")

@@ -125,29 +125,20 @@ func convoxDeploy(appName, appVersion, buildDir string) error {
 		return err
 	}
 
-	err = util.EcruCreateRelease(appName, appVersion, releaseId)
-
-	if err != nil {
+	if err = util.EcruCreateRelease(appName, appVersion, releaseId); err != nil {
 		return err
 	}
 
 	fmt.Printf("promoting release %s\n", appVersion)
 
-	err = util.ConvoxPromote(appName, appVersion)
-
-	if err != nil {
+	if err = util.ConvoxPromote(appName, appVersion); err != nil {
 		return err
 	}
 
-	fmt.Printf("waiting for 'running' status... ")
-	err = util.WaitForStatus(appName, "running")
-
-	if err != nil {
-		fmt.Println("ERR")
+	if err = util.ConvoxWaitForStatus(appName, "running"); err != nil {
 		return err
 	}
 
-	fmt.Println("OK")
 	return nil
 }
 
