@@ -167,7 +167,13 @@ func ConvoxScale(appName string, config *RanchConfig) (err error) {
 	return nil
 }
 
-func ConvoxPromote(appName string, releaseId string) error {
+func ConvoxPromote(appName string, appVersion string) error {
+	releaseId, err := getConvoxRelease(appName, appVersion)
+
+	if err != nil {
+		return err
+	}
+
 	client, err := convoxClient()
 
 	if err != nil {
@@ -176,11 +182,7 @@ func ConvoxPromote(appName string, releaseId string) error {
 
 	_, err = client.PromoteRelease(appName, releaseId)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func ConvoxDeploy(appName string, buildDir string) (string, error) {
@@ -293,25 +295,30 @@ func waitForBuild(client *client.Client, appName, buildId string) (string, error
 	return "", fmt.Errorf("can't get here")
 }
 
-func WaitForStatus(appName, status string) error {
+func ConvoxWaitForStatus(appName, status string) error {
 	client, err := convoxClient()
 
 	if err != nil {
 		return err
 	}
 
+	fmt.Printf("waiting for '%s' status", status)
+
 	for {
 		app, err := client.GetApp(appName)
 
 		if err != nil {
+			fmt.Println(" ERROR")
 			return err
 		}
 
 		if app.Status == status {
+			fmt.Println(" OK")
 			return nil
 		}
 
-		time.Sleep(1 * time.Second)
+		fmt.Print(".")
+		time.Sleep(5 * time.Second)
 	}
 
 	return fmt.Errorf("can't get here")
@@ -369,4 +376,20 @@ func buildShaMap(appName string) (map[string]string, error) {
 	}
 
 	return shaMap, nil
+}
+
+func getConvoxRelease(appName, appVersion string) (releaseId string, err error) {
+	ecruReleases, err := EcruReleases(appName)
+
+	if err != nil {
+		return "", err
+	}
+
+	for _, ecruRelease := range ecruReleases {
+		if ecruRelease.Sha == appVersion {
+			return ecruRelease.ConvoxRelease, nil
+		}
+	}
+
+	return "", fmt.Errorf("could not find Convox release for sha " + appVersion)
 }
