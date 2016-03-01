@@ -135,13 +135,40 @@ func ConvoxGetFormation(appName string) (formation RanchFormation, err error) {
 	return formation, nil
 }
 
-func ConvoxScale(appName string, config *RanchConfig) (err error) {
-
+func ConvoxScaleProcess(appName, processName string, instances, memory int) (err error) {
 	client, err := convoxClient()
 
 	if err != nil {
 		return err
 	}
+
+	message := fmt.Sprintf("scaling %s to", processName)
+	if instances > -1 {
+		message += fmt.Sprintf(" instances=%d", instances)
+	}
+	if memory > -1 {
+		message += fmt.Sprintf(" memory=%d", memory)
+	}
+	fmt.Println(message)
+
+	strInstances := ""
+	if instances != -1 {
+		strInstances = strconv.Itoa(instances)
+	}
+
+	strMemory := ""
+	if memory != -1 {
+		strMemory = strconv.Itoa(memory)
+	}
+
+	if err = client.SetFormation(appName, processName, strInstances, strMemory); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ConvoxScale(appName string, config *RanchConfig) (err error) {
 
 	existingFormation, err := ConvoxGetFormation(appName)
 
@@ -157,9 +184,7 @@ func ConvoxScale(appName string, config *RanchConfig) (err error) {
 			}
 		}
 
-		fmt.Printf("scaling %s to instances=%d memory=%d\n", processName, processConfig.Instances, processConfig.Memory)
-		err = client.SetFormation(appName, processName, strconv.Itoa(processConfig.Instances), strconv.Itoa(processConfig.Memory))
-		if err != nil {
+		if err = ConvoxScaleProcess(appName, processName, processConfig.Instances, processConfig.Memory); err != nil {
 			return err
 		}
 	}

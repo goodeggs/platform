@@ -8,7 +8,7 @@ import (
 	"github.com/goodeggs/platform/cmd/ranch/util"
 )
 
-var panic_rollbackCmd = &cobra.Command{
+var panicRollbackCmd = &cobra.Command{
 	Use:   "panic:rollback <release>",
 	Short: "Revert to a previous release.",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -33,5 +33,5 @@ var panic_rollbackCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(panic_rollbackCmd)
+	RootCmd.AddCommand(panicRollbackCmd)
 }
