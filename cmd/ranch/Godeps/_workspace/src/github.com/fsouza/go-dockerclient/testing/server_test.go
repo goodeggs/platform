@@ -1185,7 +1185,7 @@ func addContainers(server *DockerServer, n int) {
 					"Tcp": {"8888": fmt.Sprintf("%d", 49600+i)},
 				},
 				Ports: map[docker.Port][]docker.PortBinding{
-					"8888/tcp": []docker.PortBinding{
+					"8888/tcp": {
 						{HostIP: "0.0.0.0", HostPort: fmt.Sprintf("%d", 49600+i)},
 					},
 				},
@@ -1877,5 +1877,250 @@ func TestCreateNetworkDuplicateName(t *testing.T) {
 	server.ServeHTTP(recorder, request)
 	if recorder.Code != http.StatusForbidden {
 		t.Errorf("CreateNetwork: wrong status. Want %d. Got %d.", http.StatusForbidden, recorder.Code)
+	}
+}
+
+func TestListVolumes(t *testing.T) {
+	server := DockerServer{}
+	server.buildMuxer()
+	expected := []docker.Volume{{
+		Name:       "test-vol-1",
+		Driver:     "local",
+		Mountpoint: "/var/lib/docker/volumes/test-vol-1",
+	}}
+	server.volStore = make(map[string]*volumeCounter)
+	for _, vol := range expected {
+		server.volStore[vol.Name] = &volumeCounter{
+			volume: vol,
+			count:  0,
+		}
+	}
+	recorder := httptest.NewRecorder()
+	request, _ := http.NewRequest("GET", "/volumes", nil)
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Errorf("ListVolumes: wrong status.  Want %d. Got %d.", http.StatusCreated, recorder.Code)
+	}
+	var got []docker.Volume
+	err := json.NewDecoder(recorder.Body).Decode(&got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(got, expected) {
+		t.Errorf("ListVolumes.  Want %#v.  Got %#v.", expected, got)
+	}
+}
+
+func TestCreateVolume(t *testing.T) {
+	server := DockerServer{}
+	server.buildMuxer()
+	recorder := httptest.NewRecorder()
+	body := `{"Name":"test-volume"}`
+	request, _ := http.NewRequest("POST", "/volumes/create", strings.NewReader(body))
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusCreated {
+		t.Errorf("CreateVolume: wrong status.  Want %d. Got %d.", http.StatusCreated, recorder.Code)
+	}
+	var returned docker.Volume
+	err := json.NewDecoder(recorder.Body).Decode(&returned)
+	if err != nil {
+		t.Error(err)
+	}
+	if returned.Name != "test-volume" {
+		t.Errorf("CreateVolume: Name mismatch.  Expected: test-volume.  Returned %q.", returned.Name)
+	}
+	if returned.Driver != "local" {
+		t.Errorf("CreateVolume: Driver mismatch.  Expected: local.  Returned: %q", returned.Driver)
+	}
+	if returned.Mountpoint != "/var/lib/docker/volumes/test-volume" {
+		t.Errorf("CreateVolume:  Mountpoint mismatch.  Expected: /var/lib/docker/volumes/test-volume.  Returned: %q.", returned.Mountpoint)
+	}
+}
+
+func TestCreateVolumeAlreadExists(t *testing.T) {
+	server := DockerServer{}
+	server.buildMuxer()
+	server.volStore = make(map[string]*volumeCounter)
+	server.volStore["test-volume"] = &volumeCounter{
+		volume: docker.Volume{
+			Name:       "test-volume",
+			Driver:     "local",
+			Mountpoint: "/var/lib/docker/volumes/test-volume",
+		},
+		count: 0,
+	}
+	body := `{"Name":"test-volume"}`
+	recorder := httptest.NewRecorder()
+	request, _ := http.NewRequest("POST", "/volumes/create", strings.NewReader(body))
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusCreated {
+		t.Errorf("CreateVolumeAlreadExists: wrong status.  Want %d. Got %d.", http.StatusCreated, recorder.Code)
+	}
+	var returned docker.Volume
+	err := json.NewDecoder(recorder.Body).Decode(&returned)
+	if err != nil {
+		t.Error(err)
+	}
+	if returned.Name != "test-volume" {
+		t.Errorf("CreateVolumeAlreadExists: Name mismatch.  Expected: test-volume.  Returned %q.", returned.Name)
+	}
+	if returned.Driver != "local" {
+		t.Errorf("CreateVolumeAlreadExists: Driver mismatch.  Expected: local.  Returned: %q", returned.Driver)
+	}
+	if returned.Mountpoint != "/var/lib/docker/volumes/test-volume" {
+		t.Errorf("CreateVolumeAlreadExists:  Mountpoint mismatch.  Expected: /var/lib/docker/volumes/test-volume.  Returned: %q.", returned.Mountpoint)
+	}
+}
+
+func TestInspectVolume(t *testing.T) {
+	server := DockerServer{}
+	server.buildMuxer()
+	recorder := httptest.NewRecorder()
+	expected := docker.Volume{
+		Name:       "test-volume",
+		Driver:     "local",
+		Mountpoint: "/var/lib/docker/volumes/test-volume",
+	}
+	volC := &volumeCounter{
+		volume: expected,
+		count:  0,
+	}
+	volStore := make(map[string]*volumeCounter)
+	volStore["test-volume"] = volC
+	server.volStore = volStore
+	request, _ := http.NewRequest("GET", "/volumes/test-volume", nil)
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Errorf("InspectVolume: wrong status.  Want %d.  God %d.", http.StatusOK, recorder.Code)
+	}
+	var returned docker.Volume
+	err := json.NewDecoder(recorder.Body).Decode(&returned)
+	if err != nil {
+		t.Error(err)
+	}
+	if returned.Name != "test-volume" {
+		t.Errorf("InspectVolume: Name mismatch.  Expected: test-volume.  Returned %q.", returned.Name)
+	}
+	if returned.Driver != "local" {
+		t.Errorf("InspectVolume: Driver mismatch.  Expected: local.  Returned: %q", returned.Driver)
+	}
+	if returned.Mountpoint != "/var/lib/docker/volumes/test-volume" {
+		t.Errorf("InspectVolume:  Mountpoint mismatch.  Expected: /var/lib/docker/volumes/test-volume.  Returned: %q.", returned.Mountpoint)
+	}
+}
+
+func TestInspectVolumeNotFound(t *testing.T) {
+	server := DockerServer{}
+	server.buildMuxer()
+	recorder := httptest.NewRecorder()
+	request, _ := http.NewRequest("GET", "/volumes/test-volume", nil)
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusNotFound {
+		t.Errorf("RemoveMissingVolume: wrong status.  Want %d.  Got %d.", http.StatusNotFound, recorder.Code)
+	}
+}
+
+func TestRemoveVolume(t *testing.T) {
+	server := DockerServer{}
+	server.buildMuxer()
+	server.volStore = make(map[string]*volumeCounter)
+	server.volStore["test-volume"] = &volumeCounter{
+		volume: docker.Volume{
+			Name:       "test-volume",
+			Driver:     "local",
+			Mountpoint: "/var/lib/docker/volumes/test-volume",
+		},
+		count: 0,
+	}
+	recorder := httptest.NewRecorder()
+	request, _ := http.NewRequest("DELETE", "/volumes/test-volume", nil)
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusNoContent {
+		t.Errorf("RemoveVolume: wrong status.  Want %d.  Got %d.", http.StatusNoContent, recorder.Code)
+	}
+}
+
+func TestRemoveMissingVolume(t *testing.T) {
+	server := DockerServer{}
+	server.buildMuxer()
+	recorder := httptest.NewRecorder()
+	request, _ := http.NewRequest("DELETE", "/volumes/test-volume", nil)
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusNotFound {
+		t.Errorf("RemoveMissingVolume: wrong status.  Want %d.  Got %d.", http.StatusNotFound, recorder.Code)
+	}
+}
+
+func TestRemoveVolumeInuse(t *testing.T) {
+	server := DockerServer{}
+	server.buildMuxer()
+	server.volStore = make(map[string]*volumeCounter)
+	server.volStore["test-volume"] = &volumeCounter{
+		volume: docker.Volume{
+			Name:       "test-volume",
+			Driver:     "local",
+			Mountpoint: "/var/lib/docker/volumes/test-volume",
+		},
+		count: 1,
+	}
+	recorder := httptest.NewRecorder()
+	request, _ := http.NewRequest("DELETE", "/volumes/test-volume", nil)
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusConflict {
+		t.Errorf("RemoveVolume: wrong status.  Want %d.  Got %d.", http.StatusConflict, recorder.Code)
+	}
+}
+
+func TestUploadToContainer(t *testing.T) {
+	server := DockerServer{}
+	server.buildMuxer()
+	cont := &docker.Container{
+		ID: "id123",
+		State: docker.State{
+			Running:  true,
+			ExitCode: 0,
+		},
+	}
+	server.containers = append(server.containers, cont)
+	server.uploadedFiles = make(map[string]string)
+	recorder := httptest.NewRecorder()
+	request, _ := http.NewRequest("PUT", fmt.Sprintf("/containers/%s/archive?path=abcd", cont.ID), nil)
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Errorf("UploadToContainer: wrong status. Want %d. Got %d.", http.StatusOK, recorder.Code)
+	}
+}
+
+func TestUploadToContainerMissingContainer(t *testing.T) {
+	server := DockerServer{}
+	server.buildMuxer()
+	recorder := httptest.NewRecorder()
+	request, _ := http.NewRequest("PUT", "/containers/missing-container/archive?path=abcd", nil)
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusNotFound {
+		t.Errorf("UploadToContainer: wrong status. Want %d. Got %d.", http.StatusNotFound, recorder.Code)
+	}
+}
+
+func TestInfoDocker(t *testing.T) {
+	server, _ := NewServer("127.0.0.1:0", nil, nil)
+	addContainers(server, 1)
+	server.buildMuxer()
+	recorder := httptest.NewRecorder()
+	request, _ := http.NewRequest("GET", "/info", nil)
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("InfoDocker: wrong status. Want %d. Got %d.", http.StatusOK, recorder.Code)
+	}
+	var infoData map[string]interface{}
+	err := json.Unmarshal(recorder.Body.Bytes(), &infoData)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if infoData["Containers"].(float64) != 1.0 {
+		t.Fatalf("InfoDocker: wrong containers count. Want %f. Got %f.", 1.0, infoData["Containers"])
+	}
+	if infoData["DockerRootDir"].(string) != "/var/lib/docker" {
+		t.Fatalf("InfoDocker: wrong docker root. Want /var/lib/docker. Got %s.", infoData["DockerRootDir"])
 	}
 }
