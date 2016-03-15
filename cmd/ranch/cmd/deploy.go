@@ -33,6 +33,8 @@ var dockerComposeTemplate = template.Must(template.New("docker-compose").Parse(`
 {{ $name }}:
   image: {{ $.ImageName }}
   command: /start {{ $name }}
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
   {{ if eq $name "web" }}
   ports:
     - 443:4443
