@@ -86,11 +86,21 @@ func DockerBuild(appDir string, imageName string) error {
 		return err
 	}
 
+	buildArgs := make([]docker.BuildArg, len(os.Environ()))
+	for idx, item := range os.Environ() {
+		parts := strings.SplitN(item, "=", 2)
+		if len(parts) == 2 {
+			buildArgs[idx].Name = parts[0]
+			buildArgs[idx].Value = parts[1]
+		}
+	}
+
 	opts := docker.BuildImageOptions{
 		Name:         absoluteImageName,
 		OutputStream: os.Stdout,
 		ContextDir:   appDir,
 		Pull:         true,
+		BuildArgs:    buildArgs,
 	}
 
 	auth, err := docker.NewAuthConfigurationsFromDockerCfg()
