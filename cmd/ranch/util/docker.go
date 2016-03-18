@@ -73,7 +73,7 @@ func DockerPush(imageNameWithTag string) error {
 	return nil
 }
 
-func DockerBuild(appDir string, imageName string) error {
+func DockerBuild(appDir string, imageName string, buildEnv map[string]string) error {
 	client, err := dockerClient()
 
 	if err != nil {
@@ -86,11 +86,17 @@ func DockerBuild(appDir string, imageName string) error {
 		return err
 	}
 
+	var buildArgs []docker.BuildArg
+	for name, value := range buildEnv {
+		buildArgs = append(buildArgs, docker.BuildArg{Name: name, Value: value})
+	}
+
 	opts := docker.BuildImageOptions{
 		Name:         absoluteImageName,
 		OutputStream: os.Stdout,
 		ContextDir:   appDir,
 		Pull:         true,
+		BuildArgs:    buildArgs,
 	}
 
 	auth, err := docker.NewAuthConfigurationsFromDockerCfg()

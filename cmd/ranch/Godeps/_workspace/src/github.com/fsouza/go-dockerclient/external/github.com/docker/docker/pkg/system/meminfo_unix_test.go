@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/fsouza/go-dockerclient/external/github.com/docker/docker/pkg/units"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/fsouza/go-dockerclient/external/github.com/docker/go-units"
 )
 
 // TestMemInfo tests parseMemInfo with a static meminfo string
