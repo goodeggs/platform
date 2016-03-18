@@ -73,7 +73,7 @@ func DockerPush(imageNameWithTag string) error {
 	return nil
 }
 
-func DockerBuild(appDir string, imageName string) error {
+func DockerBuild(appDir string, imageName string, buildEnv map[string]string) error {
 	client, err := dockerClient()
 
 	if err != nil {
@@ -86,13 +86,9 @@ func DockerBuild(appDir string, imageName string) error {
 		return err
 	}
 
-	buildArgs := make([]docker.BuildArg, len(os.Environ()))
-	for idx, item := range os.Environ() {
-		parts := strings.SplitN(item, "=", 2)
-		if len(parts) == 2 {
-			buildArgs[idx].Name = parts[0]
-			buildArgs[idx].Value = parts[1]
-		}
+	var buildArgs []docker.BuildArg
+	for name, value := range buildEnv {
+		buildArgs = append(buildArgs, docker.BuildArg{Name: name, Value: value})
 	}
 
 	opts := docker.BuildImageOptions{
