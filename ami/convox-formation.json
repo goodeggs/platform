@@ -77,28 +77,28 @@
   "Mappings": {
     "RegionConfig": {
       "us-east-1": {
-        "Ami": "ami-cb2305a1"
+        "Ami": "ami-43043329"
       },
       "us-west-1": {
-        "Ami": "ami-bdafdbdd"
+        "Ami": "ami-a77b0ac7"
       },
       "us-west-2": {
-        "Ami": "ami-ec75908c"
+        "Ami": "ami-02a24162"
       },
       "eu-west-1": {
-        "Ami": "ami-13f84d60"
+        "Ami": "ami-76e95b05"
       },
       "eu-central-1": {
-        "Ami": "ami-c3253caf"
+        "Ami": "ami-96b6adfa"
       },
       "ap-northeast-1": {
-        "Ami": "ami-e9724c87"
+        "Ami": "ami-18d8de76"
       },
       "ap-southeast-1": {
-        "Ami": "ami-5f31fd3c"
+        "Ami": "ami-9f60aefc"
       },
       "ap-southeast-2": {
-        "Ami": "ami-83af8ae0"
+        "Ami": "ami-75a38416"
       }
     }
   },
@@ -228,6 +228,12 @@
         "Ref": "Password"
       }
     },
+    "Private": {
+      "Condition": "Development",
+      "Value": {
+        "Ref": "Private"
+      }
+    },
     "Provider": {
       "Condition": "Development",
       "Value": "aws"
@@ -277,6 +283,12 @@
       "Condition": "Development",
       "Value": {
         "Ref": "Version"
+      }
+    },
+    "SettingsBucket": {
+      "Condition": "Development",
+      "Value": {
+        "Ref": "Settings"
       }
     },
     "Subnets": {
@@ -399,6 +411,11 @@
         "No"
       ]
     },
+    "InstanceBootCommand": {
+      "Type": "String",
+      "Description": "A single line of extra shell script to run as UserData during instance boot.",
+      "Default": ""
+    },
     "InstanceCount": {
       "Default": "3",
       "Description": "The number of instances in the runtime cluster",
@@ -482,7 +499,7 @@
       "Description": "(REQUIRED) Convox release version",
       "MinLength": "1",
       "Type": "String",
-      "Default": "20160223035816-compose-env"
+      "Default": "20160323012659"
     },
     "VolumeSize": {
       "Type": "Number",
@@ -573,7 +590,7 @@
                 "    if (e) {",
                 "      context.fail(e);",
                 "    } else {",
-                "      params = {MetricData: [], Namespace: stack};",
+                "      data = [];",
                 "      r = JSON.parse(r.toString('ascii'));",
                 "      r.logEvents.forEach(function(e) {",
                 "        dims = [];",
@@ -584,18 +601,13 @@
                 "          datum = {MetricName: p2, Dimensions: dims, Value: parseFloat(p4), Unit: units[p5] || 'None'};",
                 "          if (p1 == 'count#')",
                 "            datum.Unit = 'Count';",
-                "          params.MetricData.push(datum);",
+                "          data.push(datum);",
                 "        });",
                 "      });",
-                "      if (params.MetricData.length > 0) {",
-                "        console.log('P:',params);",
-                "        cloudwatch.putMetricData(params, function(err, d) {",
-                "          if (err) {",
-                "            console.log(err, err.stack);",
-                "            context.fail(err);",
-                "          }",
-                "          else console.log(d);",
-                "        });",
+                "      console.log('D:',data);",
+                "      var cb = function(err, d) { if (err) { console.log(err, err.stack); context.fail(err) } else console.log(d) };",
+                "      for (var i=0; i<data.length; i+=20) {",
+                "        cloudwatch.putMetricData({MetricData: data.slice(i, i+20), Namespace: stack}, cb);",
                 "      }",
                 "      context.succeed();",
                 "    }",
@@ -1645,8 +1657,11 @@
                     ]
                   ]
                 },
-                "curl -s https://convox.s3.amazonaws.com/agent/0.64/convox.conf > /etc/init/convox.conf",
+                "curl -s https://convox.s3.amazonaws.com/agent/0.66/convox.conf > /etc/init/convox.conf",
                 "start convox",
+                {
+                  "Ref": "InstanceBootCommand"
+                },
                 {
                   "Fn::Join": [
                     " ",
@@ -2456,6 +2471,9 @@
               },
               "ROLLBAR_TOKEN": "f67f25b8a9024d5690f997bd86bf14b0",
               "SEGMENT_WRITE_KEY": "KLvwCXo6qcTmQHLpF69DEwGf9zh7lt9i",
+              "SETTINGS_BUCKET": {
+                "Ref": "Settings"
+              },
               "STACK_ID": {
                 "Ref": "AWS::StackId"
               },
