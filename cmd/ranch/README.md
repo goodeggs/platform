@@ -36,9 +36,9 @@ $ goxc -wlc default publish-github -apikey=123456789012
 Then, to create a release:
 
 ```
-$ goxc bump
-$ goxc
+$ sh version.sh {major,minor,patch}
+$ sh release.sh
 ```
 
-Don't forget to update the [homebrew formula](https://github.com/goodeggs/homebrew-delivery-eng/blob/master/Formula/ranch.rb) with the new version and shasum.
+Don't forget to update the [ranch homebrew formula](https://github.com/goodeggs/homebrew-delivery-eng/blob/master/Formula/ranch.rb) with the new `version` and `sha256`.
 
