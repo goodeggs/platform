@@ -187,6 +187,10 @@ func ConvoxScale(appName string, config *RanchConfig) (err error) {
 		if err = ConvoxScaleProcess(appName, processName, processConfig.Instances, processConfig.Memory); err != nil {
 			return err
 		}
+
+		if err = ConvoxWaitForStatus(appName, "running"); err != nil {
+			return err
+		}
 	}
 
 	return nil
