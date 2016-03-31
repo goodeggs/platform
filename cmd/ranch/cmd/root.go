@@ -32,6 +32,8 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	RootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
 	RootCmd.PersistentFlags().StringVarP(&App, "app", "a", "", "application name (defaults to CWD)")
+	RootCmd.SilenceUsage = true
+	RootCmd.SilenceErrors = true
 }
 
 func initConfig() {

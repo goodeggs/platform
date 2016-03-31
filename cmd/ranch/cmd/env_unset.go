@@ -14,19 +14,25 @@ import (
 var envUnsetCmd = &cobra.Command{
 	Use:   "env:unset",
 	Short: "Un-set environment variables",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		appDir, err := util.AppDir(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		clean, err := util.GitIsClean(appDir)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		if !clean {
-			util.Die("git working directory not clean.")
+			return fmt.Errorf("git working directory not clean.")
 		}
 
 		keysToDelete, err := readKeysFromEnv(args)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		keysToDeleteMap := make(map[string]int, len(keysToDelete))
 
@@ -35,13 +41,19 @@ var envUnsetCmd = &cobra.Command{
 		}
 
 		config, err := util.LoadAppConfig(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		appName, err := util.AppName(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		oldEnv, err := util.EnvGet(appName, config.EnvId)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		newEnv := make(map[string]string)
 		var deletedKeys []string
@@ -56,7 +68,7 @@ var envUnsetCmd = &cobra.Command{
 		}
 
 		if len(deletedKeys) == 0 {
-			util.Die("key(s) not found... nothing to do.")
+			return fmt.Errorf("key(s) not found... nothing to do.")
 		}
 
 		data := ""
@@ -65,23 +77,32 @@ var envUnsetCmd = &cobra.Command{
 		}
 
 		envId, err := util.EcruCreateSecret(appName, data)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
-		err = util.RanchUpdateEnvId(appDir, envId)
-		util.Check(err)
+		if err = util.RanchUpdateEnvId(appDir, envId); err != nil {
+			return err
+		}
 
-		err = util.GitAdd(appDir, ".ranch.yaml")
-		util.Check(err)
+		if err = util.GitAdd(appDir, ".ranch.yaml"); err != nil {
+			return err
+		}
 
 		message := fmt.Sprintf("unset env %s", strings.Join(deletedKeys, ","))
 
-		err = util.GitCommit(appDir, message)
-		util.Check(err)
+		if err = util.GitCommit(appDir, message); err != nil {
+			return err
+		}
 
 		sha, err := util.GitCurrentSha(appDir)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		fmt.Printf("[%s] %s\n", sha, message)
+
+		return nil
 	},
 }
 

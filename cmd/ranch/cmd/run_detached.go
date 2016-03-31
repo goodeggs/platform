@@ -10,15 +10,20 @@ import (
 var runDetachedCmd = &cobra.Command{
 	Use:   "run:detached",
 	Short: "Run a detached one-off command",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		appName, err := util.AppName(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		process := "web"
 		command := strings.Join(args, " ")
 
-		err = util.ConvoxRunDetached(appName, process, command)
-		util.Check(err)
+		if err = util.ConvoxRunDetached(appName, process, command); err != nil {
+			return err
+		}
+
+		return nil
 	},
 }
 

@@ -10,26 +10,36 @@ import (
 var envCmd = &cobra.Command{
 	Use:   "env",
 	Short: "Print the application environment",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		config, err := util.LoadAppConfig(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		appName, err := util.AppName(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		if config.EnvId == "" {
-			util.Die("your config does not contain an env_id")
+			return fmt.Errorf("your config does not contain an env_id")
 		}
 
 		plaintext, err := util.EcruGetSecret(appName, config.EnvId)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		env, err := util.ParseEnv(plaintext)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		for key, value := range env {
 			fmt.Printf("%s=%s\n", key, value)
 		}
+
+		return nil
 	},
 }
 

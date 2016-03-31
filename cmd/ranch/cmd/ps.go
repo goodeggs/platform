@@ -15,13 +15,17 @@ func init() {
 var psCmd = &cobra.Command{
 	Use:   "ps",
 	Short: "List an app's processes",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 		appName, err := util.AppName(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		ps, err := util.ConvoxPs(appName)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		table := tablewriter.NewWriter(os.Stdout)
 		table.SetBorder(false)
@@ -35,5 +39,7 @@ var psCmd = &cobra.Command{
 		}
 
 		table.Render()
+
+		return nil
 	},
 }
