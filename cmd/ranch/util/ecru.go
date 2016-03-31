@@ -23,20 +23,13 @@ type EcruSecret struct {
 	Id string `json:"_id"`
 }
 
-func noRedirects(req gorequest.Request, via []gorequest.Request) error {
-	return fmt.Errorf("refusing to follow redirect")
-}
-
 func ecruClient() (*gorequest.SuperAgent, error) {
 	if !viper.IsSet("convox.password") {
 		return nil, fmt.Errorf("must set 'convox.password' in $HOME/.ranch.yaml")
 	}
 
-	request := gorequest.New().
-		RedirectPolicy(noRedirects).
-		SetBasicAuth(viper.GetString("convox.password"), "x-auth-token").
-		Set("Accept", "application/json").
-		Set("Content-Type", "application/json")
+	request := jsonClient().
+		SetBasicAuth(viper.GetString("convox.password"), "x-auth-token")
 
 	return request, nil
 }
