@@ -11,12 +11,16 @@ import (
 var releasesCmd = &cobra.Command{
 	Use:   "releases",
 	Short: "List releases",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		appName, err := util.AppName(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		releases, err := util.ConvoxReleases(appName)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		table := tablewriter.NewWriter(os.Stdout)
 		table.SetBorder(false)
@@ -30,6 +34,8 @@ var releasesCmd = &cobra.Command{
 		}
 
 		table.Render()
+
+		return nil
 	},
 }
 

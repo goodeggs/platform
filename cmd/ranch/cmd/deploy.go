@@ -76,65 +76,89 @@ var procfileTemplate = template.Must(template.New("procfile").Parse(`# generated
 var deployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "Deploy the application",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 		appDir, err := util.AppDir(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		clean, err := util.GitIsClean(appDir)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		if !clean {
-			util.Die("git working directory not clean.")
+			return fmt.Errorf("git working directory not clean.")
 		}
 
 		appName, err := util.AppName(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		config, err := util.LoadAppConfig(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		appVersion, err := util.AppVersion(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		exists, err := util.EcruReleaseExists(appName, appVersion)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
+
 		if exists {
-			util.Die(fmt.Sprintf("release %s already exists.", appVersion))
+			return fmt.Errorf("release %s already exists.", appVersion)
 		}
 
 		imageName := strings.Join([]string{appName, appVersion}, ":")
 
 		if Build {
-			err = dockerBuildAndPush(appDir, imageName, config)
-			util.Check(err)
+			if err = dockerBuildAndPush(appDir, imageName, config); err != nil {
+				return err
+			}
 		} else {
 			fmt.Println("skipping Docker build & push")
 		}
 
 		buildDir, err := ioutil.TempDir("", "ranch")
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		fmt.Println("using build directory", buildDir)
 
 		var env map[string]string
 		if config.EnvId != "" {
 			plaintext, err := util.EcruGetSecret(appName, config.EnvId)
-			util.Check(err)
+			if err != nil {
+				return err
+			}
 
 			env, err = util.ParseEnv(plaintext)
-			util.Check(err)
+			if err != nil {
+				return err
+			}
 		}
 
-		err = generateDockerCompose(imageName, config, env, buildDir)
-		util.Check(err)
+		if err = generateDockerCompose(imageName, config, env, buildDir); err != nil {
+			return err
+		}
 
-		err = convoxDeploy(appName, appVersion, buildDir)
-		util.Check(err)
+		if err = convoxDeploy(appName, appVersion, buildDir); err != nil {
+			return err
+		}
 
-		err = util.ConvoxScale(appName, config)
-		util.Check(err)
+		if err = util.ConvoxScale(appName, config); err != nil {
+			return err
+		}
 
+		return nil
 	},
 }
 

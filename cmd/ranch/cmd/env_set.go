@@ -14,19 +14,25 @@ import (
 var envSetCmd = &cobra.Command{
 	Use:   "env:set",
 	Short: "Set environment variables",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		appDir, err := util.AppDir(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		clean, err := util.GitIsClean(appDir)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		if !clean {
-			util.Die("git working directory not clean.")
+			return fmt.Errorf("git working directory not clean.")
 		}
 
 		newEnv, err := readEnvChanges(args)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		var updatedKeys []string
 		for k, _ := range newEnv {
@@ -34,16 +40,23 @@ var envSetCmd = &cobra.Command{
 		}
 
 		config, err := util.LoadAppConfig(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		appName, err := util.AppName(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		oldEnv, err := util.EnvGet(appName, config.EnvId)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
-		err = mergo.Merge(&newEnv, oldEnv)
-		util.Check(err)
+		if err = mergo.Merge(&newEnv, oldEnv); err != nil {
+			return err
+		}
 
 		data := ""
 		for k, v := range newEnv {
@@ -51,23 +64,32 @@ var envSetCmd = &cobra.Command{
 		}
 
 		envId, err := util.EcruCreateSecret(appName, data)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
-		err = util.RanchUpdateEnvId(appDir, envId)
-		util.Check(err)
+		if err = util.RanchUpdateEnvId(appDir, envId); err != nil {
+			return err
+		}
 
-		err = util.GitAdd(appDir, ".ranch.yaml")
-		util.Check(err)
+		if err = util.GitAdd(appDir, ".ranch.yaml"); err != nil {
+			return err
+		}
 
 		message := fmt.Sprintf("set env %s", strings.Join(updatedKeys, ","))
 
-		err = util.GitCommit(appDir, message)
-		util.Check(err)
+		if err = util.GitCommit(appDir, message); err != nil {
+			return err
+		}
 
 		sha, err := util.GitCurrentSha(appDir)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		fmt.Printf("[%s] %s\n", sha, message)
+
+		return nil
 	},
 }
 

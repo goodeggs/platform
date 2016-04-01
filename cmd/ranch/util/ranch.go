@@ -2,10 +2,14 @@ package util
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"path"
 	"regexp"
 	"time"
+
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/parnurzeal/gorequest"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/viper"
 )
 
 type RanchConfig struct {
@@ -54,6 +58,33 @@ type Release struct {
 }
 
 type Releases []Release
+
+func getClient(authToken string) *gorequest.SuperAgent {
+	return jsonClient().
+		SetBasicAuth(authToken, "x-auth-token")
+}
+
+func RanchLoadSettings() (err error) {
+	authToken := viper.GetString("token")
+	url := fmt.Sprintf("%s/settings", viper.Get("endpoint"))
+
+	resp, body, errs := getClient(authToken).Get(url).End()
+
+	if len(errs) > 0 {
+		return errs[0]
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("unexpected HTTP response [%d]: %s", resp.StatusCode, body)
+	}
+
+	viper.SetConfigType("json")
+	if err = viper.ReadConfig(bytes.NewBuffer([]byte(body))); err != nil {
+		return err
+	}
+
+	return // success
+}
 
 func RanchUpdateEnvId(appDir, envId string) (err error) {
 	ranchFile := path.Join(appDir, ".ranch.yaml")

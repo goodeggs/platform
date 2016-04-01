@@ -10,12 +10,17 @@ import (
 var logsCmd = &cobra.Command{
 	Use:   "logs",
 	Short: "Tail the application logs",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		appName, err := util.AppName(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
-		err = util.ConvoxLogs(appName, os.Stdout)
-		util.Check(err)
+		if err = util.ConvoxLogs(appName, os.Stdout); err != nil {
+			return err
+		}
+
+		return nil
 	},
 }
 

@@ -12,17 +12,22 @@ import (
 var runCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Run a one-off command",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		appName, err := util.AppName(cmd)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		process := "web"
 		command := strings.Join(args, " ")
 
 		exitCode, err := runAttached(appName, process, command)
-		util.Check(err)
+		if err != nil {
+			return err
+		}
 
 		os.Exit(exitCode)
+		return nil
 	},
 }
 
