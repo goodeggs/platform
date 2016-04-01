@@ -12,7 +12,7 @@ echo "releasing v${version}..."
 
 goxc 2>&1 | indent
 
-sha=$(shasum -a 256 releases/${version}/ranch_${version}_darwin_amd64.zip)
+sha=$(shasum -a 256 releases/${version}/ranch_${version}_darwin_amd64.zip | awk '{print $1}')
 
 cat <<-EOF
 
