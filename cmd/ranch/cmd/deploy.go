@@ -83,15 +83,6 @@ var deployCmd = &cobra.Command{
 			return err
 		}
 
-		clean, err := util.GitIsClean(appDir)
-		if err != nil {
-			return err
-		}
-
-		if !clean {
-			return fmt.Errorf("git working directory not clean.")
-		}
-
 		appName, err := util.AppName(cmd)
 		if err != nil {
 			return err
