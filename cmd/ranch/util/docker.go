@@ -1,6 +1,7 @@
 package util
 
 import (
+	"encoding/json"
 	"net/url"
 	"os"
 	"strings"
@@ -86,10 +87,14 @@ func DockerBuild(appDir string, imageName string, buildEnv map[string]string) er
 		return err
 	}
 
-	var buildArgs []docker.BuildArg
-	for name, value := range buildEnv {
-		buildArgs = append(buildArgs, docker.BuildArg{Name: name, Value: value})
+	jsonEnvStr, err := json.Marshal(buildEnv)
+
+	if err != nil {
+		return err
 	}
+
+	buildArgs := make([]docker.BuildArg, 1)
+	buildArgs[0] = docker.BuildArg{Name: "RANCH_BUILD_ENV", Value: string(jsonEnvStr)}
 
 	opts := docker.BuildImageOptions{
 		Name:         absoluteImageName,
