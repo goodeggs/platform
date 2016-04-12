@@ -64,6 +64,18 @@ var initCmd = &cobra.Command{
 
 		fmt.Println("generated .ranch.yaml -- check it now!")
 
+		config, err := util.LoadAppConfig(cmd)
+		if err != nil {
+			return err
+		}
+
+		if errors := util.RanchValidateConfig(config); len(errors) > 0 {
+			for _, err := range errors {
+				fmt.Println(err.Error())
+			}
+			return fmt.Errorf(".ranch.yaml did not validate")
+		}
+
 		return nil
 	},
 }

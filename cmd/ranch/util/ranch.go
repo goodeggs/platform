@@ -59,9 +59,26 @@ type Release struct {
 
 type Releases []Release
 
+var ValidAppName = regexp.MustCompile(`\A[a-z][-a-z0-9]{3,29}\z`)
+var ValidProcessName = regexp.MustCompile(`\A[a-z][-a-z0-9]{2,29}\z`)
+
 func getClient(authToken string) *gorequest.SuperAgent {
 	return jsonClient().
 		SetBasicAuth(authToken, "x-auth-token")
+}
+
+func RanchValidateConfig(config *RanchConfig) (errors []error) {
+	if !ValidAppName.MatchString(config.Name) {
+		errors = append(errors, fmt.Errorf("app name '%s' is invalid: must match %s", config.Name, ValidAppName.String()))
+	}
+
+	for name, _ := range config.Processes {
+		if !ValidProcessName.MatchString(name) {
+			errors = append(errors, fmt.Errorf("process name '%s' is invalid: must match %s", name, ValidProcessName.String()))
+		}
+	}
+
+	return errors
 }
 
 func RanchLoadSettings() (err error) {
