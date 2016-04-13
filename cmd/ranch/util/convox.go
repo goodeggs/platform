@@ -98,6 +98,16 @@ func ConvoxRunAttached(appName, process, command string, input io.Reader, output
 	return client.RunProcessAttached(appName, process, command, input, output)
 }
 
+func ConvoxExec(appName, pid, command string, input io.Reader, output io.WriteCloser) (int, error) {
+	client, err := convoxClient()
+
+	if err != nil {
+		return -1, err
+	}
+
+	return client.ExecProcessAttached(appName, pid, command, input, output)
+}
+
 func ConvoxLogs(appName string, output io.WriteCloser) error {
 	client, err := convoxClient()
 
