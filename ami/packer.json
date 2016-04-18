@@ -75,6 +75,9 @@
         "# Install logspout-goodeggs.conf",
         "sudo mv {/home/ec2-user,/etc/init}/logspout-goodeggs.conf",
 
+        "echo '# Raise default docker ulimits'",
+        "sudo sed -i 's,1024:4096,8192:32768,' /etc/sysconfig/docker",
+
         "# Install docker-custodian",
         "sudo mv /home/ec2-user/cron-docker-custodian /etc/cron.hourly/docker-custodian",
         "sudo chmod 0755 /etc/cron.hourly/docker-custodian",
