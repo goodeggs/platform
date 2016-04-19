@@ -5,4 +5,4 @@ if [ "${SUMO_HTTP_TOKEN}z" == "z" ]; then
   exit 1
 fi
 
-exec /bin/logspout https://collectors.sumologic.com?http.path=/receiver/v1/http/${SUMO_HTTP_TOKEN}\&http.gzip=true
+exec /bin/logspout sumo://${SUMO_HTTP_TOKEN}/
