@@ -5,4 +5,9 @@ if [ "${SUMO_HTTP_TOKEN}z" == "z" ]; then
   exit 1
 fi
 
-exec /bin/logspout sumo://${SUMO_HTTP_TOKEN}/
+if [ "${SUMO_HOST}z" == "z" ]; then
+  >&2 echo "refusing to start logspout: \$SUMO_HOST is not set."
+  exit 1
+fi
+
+exec /bin/logspout sumo://${SUMO_HTTP_TOKEN}/?host=${SUMO_HOST}
