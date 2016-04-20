@@ -30,6 +30,11 @@
   "provisioners": [
     {
       "type": "file",
+      "source": "goodeggs-hostname.conf",
+      "destination": "/home/ec2-user/goodeggs-hostname.conf"
+    },
+    {
+      "type": "file",
       "source": "logspout-goodeggs.conf",
       "destination": "/home/ec2-user/logspout-goodeggs.conf"
     },
@@ -66,6 +71,9 @@
     {
       "type": "shell",
       "inline": [
+        "echo '# Install goodeggs-hostname.conf'",
+        "sudo mv {/home/ec2-user,/etc/init}/goodeggs-hostname.conf",
+
         "echo '# Setup /etc/logspout-goodeggs'",
         "sudo mkdir -p /etc/logspout-goodeggs",
         "echo 'goodeggs/logspout-goodeggs:{{user `logspout_tag`}}' | sudo dd of=/etc/logspout-goodeggs/image",
