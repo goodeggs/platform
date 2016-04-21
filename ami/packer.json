@@ -4,7 +4,7 @@
     "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
     "aws_security_token": "{{env `AWS_SECURITY_TOKEN`}}",
     "aws_region": "{{env `AWS_DEFAULT_REGION`}}",
-    "logspout_tag": "latest",
+    "logspout_tag": "ea282b6",
     "logspout_token": null,
     "librato_email": null,
     "librato_token": null,
@@ -30,6 +30,11 @@
   "provisioners": [
     {
       "type": "file",
+      "source": "goodeggs-hostname.conf",
+      "destination": "/home/ec2-user/goodeggs-hostname.conf"
+    },
+    {
+      "type": "file",
       "source": "logspout-goodeggs.conf",
       "destination": "/home/ec2-user/logspout-goodeggs.conf"
     },
@@ -42,11 +47,6 @@
       "type": "file",
       "source": "collectd.conf",
       "destination": "/home/ec2-user/collectd.conf"
-    },
-    {
-      "type": "file",
-      "source": "collectd.sysconfig",
-      "destination": "/home/ec2-user/collectd.sysconfig"
     },
     {
       "type": "file",
@@ -66,6 +66,10 @@
     {
       "type": "shell",
       "inline": [
+        "echo '# Install goodeggs-hostname.conf'",
+        "sudo mv {/home/ec2-user,/etc/init}/goodeggs-hostname.conf",
+        "sudo sed -i -- 's/%ENV%/{{user `env`}}/' /etc/init/goodeggs-hostname.conf",
+
         "echo '# Setup /etc/logspout-goodeggs'",
         "sudo mkdir -p /etc/logspout-goodeggs",
         "echo 'goodeggs/logspout-goodeggs:{{user `logspout_tag`}}' | sudo dd of=/etc/logspout-goodeggs/image",
@@ -89,8 +93,6 @@
         "sudo sed -i -- 's/%LIBRATO_EMAIL%/{{user `librato_email`}}/' /etc/collectd.conf",
         "sudo sed -i -- 's/%LIBRATO_TOKEN%/{{user `librato_token`}}/' /etc/collectd.conf",
         "sudo chmod 0600 /etc/collectd.conf",
-        "sudo mv /home/ec2-user/collectd.sysconfig /etc/sysconfig/collectd",
-        "sudo sed -i -- 's/%ENV%/{{user `env`}}/' /etc/sysconfig/collectd",
         "sudo mkdir -p /var/lib/collectd",
         "sudo mv {/home/ec2-user,/var/lib/collectd}/memory-available.sh",
         "sudo chmod 0755 /var/lib/collectd/memory-available.sh",
