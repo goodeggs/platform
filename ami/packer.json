@@ -6,6 +6,8 @@
     "aws_region": "{{env `AWS_DEFAULT_REGION`}}",
     "logspout_tag": "ea282b6",
     "logspout_token": null,
+    "sumo_access_id": null,
+    "sumo_access_key": null,
     "librato_email": null,
     "librato_token": null,
     "env": null,
@@ -37,6 +39,16 @@
       "type": "file",
       "source": "logspout-goodeggs.conf",
       "destination": "/home/ec2-user/logspout-goodeggs.conf"
+    },
+    {
+      "type": "file",
+      "source": "sumo.conf",
+      "destination": "/home/ec2-user/sumo.conf"
+    },
+    {
+      "type": "file",
+      "source": "sumo_sources.json",
+      "destination": "/home/ec2-user/sumo_sources.json"
     },
     {
       "type": "file",
@@ -78,6 +90,21 @@
 
         "echo '# Install logspout-goodeggs.conf'",
         "sudo mv {/home/ec2-user,/etc/init}/logspout-goodeggs.conf",
+
+        "echo '# Install sumo.conf'",
+        "sudo mv {/home/ec2-user,/etc}/sumo.conf",
+        "sudo sed -i -- 's/%SUMO_ACCESS_ID%/{{user `sumo_access_id`}}/' /etc/sumo.conf",
+        "sudo sed -i -- 's/%SUMO_ACCESS_KEY%/{{user `sumo_access_key`}}/' /etc/sumo.conf",
+
+        "echo '# Install sumo_sources.json'",
+        "sudo mv {/home/ec2-user,/etc}/sumo_sources.json",
+
+        "echo '# Install SumoLogic Collector'",
+        "curl -o /tmp/sumo_installer.sh https://collectors.sumologic.com/rest/download/linux/64",
+        "sudo sh /tmp/sumo_installer.sh -q -dir /usr/local/SumoCollector",
+        "rm -r /tmp/sumo_installer.sh",
+        "sudo /usr/local/SumoCollector/collector stop",
+        "sudo rm -rf /usr/local/SumoCollector/config/{creds,user.properties}",
 
         "echo '# Raise default docker ulimits'",
         "sudo sed -i 's,1024:4096,8192:32768,' /etc/sysconfig/docker",
