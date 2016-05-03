@@ -42,6 +42,11 @@
     },
     {
       "type": "file",
+      "source": "logspout-goodeggs.logrotate.conf",
+      "destination": "/home/ec2-user/logspout-goodeggs.logrotate.conf"
+    },
+    {
+      "type": "file",
       "source": "sumo.conf",
       "destination": "/home/ec2-user/sumo.conf"
     },
@@ -90,6 +95,9 @@
 
         "echo '# Install logspout-goodeggs.conf'",
         "sudo mv {/home/ec2-user,/etc/init}/logspout-goodeggs.conf",
+
+        "echo '# Install logspout-goodeggs.logrotate.conf'",
+        "sudo mv /home/ec2-user/logspout-goodeggs.logrotate.conf /etc/logrotate.d/logspout-goodeggs.conf",
 
         "echo '# Install sumo.conf'",
         "sudo mv {/home/ec2-user,/etc}/sumo.conf",
