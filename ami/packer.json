@@ -20,7 +20,7 @@
       "secret_key": "{{user `aws_secret_key`}}",
       "token": "{{user `aws_security_token`}}",
       "region": "{{user `aws_region`}}",
-      "source_ami": "ami-33b48a59",
+      "source_ami": "ami-67a3a90d",
       "instance_type": "t2.micro",
       "ssh_username": "ec2-user",
       "communicator": "ssh",
