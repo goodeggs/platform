@@ -1,0 +1,31 @@
+sudo: required
+dist: trusty
+
+before_install:
+- sudo apt-get install -y libssl-dev
+- cd /tmp
+- curl -Lo git-crypt.zip https://github.com/AGWA/git-crypt/archive/master.zip
+- unzip git-crypt.zip
+- cd git-crypt-master
+- make
+- sudo install git-crypt /usr/local/bin
+- cd $TRAVIS_BUILD_DIR
+- openssl aes-256-cbc -K $encrypted_3dc41751ea19_key -iv $encrypted_3dc41751ea19_iv -in git-crypt.key.enc -out git-crypt.key -d
+- git-crypt unlock git-crypt.key
+- rm git-crypt.key
+
+install:
+- mkdir -p /tmp/packer
+- cd /tmp/packer
+- curl -Lo packer.zip https://releases.hashicorp.com/packer/0.10.0/packer_0.10.0_linux_amd64.zip
+- unzip packer.zip
+- rm packer.zip
+
+script:
+- cd $TRAVIS_BUILD_DIR
+- export PATH="$PATH:/tmp/packer"
+- if [ "$TRAVIS_BRANCH" == "master" ]; then export AWS_ENV="prod"; else export AWS_ENV="dev"; fi
+- cd ami
+- version="${TRAVIS_BRANCH}@$(echo $TRAVIS_COMMIT | cut -c 1-7)"
+- packer build -var="env=$AWS_ENV" -var="version=$version" -var-file="variables.$AWS_ENV.json" packer.json
+
