@@ -26,6 +26,6 @@ script:
 - export PATH="$PATH:/tmp/packer"
 - if [ "$TRAVIS_BRANCH" == "master" ]; then export AWS_ENV="prod"; else export AWS_ENV="dev"; fi
 - cd ami
-- version="$TRAVIS_BRANCH @ $(echo $TRAVIS_COMMIT | cut -c 1-7)"
-- packer build -var="env=$AWS_ENV" -var="version=$VERSION" -var-file="variables.$AWS_ENV.json" packer.json
+- version="${TRAVIS_BRANCH}@$(echo $TRAVIS_COMMIT | cut -c 1-7)"
+- packer build -var="env=$AWS_ENV" -var="version=$version" -var-file="variables.$AWS_ENV.json" packer.json
 
