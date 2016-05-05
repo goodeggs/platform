@@ -1,0 +1,21 @@
+#!/bin/bash
+set -ev
+set -o pipefail
+
+if ! git diff --name-only $TRAVIS_COMMIT_RANGE | grep "^ami/"; then
+  echo "skipping ami, no changes."
+  exit 0
+fi
+
+./.travis/install-packer /tmp/packer
+
+if [ "$TRAVIS_BRANCH" == "master" ]; then
+  aws_env="prod"
+else
+  aws_env="dev"
+fi
+
+version="${TRAVIS_BRANCH}@$(echo $TRAVIS_COMMIT | cut -c 1-7)"
+
+/tmp/packer/packer build -var="env=$aws_env" -var="version=$version" -var-file="variables.$aws_env" packer.json
+
