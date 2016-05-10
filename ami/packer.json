@@ -4,7 +4,7 @@
     "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
     "aws_security_token": "{{env `AWS_SECURITY_TOKEN`}}",
     "aws_region": "{{env `AWS_DEFAULT_REGION`}}",
-    "logspout_tag": "ea282b6",
+    "logspout_tag": "{{user `logspout_tag`}}",
     "logspout_token": null,
     "sumo_access_id": null,
     "sumo_access_key": null,
