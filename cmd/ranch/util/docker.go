@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/viper"
@@ -44,6 +45,8 @@ func registryAuth() docker.AuthConfiguration {
 }
 
 func DockerPush(imageNameWithTag string) error {
+	defer timeTrack(time.Now(), "docker push")
+
 	parts := strings.Split(imageNameWithTag, ":")
 	imageName, tag := parts[0], parts[1]
 
@@ -75,6 +78,8 @@ func DockerPush(imageNameWithTag string) error {
 }
 
 func DockerBuild(appDir string, imageName string, buildEnv map[string]string) error {
+	defer timeTrack(time.Now(), "docker build")
+
 	client, err := dockerClient()
 
 	if err != nil {

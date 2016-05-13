@@ -225,6 +225,8 @@ func ConvoxPromote(appName string, appVersion string) error {
 }
 
 func ConvoxDeploy(appName string, buildDir string) (string, error) {
+	defer timeTrack(time.Now(), "convox deploy")
+
 	client, err := convoxClient()
 
 	if err != nil {
