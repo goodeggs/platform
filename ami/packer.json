@@ -81,6 +81,11 @@
       "destination": "/home/ec2-user/collectd.spec.amzn1"
     },
     {
+      "type": "file",
+      "source": "amazon-ecs-init-1.9.0-networkmode.gz",
+      "destination": "/home/ec2-user/amazon-ecs-init.gz"
+    },
+    {
       "type": "shell",
       "inline": [
         "echo '# Install goodeggs-hostname.conf'",
@@ -131,6 +136,14 @@
         "sudo mkdir -p /var/lib/collectd",
         "sudo mv {/home/ec2-user,/var/lib/collectd}/memory-available.sh",
         "sudo chmod 0755 /var/lib/collectd/memory-available.sh",
+
+        "echo '# Install patched amazon-ecs-init'",
+        "gunzip /home/ec2-user/amazon-ecs-init.gz",
+        "sudo mv {/home/ec2-user,/usr/libexec}/amazon-ecs-init",
+        "sudo chmod 0755 /usr/libexec/amazon-ecs-init",
+
+        "echo '# Enable Docker host networking'",
+        "echo 'ECS_DOCKER_NETWORKMODE=host' | sudo dd of=/etc/ecs/ecs.config oflag=append conv=notrunc",
 
         "echo '# Clear docker fs'",
         "sudo service docker stop",
