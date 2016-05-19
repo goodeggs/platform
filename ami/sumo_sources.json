@@ -92,14 +92,14 @@
             "pathExpression": "/var/log/yum.log"
         },
         {
-            "name": "logspout-goodeggs",
+            "name": "logspout",
             "sourceType": "LocalFile",
             "automaticDateParsing": true,
             "multilineProcessingEnabled": false,
             "useAutolineMatching": true,
             "forceTimeZone": false,
             "category": "unix_logs",
-            "pathExpression": "/var/log/logspout-goodeggs.log"
+            "pathExpression": "/var/log/logspout.log"
         }
     ]
 }

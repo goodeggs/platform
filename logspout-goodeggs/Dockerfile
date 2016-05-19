@@ -1,10 +1,3 @@
-FROM gliderlabs/logspout:master
-
+FROM goodeggs/logspout:reconnect-logs
 MAINTAINER Good Eggs <open-source@goodeggs.com>
-
-ENTRYPOINT [] # override base image
-
-CMD ["/start"]
-
-COPY start /
 
