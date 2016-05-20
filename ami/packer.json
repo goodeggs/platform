@@ -37,13 +37,13 @@
     },
     {
       "type": "file",
-      "source": "logspout-goodeggs.conf",
-      "destination": "/home/ec2-user/logspout-goodeggs.conf"
+      "source": "logspout.conf",
+      "destination": "/home/ec2-user/logspout.conf"
     },
     {
       "type": "file",
-      "source": "logspout-goodeggs.logrotate.conf",
-      "destination": "/home/ec2-user/logspout-goodeggs.logrotate.conf"
+      "source": "logspout.logrotate.conf",
+      "destination": "/home/ec2-user/logspout.logrotate.conf"
     },
     {
       "type": "file",
@@ -87,17 +87,17 @@
         "sudo mv {/home/ec2-user,/etc/init}/goodeggs-hostname.conf",
         "sudo sed -i -- 's/%ENV%/{{user `env`}}/' /etc/init/goodeggs-hostname.conf",
 
-        "echo '# Setup /etc/logspout-goodeggs'",
-        "sudo mkdir -p /etc/logspout-goodeggs",
-        "echo 'goodeggs/logspout-goodeggs:{{user `logspout_tag`}}' | sudo dd of=/etc/logspout-goodeggs/image",
-        "echo '{{user `logspout_token`}}' | sudo dd of=/etc/logspout-goodeggs/token",
-        "sudo chmod 0600 /etc/logspout-goodeggs/*",
+        "echo '# Setup /etc/logspout'",
+        "sudo mkdir -p /etc/logspout",
+        "echo '{{user `logspout_image`}}' | sudo dd of=/etc/logspout/image",
+        "echo '{{user `logspout_token`}}' | sudo dd of=/etc/logspout/token",
+        "sudo chmod 0600 /etc/logspout/*",
 
-        "echo '# Install logspout-goodeggs.conf'",
-        "sudo mv {/home/ec2-user,/etc/init}/logspout-goodeggs.conf",
+        "echo '# Install logspout.conf'",
+        "sudo mv {/home/ec2-user,/etc/init}/logspout.conf",
 
-        "echo '# Install logspout-goodeggs.logrotate.conf'",
-        "sudo mv /home/ec2-user/logspout-goodeggs.logrotate.conf /etc/logrotate.d/logspout-goodeggs.conf",
+        "echo '# Install logspout.logrotate.conf'",
+        "sudo mv /home/ec2-user/logspout.logrotate.conf /etc/logrotate.d/logspout.conf",
 
         "echo '# Install sumo.conf'",
         "sudo mv {/home/ec2-user,/etc}/sumo.conf",
