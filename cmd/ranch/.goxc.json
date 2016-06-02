@@ -1,8 +1,13 @@
 {
-	"ArtifactsDest": "releases",
+	"ArtifactsDest": "releases/",
+	"OutPath": "{{.Dest}}{{.PS}}{{.Version}}{{.PS}}bin{{.PS}}{{.Os}}-{{.Arch}}",
 	"Tasks": [
 		"default",
-		"publish-github"
+		"validate",
+		"compile",
+		"archive-zip",
+		"archive-tar-gz",
+		"deb"
 	],
 	"BuildConstraints": "linux,amd64 darwin,amd64",
 	"PackageVersion": "2.6.0",
