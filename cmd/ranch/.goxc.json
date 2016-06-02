@@ -1,13 +1,11 @@
 {
 	"ArtifactsDest": "releases/",
-	"OutPath": "{{.Dest}}{{.PS}}{{.Version}}{{.PS}}bin{{.PS}}{{.Os}}-{{.Arch}}",
 	"Tasks": [
 		"default",
 		"validate",
 		"compile",
 		"archive-zip",
 		"archive-tar-gz",
-		"deb",
     "publish-github"
 	],
 	"BuildConstraints": "linux,amd64 darwin,amd64",

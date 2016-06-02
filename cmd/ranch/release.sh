@@ -16,7 +16,10 @@ echo "syncing ranch-updates S3 bucket"
 aws-vault exec prod -- aws s3 sync s3://ranch-updates.goodeggs.com/stable/ranch/ public/
 
 echo "go-selfupdate generating bindiffs"
-go-selfupdate releases/${version}/bin/ ${version}
+mkdir releases/${version}/bins
+cp releases/${version}/darwin_amd64/ranch releases/${version}/bins/darwin-amd64
+cp releases/${version}/linux_amd64/ranch releases/${version}/bins/linux-amd64
+go-selfupdate releases/${version}/bins/ ${version}
 
 echo "syncing ranch-updates S3 bucket"
 aws-vault exec prod -- aws s3 sync --acl public-read public/ s3://ranch-updates.goodeggs.com/stable/ranch/
