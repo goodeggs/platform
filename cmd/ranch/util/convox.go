@@ -263,6 +263,17 @@ func ConvoxDeploy(appName string, buildDir string) (string, error) {
 	return finishBuild(client, appName, build)
 }
 
+func ConvoxPsStop(appName string, pid string) error {
+	client, err := convoxClient()
+
+	if err != nil {
+		return err
+	}
+
+	_, err = client.StopProcess(appName, pid)
+	return err
+}
+
 func createTarball(buildDir string) ([]byte, error) {
 	tmpDir, err := ioutil.TempDir("", "ranch")
 	defer os.RemoveAll(tmpDir)
