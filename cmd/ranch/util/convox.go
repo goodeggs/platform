@@ -341,8 +341,6 @@ func waitForBuild(client *client.Client, appName, buildId string) (string, error
 
 		time.Sleep(1 * time.Second)
 	}
-
-	return "", fmt.Errorf("can't get here")
 }
 
 func ConvoxWaitForStatus(appName, status string) error {
@@ -370,8 +368,6 @@ func ConvoxWaitForStatus(appName, status string) error {
 		fmt.Print(".")
 		time.Sleep(5 * time.Second)
 	}
-
-	return fmt.Errorf("can't get here")
 }
 
 func ConvoxPs(appName string) (Processes, error) {
