@@ -10,7 +10,7 @@
 		"deb"
 	],
 	"BuildConstraints": "linux,amd64 darwin,amd64",
-	"PackageVersion": "2.6.0",
+	"PackageVersion": "2.7.0",
 	"TaskSettings": {
 		"publish-github": {
 			"owner": "goodeggs",
