@@ -7,7 +7,8 @@
 		"compile",
 		"archive-zip",
 		"archive-tar-gz",
-		"deb"
+		"deb",
+    "publish-github"
 	],
 	"BuildConstraints": "linux,amd64 darwin,amd64",
 	"PackageVersion": "2.7.0",
