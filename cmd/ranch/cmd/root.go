@@ -12,6 +12,7 @@ import (
 var cfgFile string
 var App string
 var Verbose bool
+var Version string
 
 var RootCmd = &cobra.Command{
 	Use:   "ranch",

@@ -19,7 +19,9 @@ var versionCmd = &cobra.Command{
 }
 
 func main() {
+	cmd.Version = VERSION
 	cmd.RootCmd.AddCommand(versionCmd)
+
 	if err := cmd.RootCmd.Execute(); err != nil {
 		if err.Error() == "pflag: help requested" {
 			cmd.RootCmd.Usage()
