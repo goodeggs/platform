@@ -12,7 +12,7 @@ var count int
 
 var panicScaleCmd = &cobra.Command{
 	Use:   "panic:scale <process>",
-	Short: "Adjust the scale of a process.",
+	Short: "Adjust the scale of a process",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		appName, err := util.AppName(cmd)
 		if err != nil {
