@@ -9,7 +9,7 @@ import (
 
 var panicRollbackCmd = &cobra.Command{
 	Use:   "panic:rollback <release>",
-	Short: "Revert to a previous release.",
+	Short: "Revert to a previous release",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		appName, err := util.AppName(cmd)
 		if err != nil {
