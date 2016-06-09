@@ -440,6 +440,7 @@
     "InstanceCount": {
       "Default": "3",
       "Description": "The number of instances in the runtime cluster",
+      "MinValue": "2",
       "Type": "Number"
     },
     "InstanceType": {
@@ -525,7 +526,7 @@
       "Description": "(REQUIRED) Convox release version",
       "MinLength": "1",
       "Type": "String",
-      "Default": "20160502194942"
+      "Default": "20160606214509"
     },
     "VolumeSize": {
       "Type": "Number",
@@ -1375,7 +1376,9 @@
             "IpProtocol": "tcp",
             "FromPort": "22",
             "ToPort": "22",
-            "CidrIp": "0.0.0.0/0"
+            "CidrIp": {
+              "Ref": "VPCCIDR"
+            }
           },
           {
             "IpProtocol": "tcp",
@@ -1481,7 +1484,13 @@
       ],
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Properties": {
-        "AssociatePublicIpAddress": true,
+        "AssociatePublicIpAddress": {
+          "Fn::If": [
+            "Private",
+            false,
+            true
+          ]
+        },
         "BlockDeviceMappings": [
           {
             "DeviceName": "/dev/sdb",
@@ -1551,7 +1560,6 @@
               "",
               [
                 "#cloud-config\n",
-                "repo_upgrade: all\n",
                 "repo_upgrade_exclude:\n",
                 "  - kernel*\n",
                 "packages:\n",
@@ -1568,6 +1576,9 @@
                 },
                 " >> /etc/ecs/ecs.config\n",
                 "  - echo ECS_ENGINE_AUTH_TYPE=docker >> /etc/ecs/ecs.config\n",
+                "  - head -n -1 /etc/sysconfig/docker >> /etc/sysconfig/docker-tmp\n",
+                "  - mv /etc/sysconfig/docker-tmp /etc/sysconfig/docker\n",
+                "  - echo 'OPTIONS=\"--default-ulimit nofile=1024000:1024000\"' >> /etc/sysconfig/docker\n",
                 {
                   "Fn::If": [
                     "BlankCertificate",
@@ -2760,6 +2771,9 @@
               },
               "VPC": {
                 "Ref": "Vpc"
+              },
+              "VPCCIDR": {
+                "Ref": "VPCCIDR"
               }
             },
             "Image": {
