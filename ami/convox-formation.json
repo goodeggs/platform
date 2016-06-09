@@ -33,6 +33,22 @@
         ""
       ]
     },
+    "BlankInstanceBootCommand": {
+      "Fn::Equals": [
+        {
+          "Ref": "InstanceBootCommand"
+        },
+        ""
+      ]
+    },
+    "BlankInstanceRunCommand": {
+      "Fn::Equals": [
+        {
+          "Ref": "InstanceRunCommand"
+        },
+        ""
+      ]
+    },
     "BlankKey": {
       "Fn::Equals": [
         {
@@ -77,28 +93,28 @@
   "Mappings": {
     "RegionConfig": {
       "us-east-1": {
-        "Ami": "ami-33b48a59"
+        "Ami": "ami-67a3a90d"
       },
       "us-west-1": {
-        "Ami": "ami-26f78746"
+        "Ami": "ami-b7d5a8d7"
       },
       "us-west-2": {
-        "Ami": "ami-65866a05"
+        "Ami": "ami-c7a451a7"
       },
       "eu-west-1": {
-        "Ami": "ami-77ab1504"
+        "Ami": "ami-9c9819ef"
       },
       "eu-central-1": {
-        "Ami": "ami-341efb5b"
+        "Ami": "ami-9aeb0af5"
       },
       "ap-northeast-1": {
-        "Ami": "ami-b3afa2dd"
+        "Ami": "ami-7e4a5b10"
       },
       "ap-southeast-1": {
-        "Ami": "ami-0cb0786f"
+        "Ami": "ami-be63a9dd"
       },
       "ap-southeast-2": {
-        "Ami": "ami-cf6342ac"
+        "Ami": "ami-b8cbe8db"
       }
     }
   },
@@ -413,7 +429,12 @@
     },
     "InstanceBootCommand": {
       "Type": "String",
-      "Description": "A single line of extra shell script to run as UserData during instance boot.",
+      "Description": "A single line of shell script to run as CloudInit command early during instance boot.",
+      "Default": ""
+    },
+    "InstanceRunCommand": {
+      "Type": "String",
+      "Description": "A single line of shell script to run as CloudInit command late during instance boot.",
       "Default": ""
     },
     "InstanceCount": {
@@ -495,11 +516,16 @@
       "Description": "Private Subnet 2 CIDR Block",
       "Type": "String"
     },
+    "SwapSize": {
+      "Type": "Number",
+      "Description": "Default swap volume size in GB",
+      "Default": "5"
+    },
     "Version": {
       "Description": "(REQUIRED) Convox release version",
       "MinLength": "1",
       "Type": "String",
-      "Default": "20160408144745"
+      "Default": "20160502194942"
     },
     "VolumeSize": {
       "Type": "Number",
@@ -1458,6 +1484,15 @@
         "AssociatePublicIpAddress": true,
         "BlockDeviceMappings": [
           {
+            "DeviceName": "/dev/sdb",
+            "Ebs": {
+              "VolumeSize": {
+                "Ref": "SwapSize"
+              },
+              "VolumeType": "gp2"
+            }
+          },
+          {
             "DeviceName": "/dev/xvdcz",
             "Ebs": {
               "VolumeSize": {
@@ -1513,26 +1548,26 @@
         "UserData": {
           "Fn::Base64": {
             "Fn::Join": [
-              "\n",
+              "",
               [
-                "#!/bin/bash",
-                "fallocate -l 5G /swapfile && chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile",
-                "echo 'exclude=kernel*' >> /etc/yum.conf",
-                "yum -y update",
-                "yum -y install aws-cfn-bootstrap",
+                "#cloud-config\n",
+                "repo_upgrade: all\n",
+                "repo_upgrade_exclude:\n",
+                "  - kernel*\n",
+                "packages:\n",
+                "  - aws-cfn-bootstrap\n",
+                "mounts:\n",
+                "  - ['/dev/xvdb', 'none', 'swap', 'sw', '0', '0']\n",
+                "bootcmd:\n",
+                "  - mkswap /dev/xvdb\n",
+                "  - swapon /dev/xvdb\n",
+                "  - [ cloud-init-per, instance, docker_storage_setup, /usr/bin/docker-storage-setup ]\n",
+                "  - echo ECS_CLUSTER=",
                 {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "echo ECS_CLUSTER=",
-                      {
-                        "Ref": "Cluster"
-                      },
-                      " >> /etc/ecs/ecs.config"
-                    ]
-                  ]
+                  "Ref": "Cluster"
                 },
-                "echo ECS_ENGINE_AUTH_TYPE=docker >> /etc/ecs/ecs.config",
+                " >> /etc/ecs/ecs.config\n",
+                "  - echo ECS_ENGINE_AUTH_TYPE=docker >> /etc/ecs/ecs.config\n",
                 {
                   "Fn::If": [
                     "BlankCertificate",
@@ -1540,7 +1575,7 @@
                       "Fn::Join": [
                         "",
                         [
-                          "echo 'ECS_ENGINE_AUTH_DATA={\"index.docker.io\":{\"username\":\"\",\"password\":\"\",\"email\":\"\"},\"",
+                          "  - echo 'ECS_ENGINE_AUTH_DATA={\"index.docker.io\":{\"username\":\"\",\"password\":\"\",\"email\":\"\"},\"",
                           {
                             "Fn::Join": [
                               ":",
@@ -1559,7 +1594,23 @@
                           {
                             "Ref": "Password"
                           },
-                          "\",\"email\":\"user@convox.io\"}}' >> /etc/ecs/ecs.config"
+                          "\",\"email\":\"user@convox.io\"}}' >> /etc/ecs/ecs.config\n",
+                          "  - echo 'OPTIONS=\"${OPTIONS} --log-opt max-file=2 --log-opt max-size=50m --insecure-registry=",
+                          {
+                            "Fn::Join": [
+                              ":",
+                              [
+                                {
+                                  "Fn::GetAtt": [
+                                    "Balancer",
+                                    "DNSName"
+                                  ]
+                                },
+                                "5000"
+                              ]
+                            ]
+                          },
+                          " --host=unix:///var/run/docker.sock --host=0.0.0.0:2376\"' >> /etc/sysconfig/docker\n"
                         ]
                       ]
                     },
@@ -1567,7 +1618,7 @@
                       "Fn::Join": [
                         "",
                         [
-                          "echo 'ECS_ENGINE_AUTH_DATA={\"index.docker.io\":{\"username\":\"\",\"password\":\"\",\"email\":\"\"},\"",
+                          "  - echo 'ECS_ENGINE_AUTH_DATA={\"index.docker.io\":{\"username\":\"\",\"password\":\"\",\"email\":\"\"},\"",
                           {
                             "Fn::Join": [
                               ":",
@@ -1585,121 +1636,84 @@
                           {
                             "Ref": "Password"
                           },
-                          "\",\"email\":\"user@convox.io\"}}' >> /etc/ecs/ecs.config"
+                          "\",\"email\":\"user@convox.io\"}}' >> /etc/ecs/ecs.config\n",
+                          "  - echo 'OPTIONS=\"${OPTIONS} --log-opt max-file=2 --log-opt max-size=50m --host=unix:///var/run/docker.sock  --host=0.0.0.0:2376\"' >> /etc/sysconfig/docker\n"
                         ]
                       ]
                     }
                   ]
                 },
+                "  - mkdir -p /etc/convox\n",
+                "  - echo \"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\" > /etc/convox/region\n",
+                "  - echo \"",
+                {
+                  "Ref": "ClientId"
+                },
+                "\" > /etc/convox/client_id\n",
+                "  - echo \"",
+                {
+                  "Ref": "Kinesis"
+                },
+                "\" > /etc/convox/kinesis\n",
+                "  - echo \"",
+                {
+                  "Ref": "LogGroup"
+                },
+                "\" > /etc/convox/log_group\n",
+                "  - curl -s https://convox.s3.amazonaws.com/agent/0.68/convox.conf > /etc/init/convox.conf\n",
+                "  - echo -e '/var/log/docker {\\n  rotate 7\\n  daily\\n  nocompress\\n  copytruncate\\n}' >> /etc/logrotate.d/docker\n",
                 {
                   "Fn::If": [
-                    "BlankCertificate",
+                    "BlankInstanceBootCommand",
+                    {
+                      "Ref": "AWS::NoValue"
+                    },
                     {
                       "Fn::Join": [
                         "",
                         [
-                          "echo 'OPTIONS=\"${OPTIONS} --log-opt max-file=2 --log-opt max-size=50m --insecure-registry=",
+                          "  - ",
                           {
-                            "Fn::Join": [
-                              ":",
-                              [
-                                {
-                                  "Fn::GetAtt": [
-                                    "Balancer",
-                                    "DNSName"
-                                  ]
-                                },
-                                "5000"
-                              ]
-                            ]
+                            "Ref": "InstanceBootCommand"
                           },
-                          " --host=unix:///var/run/docker.sock --host=0.0.0.0:2376\"' >> /etc/sysconfig/docker"
+                          "\n"
                         ]
                       ]
-                    },
-                    "echo 'OPTIONS=\"${OPTIONS} --log-opt max-file=2 --log-opt max-size=50m --host=unix:///var/run/docker.sock  --host=0.0.0.0:2376\"' >> /etc/sysconfig/docker"
+                    }
                   ]
                 },
-                "service docker restart",
-                "mkdir -p /etc/convox",
+                "runcmd:\n",
                 {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "echo \"",
-                      {
-                        "Ref": "AWS::Region"
-                      },
-                      "\" > /etc/convox/region"
-                    ]
+                  "Fn::If": [
+                    "BlankInstanceRunCommand",
+                    "  - sleep 30\n",
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "  - ",
+                          {
+                            "Ref": "InstanceRunCommand"
+                          },
+                          "\n"
+                        ]
+                      ]
+                    }
                   ]
                 },
+                "  - /opt/aws/bin/cfn-signal --stack ",
                 {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "echo \"",
-                      {
-                        "Ref": "Kinesis"
-                      },
-                      "\" > /etc/convox/kinesis"
-                    ]
-                  ]
+                  "Ref": "AWS::StackName"
                 },
+                " --region ",
                 {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "echo \"",
-                      {
-                        "Ref": "LogGroup"
-                      },
-                      "\" > /etc/convox/log_group"
-                    ]
-                  ]
+                  "Ref": "AWS::Region"
                 },
-                "curl -s https://convox.s3.amazonaws.com/agent/0.66/convox.conf > /etc/init/convox.conf",
-                "start convox",
-                {
-                  "Ref": "InstanceBootCommand"
-                },
-                {
-                  "Fn::Join": [
-                    " ",
-                    [
-                      "/opt/aws/bin/cfn-init",
-                      "-s",
-                      {
-                        "Ref": "AWS::StackName"
-                      },
-                      "-r",
-                      "Instances",
-                      "--region",
-                      {
-                        "Ref": "AWS::Region"
-                      }
-                    ]
-                  ]
-                },
-                "sleep 30",
-                {
-                  "Fn::Join": [
-                    " ",
-                    [
-                      "/opt/aws/bin/cfn-signal",
-                      "--stack",
-                      {
-                        "Ref": "AWS::StackName"
-                      },
-                      "--resource",
-                      "Instances",
-                      "--region",
-                      {
-                        "Ref": "AWS::Region"
-                      }
-                    ]
-                  ]
-                }
+                " --resource Instances\n"
               ]
             ]
           }
@@ -1808,6 +1822,231 @@
           ],
           "WaitOnResourceSignals": "true"
         }
+      }
+    },
+    "InstancesLifecycle": {
+      "Type": "AWS::AutoScaling::LifecycleHook",
+      "Properties": {
+        "AutoScalingGroupName": {
+          "Ref": "Instances"
+        },
+        "DefaultResult": "CONTINUE",
+        "HeartbeatTimeout": "60",
+        "LifecycleTransition": "autoscaling:EC2_INSTANCE_TERMINATING",
+        "NotificationTargetARN": {
+          "Ref": "InstancesLifecycleTopic"
+        },
+        "RoleARN": {
+          "Fn::GetAtt": [
+            "InstancesLifecycleRole",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "InstancesLifecycleRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "autoscaling.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "InstancesLifecycleRole",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sns:Publish"
+                  ],
+                  "Resource": {
+                    "Ref": "InstancesLifecycleTopic"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "InstancesLifecycleTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "Subscription": [
+          {
+            "Endpoint": {
+              "Fn::GetAtt": [
+                "InstancesLifecycleHandler",
+                "Arn"
+              ]
+            },
+            "Protocol": "lambda"
+          }
+        ],
+        "TopicName": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "AWS::StackName"
+              },
+              "-lifecycle"
+            ]
+          ]
+        }
+      }
+    },
+    "InstancesLifecycleHandler": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "ZipFile": {
+            "Fn::Join": [
+              "\n",
+              [
+                "var AWS = require('aws-sdk');",
+                "var util = require('util');",
+                "exports.handler = function(input, context) {",
+                "  try {",
+                "    var as = new AWS.AutoScaling();",
+                "    var elb = new AWS.ELB();",
+                "    setTimeout(function() {",
+                "      for (var i in input.Records) {",
+                "        var message = JSON.parse(input.Records[i].Sns.Message);",
+                "        as.completeLifecycleAction({AutoScalingGroupName:message.AutoScalingGroupName,InstanceId:message.EC2InstanceId,LifecycleActionResult:'CONTINUE',LifecycleActionToken:message.LifecycleActionToken,LifecycleHookName:message.LifecycleHookName}, function(err, data) {",
+                "          console.log('completeLifecycleAction', 'err', err, 'data', data);",
+                "        });",
+                "      }",
+                "    }, 5000);",
+                "    for (var i in input.Records) {",
+                "      var message = JSON.parse(input.Records[i].Sns.Message);",
+                "      console.log('message', message);",
+                "      if (message.LifecycleTransition == 'autoscaling:EC2_INSTANCE_TERMINATING') {",
+                "        elb.describeLoadBalancers({}, function(err, data) {",
+                "          for (var j in data.LoadBalancerDescriptions) {",
+                "            var elbName = data.LoadBalancerDescriptions[j].LoadBalancerName;",
+                "            elb.describeTags({LoadBalancerNames:[elbName]}, function(err, data) {",
+                "              console.log('describeTags', 'err', err, 'data', data, 'tags', tags);",
+                "              var tags = {};",
+                "              for (var k in data.TagDescriptions[0].Tags) {",
+                "                tags[data.TagDescriptions[0].Tags[k].Key] = data.TagDescriptions[0].Tags[k].Value;",
+                "              }",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "              if (tags.Rack == '",
+                      {
+                        "Ref": "AWS::StackName"
+                      },
+                      "') {"
+                    ]
+                  ]
+                },
+                "                elb.deregisterInstancesFromLoadBalancer({LoadBalancerName:elbName,Instances:[{InstanceId:message.EC2InstanceId}]}, function(err, data) {",
+                "                  console.log('deregisterInstancesFromLoadBalancer', 'err', err, 'data', data);",
+                "                });",
+                "              }",
+                "            });",
+                "          }",
+                "        });",
+                "      }",
+                "    }",
+                "  } catch (err) {",
+                "    context.fail(err);",
+                "  }",
+                "};"
+              ]
+            ]
+          }
+        },
+        "Handler": "index.handler",
+        "MemorySize": "128",
+        "Role": {
+          "Fn::GetAtt": [
+            "InstancesLifecycleHandlerRole",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs",
+        "Timeout": "10"
+      }
+    },
+    "InstancesLifecycleHandlerPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "InstancesLifecycleHandler",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Ref": "InstancesLifecycleTopic"
+        }
+      }
+    },
+    "InstancesLifecycleHandlerRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "InstancesLifecycleHandlerRole",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "autoscaling:CompleteLifecycleAction",
+                    "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
+                    "elasticloadbalancing:DescribeLoadBalancers",
+                    "elasticloadbalancing:DescribeTags",
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
       }
     },
     "RegistryBucket": {
