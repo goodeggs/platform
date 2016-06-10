@@ -136,16 +136,16 @@ func ConvoxGetFormation(appName string) (formation RanchFormation, err error) {
 
 	for _, convoxFormationEntry := range convoxFormation {
 		formation[convoxFormationEntry.Name] = RanchFormationEntry{
-			Instances: convoxFormationEntry.Count,
-			Memory:    convoxFormationEntry.Memory,
-			Balancer:  convoxFormationEntry.Balancer,
+			Count:    convoxFormationEntry.Count,
+			Memory:   convoxFormationEntry.Memory,
+			Balancer: convoxFormationEntry.Balancer,
 		}
 	}
 
 	return formation, nil
 }
 
-func ConvoxScaleProcess(appName, processName string, instances, memory int) (err error) {
+func ConvoxScaleProcess(appName, processName string, count, memory int) (err error) {
 	client, err := convoxClient()
 
 	if err != nil {
@@ -153,17 +153,17 @@ func ConvoxScaleProcess(appName, processName string, instances, memory int) (err
 	}
 
 	message := fmt.Sprintf("scaling %s to", processName)
-	if instances > -1 {
-		message += fmt.Sprintf(" instances=%d", instances)
+	if count > -1 {
+		message += fmt.Sprintf(" count=%d", count)
 	}
 	if memory > -1 {
 		message += fmt.Sprintf(" memory=%d", memory)
 	}
 	fmt.Println(message)
 
-	strInstances := ""
-	if instances != -1 {
-		strInstances = strconv.Itoa(instances)
+	strCount := ""
+	if count != -1 {
+		strCount = strconv.Itoa(count)
 	}
 
 	strMemory := ""
@@ -171,7 +171,7 @@ func ConvoxScaleProcess(appName, processName string, instances, memory int) (err
 		strMemory = strconv.Itoa(memory)
 	}
 
-	if err = client.SetFormation(appName, processName, strInstances, strMemory); err != nil {
+	if err = client.SetFormation(appName, processName, strCount, strMemory); err != nil {
 		return err
 	}
 
@@ -188,13 +188,13 @@ func ConvoxScale(appName string, config *RanchConfig) (err error) {
 
 	for processName, processConfig := range config.Processes {
 		if existingEntry, ok := existingFormation[processName]; ok {
-			if existingEntry.Instances == processConfig.Instances && existingEntry.Memory == processConfig.Memory {
-				fmt.Printf("%s already scaled to instances=%d memory=%d\n", processName, processConfig.Instances, processConfig.Memory)
+			if existingEntry.Count == processConfig.Count && existingEntry.Memory == processConfig.Memory {
+				fmt.Printf("%s already scaled to count=%d memory=%d\n", processName, processConfig.Count, processConfig.Memory)
 				continue
 			}
 		}
 
-		if err = ConvoxScaleProcess(appName, processName, processConfig.Instances, processConfig.Memory); err != nil {
+		if err = ConvoxScaleProcess(appName, processName, processConfig.Count, processConfig.Memory); err != nil {
 			return err
 		}
 

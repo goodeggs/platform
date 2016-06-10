@@ -20,16 +20,17 @@ type RanchConfig struct {
 
 type RanchConfigProcess struct {
 	Command   string `json:"command"`
-	Instances int    `json:"instances"`
+	Count     int    `json:"count"`
+	Instances int    `json:"instances"` // deprecated
 	Memory    int    `json:"memory"`
 }
 
 type RanchConfigProcessMap map[string]RanchConfigProcess
 
 type RanchFormationEntry struct {
-	Balancer  string `json:"balancer"`
-	Instances int    `json:"instances"`
-	Memory    int    `json:"memory"`
+	Balancer string `json:"balancer"`
+	Count    int    `json:"count"`
+	Memory   int    `json:"memory"`
 }
 
 type RanchFormation map[string]RanchFormationEntry

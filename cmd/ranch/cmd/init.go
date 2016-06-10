@@ -18,7 +18,7 @@ name: {{.AppName}}
 processes:
   web:
     command: node server.js
-    instances: 2
+    count: 2
     memory: 256
     domains:
       - {{.AppName}}
