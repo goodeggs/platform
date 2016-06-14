@@ -12,11 +12,12 @@ import (
 )
 
 func AppConfigPath(cmd *cobra.Command) (string, error) {
-	appDir, err := AppDir(cmd)
-	if err != nil {
-		return "", err
+	if configFile, err := cmd.Flags().GetString("config"); err == nil && configFile != "" {
+		fmt.Printf("using config file %s\n", configFile)
+		return filepath.EvalSymlinks(configFile)
 	}
-	return path.Join(appDir, ".ranch.yaml"), nil
+
+	return filepath.EvalSymlinks(".ranch.yaml")
 }
 
 func LoadAppConfig(cmd *cobra.Command) (*RanchConfig, error) {

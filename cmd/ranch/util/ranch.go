@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"path"
 	"regexp"
 	"time"
 
@@ -104,9 +103,7 @@ func RanchLoadSettings() (err error) {
 	return // success
 }
 
-func RanchUpdateEnvId(appDir, envId string) (err error) {
-	ranchFile := path.Join(appDir, ".ranch.yaml")
-
+func RanchUpdateEnvId(ranchFile, envId string) (err error) {
 	contents, err := ioutil.ReadFile(ranchFile)
 	if err != nil {
 		return err
