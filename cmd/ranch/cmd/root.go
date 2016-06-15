@@ -32,7 +32,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	RootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
 	RootCmd.PersistentFlags().StringVarP(&App, "app", "a", "", "application name (defaults to CWD)")
-	RootCmd.PersistentFlags().StringP("config", "c", "", "config filename (defaults to .ranch.yaml)")
+	RootCmd.PersistentFlags().StringP("filename", "f", "", "config filename (defaults to .ranch.yaml)")
 	RootCmd.SilenceUsage = true
 	RootCmd.SilenceErrors = true
 }

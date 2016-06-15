@@ -12,7 +12,7 @@ import (
 )
 
 func AppConfigPath(cmd *cobra.Command) (string, error) {
-	if configFile, err := cmd.Flags().GetString("config"); err == nil && configFile != "" {
+	if configFile, err := cmd.Flags().GetString("filename"); err == nil && configFile != "" {
 		fmt.Printf("using config file %s\n", configFile)
 		return filepath.EvalSymlinks(configFile)
 	}
