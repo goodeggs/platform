@@ -90,7 +90,7 @@ var envUnsetCmd = &cobra.Command{
 			return err
 		}
 
-		if err = util.GitAdd(configPath); err != nil {
+		if err = util.GitAdd(appDir, configPath); err != nil {
 			return err
 		}
 
