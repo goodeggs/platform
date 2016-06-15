@@ -218,7 +218,7 @@ func generateDockerCompose(imageName string, config *util.RanchConfig, env map[s
 
 func dockerBuildAndPush(appDir, imageName string, config *util.RanchConfig) (err error) {
 
-	env, err := util.EnvGet(config.Name, config.EnvId)
+	env, err := util.EnvGet(config.AppName, config.EnvId)
 
 	if err != nil {
 		return err

@@ -81,7 +81,7 @@ func AppName(cmd *cobra.Command) (string, error) {
 
 	// fall back to config
 	if config, err := LoadAppConfig(cmd); err == nil {
-		return config.Name, nil
+		return config.AppName, nil
 	}
 
 	// fall back to directory name

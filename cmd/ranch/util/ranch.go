@@ -14,7 +14,7 @@ import (
 )
 
 type RanchConfig struct {
-	Name      string                `json:"name"`
+	AppName   string                `json:"name"`
 	EnvId     string                `json:"env_id"`
 	Processes RanchConfigProcessMap `json:"processes"`
 }
@@ -77,8 +77,8 @@ func ranchClient() *gorequest.SuperAgent {
 }
 
 func RanchValidateConfig(config *RanchConfig) (errors []error) {
-	if !ValidAppName.MatchString(config.Name) {
-		errors = append(errors, fmt.Errorf("app name '%s' is invalid: must match %s", config.Name, ValidAppName.String()))
+	if !ValidAppName.MatchString(config.AppName) {
+		errors = append(errors, fmt.Errorf("app name '%s' is invalid: must match %s", config.AppName, ValidAppName.String()))
 	}
 
 	for name, _ := range config.Processes {
