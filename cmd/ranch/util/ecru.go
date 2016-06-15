@@ -50,7 +50,7 @@ func EcruReleaseExists(appName, sha string) (exists bool, err error) {
 	}
 
 	url := fmt.Sprintf("/projects/%s/releases/%s", appName, sha)
-	resp, _, errs := client.Get(url).End()
+	resp, _, errs := client.Get(ecruUrl(url)).End()
 
 	if len(errs) > 0 {
 		return false, errs[0]
