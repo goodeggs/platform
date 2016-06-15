@@ -50,6 +50,10 @@ func LoadAppConfig(cmd *cobra.Command) (*RanchConfig, error) {
 		}
 	}
 
+	if config.ImageName == "" {
+		config.ImageName = config.AppName
+	}
+
 	return &config, nil
 }
 

@@ -2,15 +2,14 @@ package util
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/url"
 	"os"
 	"path"
 	"strings"
 
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/parnurzeal/gorequest"
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/viper"
+	"github.com/heroku/docker-registry-client/registry"
 )
 
 func dockerClient() (*docker.Client, error) {
@@ -19,18 +18,16 @@ func dockerClient() (*docker.Client, error) {
 
 func dockerRegistryUrl(pathname string) string {
 	u, _ := url.Parse(viper.GetString("docker.registry.url"))
-	u.Path = path.Join(u.Path, "v2", pathname)
+	u.Path = path.Join(u.Path, "v1", pathname)
 	return u.String()
 }
 
-func dockerRegistryClient() (*gorequest.SuperAgent, error) {
+func dockerRegistryClient() (*registry.Registry, error) {
+	u := viper.GetString("docker.registry.url")
 	username := viper.GetString("docker.registry.username")
 	password := viper.GetString("docker.registry.password")
 
-	request := jsonClient().
-		SetBasicAuth(username, password)
-
-	return request, nil
+	return registry.New(u, username, password)
 }
 
 func DockerResolveImageName(imageName string) (string, error) {
@@ -66,24 +63,27 @@ func registryAuth() docker.AuthConfiguration {
 func DockerImageExists(imageNameWithTag string) (bool, error) {
 	parts := strings.Split(imageNameWithTag, ":")
 	imageName, tag := parts[0], parts[1]
-	pathname := fmt.Sprintf("/%s/manifests/%s", imageName, tag)
+
+	if org := viper.GetString("docker.registry.org"); org != "" {
+		imageName = strings.Join([]string{org, imageName}, "/")
+	}
 
 	client, err := dockerRegistryClient()
 	if err != nil {
 		return false, err
 	}
 
-	resp, _, errs := client.Get(dockerRegistryUrl(pathname)).End()
-
-	if len(errs) > 0 {
-		return false, errs[0]
-	} else if resp.StatusCode == 404 {
+	manifest, err := client.Manifest(imageName, tag)
+	if err != nil {
+		if strings.Contains(err.Error(), "status=404") {
+			return false, nil
+		}
+		return false, err
+	} else if manifest == nil {
 		return false, nil
-	} else if resp.StatusCode == 200 {
-		return true, nil
 	}
 
-	return false, fmt.Errorf("unexpected HTTP status code from docker registry: GET %s %d", pathname, resp.StatusCode)
+	return true, nil
 }
 
 func DockerPush(imageNameWithTag string) error {

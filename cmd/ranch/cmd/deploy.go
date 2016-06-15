@@ -102,9 +102,9 @@ var deployCmd = &cobra.Command{
 			return err
 		}
 
-		imageNameWithTag := strings.Join([]string{appName, appVersion}, ":")
+		imageNameWithTag := strings.Join([]string{config.ImageName, appVersion}, ":")
 
-		exists, err := util.EcruReleaseExists(appName, appVersion)
+		exists, err := util.EcruReleaseExists(config.AppName, appVersion)
 		if err != nil {
 			return err
 		} else if exists {
@@ -115,7 +115,7 @@ var deployCmd = &cobra.Command{
 		if err != nil {
 			return err
 		} else if exists {
-			fmt.Printf("%s docker image already exists in registry, skipping build.", imageNameWithTag)
+			fmt.Printf("%s docker image already exists in registry, skipping build.\n", imageNameWithTag)
 		} else {
 			if err = dockerBuildAndPush(appDir, imageNameWithTag, config); err != nil {
 				return err
