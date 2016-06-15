@@ -3,6 +3,8 @@ package util
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
+	"path"
 
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/parnurzeal/gorequest"
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/viper"
@@ -23,6 +25,12 @@ type EcruSecret struct {
 	Id string `json:"_id"`
 }
 
+func ecruUrl(pathname string) string {
+	u, _ := url.Parse("https://ecru.goodeggs.com/api/v1")
+	u.Path = path.Join(u.Path, pathname)
+	return u.String()
+}
+
 func ecruClient() (*gorequest.SuperAgent, error) {
 	if !viper.IsSet("convox.password") {
 		return nil, fmt.Errorf("must set 'convox.password' in $HOME/.ranch.yaml")
@@ -41,7 +49,7 @@ func EcruReleaseExists(appName, sha string) (exists bool, err error) {
 		return false, err
 	}
 
-	url := fmt.Sprintf("https://ecru.goodeggs.com/api/v1/projects/%s/releases/%s", appName, sha)
+	url := fmt.Sprintf("/projects/%s/releases/%s", appName, sha)
 	resp, _, errs := client.Get(url).End()
 
 	if len(errs) > 0 {
@@ -63,10 +71,10 @@ func EcruCreateRelease(appName, sha, convoxRelease string) error {
 		return err
 	}
 
-	url := fmt.Sprintf("https://ecru.goodeggs.com/api/v1/projects/%s/releases", appName)
+	pathname := fmt.Sprintf("/projects/%s/releases", appName)
 	reqBody := fmt.Sprintf(`{"sha":"%s","convoxRelease":"%s"}`, sha, convoxRelease)
 
-	resp, body, errs := client.Post(url).Send(reqBody).End()
+	resp, body, errs := client.Post(ecruUrl(pathname)).Send(reqBody).End()
 
 	if len(errs) > 0 {
 		return errs[0]
@@ -98,9 +106,9 @@ func EcruReleases(appName string) ([]EcruRelease, error) {
 		return nil, err
 	}
 
-	url := fmt.Sprintf("https://ecru.goodeggs.com/api/v1/projects/%s/releases", appName)
+	pathname := fmt.Sprintf("/projects/%s/releases", appName)
 
-	resp, body, errs := client.Get(url).End()
+	resp, body, errs := client.Get(ecruUrl(pathname)).End()
 
 	if len(errs) > 0 {
 		return nil, errs[0]
@@ -128,9 +136,9 @@ func EcruGetSecret(appName, secretId string) (plaintext string, err error) {
 		return "", err
 	}
 
-	url := fmt.Sprintf("https://ecru.goodeggs.com/api/v1/projects/%s/secrets/%s", appName, secretId)
+	pathname := fmt.Sprintf("/projects/%s/secrets/%s", appName, secretId)
 
-	resp, body, errs := client.Get(url).End()
+	resp, body, errs := client.Get(ecruUrl(pathname)).End()
 
 	if len(errs) > 0 {
 		return "", errs[0]
@@ -151,10 +159,10 @@ func EcruCreateSecret(appName, plaintext string) (secretId string, err error) {
 		return "", err
 	}
 
-	url := fmt.Sprintf("https://ecru.goodeggs.com/api/v1/projects/%s/secrets", appName)
+	pathname := fmt.Sprintf("/projects/%s/secrets", appName)
 
 	resp, body, errs := client.
-		Post(url).
+		Post(ecruUrl(pathname)).
 		Set("Content-Type", "text/plain").
 		Send(plaintext).
 		End()

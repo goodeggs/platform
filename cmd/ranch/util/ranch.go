@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"net/url"
+	"path"
 	"regexp"
 	"time"
 
@@ -62,7 +64,14 @@ type Releases []Release
 var ValidAppName = regexp.MustCompile(`\A[a-z][-a-z0-9]{3,29}\z`)
 var ValidProcessName = regexp.MustCompile(`\A[a-z][-a-z0-9]{2,29}\z`)
 
-func getClient(authToken string) *gorequest.SuperAgent {
+func ranchUrl(pathname string) string {
+	u, _ := url.Parse(viper.GetString("endpoint"))
+	u.Path = path.Join(u.Path, pathname)
+	return u.String()
+}
+
+func ranchClient() *gorequest.SuperAgent {
+	authToken := viper.GetString("token")
 	return jsonClient().
 		SetBasicAuth(authToken, "x-auth-token")
 }
@@ -82,10 +91,7 @@ func RanchValidateConfig(config *RanchConfig) (errors []error) {
 }
 
 func RanchLoadSettings() (err error) {
-	authToken := viper.GetString("token")
-	url := fmt.Sprintf("%s/settings", viper.Get("endpoint"))
-
-	resp, body, errs := getClient(authToken).Get(url).End()
+	resp, body, errs := ranchClient().Get(ranchUrl("/settings")).End()
 
 	if len(errs) > 0 {
 		return errs[0]
