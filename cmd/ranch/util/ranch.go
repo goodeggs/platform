@@ -2,6 +2,8 @@ package util
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -58,6 +60,11 @@ type Release struct {
 	App     string    `json:"app"`
 	Created time.Time `json:"created"`
 	Status  string    `json:"status"`
+}
+
+type RanchApiSecret struct {
+	Id      string `json:"_id"`
+	Content string `json:"content"`
 }
 
 type Releases []Release
@@ -137,4 +144,59 @@ func RanchUpdateEnvId(ranchFile, envId string) (err error) {
 	}
 
 	return nil
+}
+
+func RanchGetSecret(appName, secretId string) (string, error) {
+
+	client := ranchClient()
+
+	pathname := fmt.Sprintf("/apps/%s/secrets/%s", appName, secretId)
+
+	resp, body, errs := client.Get(ranchUrl(pathname)).End()
+
+	if len(errs) > 0 {
+		return "", errs[0]
+	} else if resp.StatusCode != 200 {
+		return "", fmt.Errorf("Error fetching secret from ranch-api: status code %d", resp.StatusCode)
+	}
+
+	var secret RanchApiSecret
+	if err := json.Unmarshal([]byte(body), &secret); err != nil {
+		return "", err
+	}
+
+	plaintextBytes, err := base64.StdEncoding.DecodeString(secret.Content)
+	if err != nil {
+		return "", err
+	}
+
+	return string(plaintextBytes), nil
+}
+
+func RanchCreateSecret(appName, plaintext string) (secretId string, err error) {
+
+	client := ranchClient()
+
+	pathname := fmt.Sprintf("/apps/%s/secrets", appName)
+
+	secret := RanchApiSecret{
+		Content: base64.StdEncoding.EncodeToString([]byte(plaintext)),
+	}
+
+	resp, body, errs := client.
+		Post(ranchUrl(pathname)).
+		Send(secret).
+		End()
+
+	if len(errs) > 0 {
+		return "", errs[0]
+	} else if resp.StatusCode != 201 {
+		return "", fmt.Errorf("Error creating secret in ranch-api: status code %d", resp.StatusCode)
+	}
+
+	if err = json.Unmarshal([]byte(body), &secret); err != nil {
+		return "", err
+	}
+
+	return secret.Id, nil
 }
