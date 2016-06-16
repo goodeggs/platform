@@ -25,7 +25,7 @@ var envCmd = &cobra.Command{
 			return fmt.Errorf("your config does not contain an env_id")
 		}
 
-		plaintext, err := util.EcruGetSecret(appName, config.EnvId)
+		plaintext, err := util.RanchGetSecret(appName, config.EnvId)
 		if err != nil {
 			return err
 		}

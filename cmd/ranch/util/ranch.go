@@ -150,7 +150,7 @@ func RanchGetSecret(appName, secretId string) (string, error) {
 
 	client := ranchClient()
 
-	pathname := fmt.Sprintf("/apps/%s/secrets/%s", appName, secretId)
+	pathname := fmt.Sprintf("/v1/apps/%s/secrets/%s", appName, secretId)
 
 	resp, body, errs := client.Get(ranchUrl(pathname)).End()
 
@@ -177,7 +177,7 @@ func RanchCreateSecret(appName, plaintext string) (secretId string, err error) {
 
 	client := ranchClient()
 
-	pathname := fmt.Sprintf("/apps/%s/secrets", appName)
+	pathname := fmt.Sprintf("/v1/apps/%s/secrets", appName)
 
 	secret := RanchApiSecret{
 		Content: base64.StdEncoding.EncodeToString([]byte(plaintext)),

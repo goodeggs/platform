@@ -131,7 +131,7 @@ var deployCmd = &cobra.Command{
 
 		var env map[string]string
 		if config.EnvId != "" {
-			plaintext, err := util.EcruGetSecret(appName, config.EnvId)
+			plaintext, err := util.RanchGetSecret(appName, config.EnvId)
 			if err != nil {
 				return err
 			}
