@@ -47,6 +47,7 @@ func LoadAppConfig(cmd *cobra.Command) (*RanchConfig, error) {
 		if proc.Instances > 0 && proc.Count == 0 {
 			fmt.Printf("deprecated: rename `instances` to `count` in your .ranch.yaml for app '%s'\n", name)
 			proc.Count = proc.Instances
+			config.Processes[name] = proc // write it back to the map
 		}
 	}
 
