@@ -40,6 +40,11 @@ var envUnsetCmd = &cobra.Command{
 			keysToDeleteMap[key] = 1
 		}
 
+		configPath, err := util.AppConfigPath(cmd)
+		if err != nil {
+			return err
+		}
+
 		config, err := util.LoadAppConfig(cmd)
 		if err != nil {
 			return err
@@ -81,11 +86,11 @@ var envUnsetCmd = &cobra.Command{
 			return err
 		}
 
-		if err = util.RanchUpdateEnvId(appDir, envId); err != nil {
+		if err = util.RanchUpdateEnvId(configPath, envId); err != nil {
 			return err
 		}
 
-		if err = util.GitAdd(appDir, ".ranch.yaml"); err != nil {
+		if err = util.GitAdd(appDir, configPath); err != nil {
 			return err
 		}
 

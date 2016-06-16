@@ -12,11 +12,12 @@ import (
 )
 
 func AppConfigPath(cmd *cobra.Command) (string, error) {
-	appDir, err := AppDir(cmd)
-	if err != nil {
-		return "", err
+	if configFile, err := cmd.Flags().GetString("filename"); err == nil && configFile != "" {
+		fmt.Printf("using config file %s\n", configFile)
+		return filepath.EvalSymlinks(configFile)
 	}
-	return path.Join(appDir, ".ranch.yaml"), nil
+
+	return filepath.EvalSymlinks(".ranch.yaml")
 }
 
 func LoadAppConfig(cmd *cobra.Command) (*RanchConfig, error) {
@@ -40,6 +41,17 @@ func LoadAppConfig(cmd *cobra.Command) (*RanchConfig, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	for name, proc := range config.Processes {
+		if proc.Instances > 0 && proc.Count == 0 {
+			fmt.Printf("deprecated: rename `instances` to `count` in your .ranch.yaml for app '%s'\n", name)
+			proc.Count = proc.Instances
+		}
+	}
+
+	if config.ImageName == "" {
+		config.ImageName = config.AppName
 	}
 
 	return &config, nil
@@ -73,7 +85,7 @@ func AppName(cmd *cobra.Command) (string, error) {
 
 	// fall back to config
 	if config, err := LoadAppConfig(cmd); err == nil {
-		return config.Name, nil
+		return config.AppName, nil
 	}
 
 	// fall back to directory name

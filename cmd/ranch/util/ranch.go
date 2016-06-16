@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"path"
 	"regexp"
 	"time"
@@ -13,23 +14,25 @@ import (
 )
 
 type RanchConfig struct {
-	Name      string                `json:"name"`
+	AppName   string                `json:"name"`
+	ImageName string                `json:"image_name"`
 	EnvId     string                `json:"env_id"`
 	Processes RanchConfigProcessMap `json:"processes"`
 }
 
 type RanchConfigProcess struct {
 	Command   string `json:"command"`
-	Instances int    `json:"instances"`
+	Count     int    `json:"count"`
+	Instances int    `json:"instances"` // deprecated
 	Memory    int    `json:"memory"`
 }
 
 type RanchConfigProcessMap map[string]RanchConfigProcess
 
 type RanchFormationEntry struct {
-	Balancer  string `json:"balancer"`
-	Instances int    `json:"instances"`
-	Memory    int    `json:"memory"`
+	Balancer string `json:"balancer"`
+	Count    int    `json:"count"`
+	Memory   int    `json:"memory"`
 }
 
 type RanchFormation map[string]RanchFormationEntry
@@ -62,14 +65,25 @@ type Releases []Release
 var ValidAppName = regexp.MustCompile(`\A[a-z][-a-z0-9]{3,29}\z`)
 var ValidProcessName = regexp.MustCompile(`\A[a-z][-a-z0-9]{2,29}\z`)
 
-func getClient(authToken string) *gorequest.SuperAgent {
+func ranchUrl(pathname string) string {
+	u, _ := url.Parse(viper.GetString("endpoint"))
+	u.Path = path.Join(u.Path, pathname)
+	return u.String()
+}
+
+func ranchClient() *gorequest.SuperAgent {
+	authToken := viper.GetString("token")
 	return jsonClient().
 		SetBasicAuth(authToken, "x-auth-token")
 }
 
 func RanchValidateConfig(config *RanchConfig) (errors []error) {
-	if !ValidAppName.MatchString(config.Name) {
-		errors = append(errors, fmt.Errorf("app name '%s' is invalid: must match %s", config.Name, ValidAppName.String()))
+	if !ValidAppName.MatchString(config.AppName) {
+		errors = append(errors, fmt.Errorf("app name '%s' is invalid: must match %s", config.AppName, ValidAppName.String()))
+	}
+
+	if !ValidAppName.MatchString(config.ImageName) {
+		errors = append(errors, fmt.Errorf("image name '%s' is invalid: must match %s", config.ImageName, ValidAppName.String()))
 	}
 
 	for name, _ := range config.Processes {
@@ -82,10 +96,7 @@ func RanchValidateConfig(config *RanchConfig) (errors []error) {
 }
 
 func RanchLoadSettings() (err error) {
-	authToken := viper.GetString("token")
-	url := fmt.Sprintf("%s/settings", viper.Get("endpoint"))
-
-	resp, body, errs := getClient(authToken).Get(url).End()
+	resp, body, errs := ranchClient().Get(ranchUrl("/settings")).End()
 
 	if len(errs) > 0 {
 		return errs[0]
@@ -103,9 +114,7 @@ func RanchLoadSettings() (err error) {
 	return // success
 }
 
-func RanchUpdateEnvId(appDir, envId string) (err error) {
-	ranchFile := path.Join(appDir, ".ranch.yaml")
-
+func RanchUpdateEnvId(ranchFile, envId string) (err error) {
 	contents, err := ioutil.ReadFile(ranchFile)
 	if err != nil {
 		return err

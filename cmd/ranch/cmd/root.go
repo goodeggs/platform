@@ -9,7 +9,6 @@ import (
 	"github.com/goodeggs/platform/cmd/ranch/util"
 )
 
-var cfgFile string
 var App string
 var Verbose bool
 var Version string
@@ -33,6 +32,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	RootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
 	RootCmd.PersistentFlags().StringVarP(&App, "app", "a", "", "application name (defaults to CWD)")
+	RootCmd.PersistentFlags().StringP("filename", "f", "", "config filename (defaults to .ranch.yaml)")
 	RootCmd.SilenceUsage = true
 	RootCmd.SilenceErrors = true
 }

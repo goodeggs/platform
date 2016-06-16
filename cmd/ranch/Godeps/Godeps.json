@@ -11,6 +11,11 @@
 			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
 		},
 		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.8.7",
+			"Rev": "418b41d23a1bf978c06faea5313ba194650ac088"
+		},
+		{
 			"ImportPath": "github.com/convox/rack/client",
 			"Rev": "98deecff052d2c0ad7dc763b7ca44d876ceaa414"
 		},
@@ -18,6 +23,25 @@
 			"ImportPath": "github.com/cpuguy83/go-md2man/md2man",
 			"Comment": "v1.0.4",
 			"Rev": "71acacd42f85e5e82f70a55327789582a5200a90"
+		},
+		{
+			"ImportPath": "github.com/docker/distribution/digest",
+			"Comment": "v2.1.0",
+			"Rev": "9ca7921603852314b18a6ecc19f91806935f34bd"
+		},
+		{
+			"ImportPath": "github.com/docker/distribution/manifest",
+			"Comment": "v2.1.0",
+			"Rev": "9ca7921603852314b18a6ecc19f91806935f34bd"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/tarsum",
+			"Comment": "v1.4.1-6199-g59311fa",
+			"Rev": "59311faaed4e3384fc8da738a57a25f17ae07e05"
+		},
+		{
+			"ImportPath": "github.com/docker/libtrust",
+			"Rev": "9cbd2a1374f46905c68a4eb3694a130610adc62a"
 		},
 		{
 			"ImportPath": "github.com/dustin/go-humanize",
@@ -34,6 +58,10 @@
 		{
 			"ImportPath": "github.com/goodeggs/go-selfupdate/selfupdate",
 			"Rev": "2212001dd73664816519626114510d3d10b25c65"
+		},
+		{
+			"ImportPath": "github.com/heroku/docker-registry-client/registry",
+			"Rev": "ddbd05bac47f55e533a7ed124211ef7e076b0bf3"
 		},
 		{
 			"ImportPath": "github.com/imdario/mergo",

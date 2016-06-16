@@ -102,23 +102,24 @@ var deployCmd = &cobra.Command{
 			return err
 		}
 
-		exists, err := util.EcruReleaseExists(appName, appVersion)
+		imageNameWithTag := strings.Join([]string{config.ImageName, appVersion}, ":")
+
+		exists, err := util.EcruReleaseExists(config.AppName, appVersion)
 		if err != nil {
 			return err
+		} else if exists {
+			return fmt.Errorf("release %s already exists. use `ranch panic:rollback %s -a %s` instead", appVersion, appVersion, appName)
 		}
 
-		if exists {
-			return fmt.Errorf("release %s already exists.", appVersion)
-		}
-
-		imageName := strings.Join([]string{appName, appVersion}, ":")
-
-		if Build {
-			if err = dockerBuildAndPush(appDir, imageName, config); err != nil {
+		exists, err = util.DockerImageExists(imageNameWithTag)
+		if err != nil {
+			return err
+		} else if exists {
+			fmt.Printf("%s docker image already exists in registry, skipping build.\n", imageNameWithTag)
+		} else {
+			if err = dockerBuildAndPush(appDir, imageNameWithTag, config); err != nil {
 				return err
 			}
-		} else {
-			fmt.Println("skipping Docker build & push")
 		}
 
 		buildDir, err := ioutil.TempDir("", "ranch")
@@ -141,7 +142,7 @@ var deployCmd = &cobra.Command{
 			}
 		}
 
-		if err = generateDockerCompose(imageName, config, env, buildDir); err != nil {
+		if err = generateDockerCompose(imageNameWithTag, config, env, buildDir); err != nil {
 			return err
 		}
 
@@ -217,7 +218,7 @@ func generateDockerCompose(imageName string, config *util.RanchConfig, env map[s
 
 func dockerBuildAndPush(appDir, imageName string, config *util.RanchConfig) (err error) {
 
-	env, err := util.EnvGet(config.Name, config.EnvId)
+	env, err := util.EnvGet(config.AppName, config.EnvId)
 
 	if err != nil {
 		return err
