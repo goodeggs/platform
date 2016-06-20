@@ -370,7 +370,7 @@ func ConvoxWaitForStatus(appName, status string) error {
 	}
 }
 
-func ConvoxPs(appName string) (Processes, error) {
+func ConvoxPs(appName string) ([]RanchProcess, error) {
 	client, err := convoxClient()
 
 	if err != nil {
@@ -389,10 +389,10 @@ func ConvoxPs(appName string) (Processes, error) {
 		return nil, err
 	}
 
-	var ps Processes
+	var ps []RanchProcess
 
 	for _, v := range convoxPs {
-		p := Process(v)
+		p := RanchProcess(v)
 
 		sha, ok := shaMap[p.Release]
 

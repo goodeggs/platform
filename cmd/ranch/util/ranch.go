@@ -54,7 +54,7 @@ type RanchFormationEntry struct {
 
 type RanchFormation map[string]RanchFormationEntry
 
-type Process struct {
+type RanchProcess struct {
 	Id      string    `json:"id"`
 	App     string    `json:"app"`
 	Command string    `json:"command"`
@@ -67,8 +67,6 @@ type Process struct {
 	Memory  float64   `json:"memory"`
 	Started time.Time `json:"started"`
 }
-
-type Processes []Process
 
 type RanchRelease struct {
 	Id      string    `json:"id"`
