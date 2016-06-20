@@ -81,7 +81,7 @@ var envUnsetCmd = &cobra.Command{
 			data += fmt.Sprintf("%s=%s\n", k, v)
 		}
 
-		envId, err := util.EcruCreateSecret(appName, data)
+		envId, err := util.RanchCreateSecret(appName, data)
 		if err != nil {
 			return err
 		}

@@ -12,7 +12,7 @@ func EnvGet(appName, envId string) (env map[string]string, err error) {
 		return env, nil
 	}
 
-	plaintext, err := EcruGetSecret(appName, envId)
+	plaintext, err := RanchGetSecret(appName, envId)
 	if err != nil {
 		return nil, err
 	}

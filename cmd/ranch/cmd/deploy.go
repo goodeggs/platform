@@ -104,7 +104,7 @@ var deployCmd = &cobra.Command{
 
 		imageNameWithTag := strings.Join([]string{config.ImageName, appVersion}, ":")
 
-		exists, err := util.EcruReleaseExists(config.AppName, appVersion)
+		exists, err := util.RanchReleaseExists(config.AppName, appVersion)
 		if err != nil {
 			return err
 		} else if exists {
@@ -131,7 +131,7 @@ var deployCmd = &cobra.Command{
 
 		var env map[string]string
 		if config.EnvId != "" {
-			plaintext, err := util.EcruGetSecret(appName, config.EnvId)
+			plaintext, err := util.RanchGetSecret(appName, config.EnvId)
 			if err != nil {
 				return err
 			}
@@ -170,7 +170,7 @@ func convoxDeploy(appName, appVersion, buildDir string) error {
 		return err
 	}
 
-	if err = util.EcruCreateRelease(appName, appVersion, releaseId); err != nil {
+	if err = util.RanchCreateRelease(appName, appVersion, releaseId); err != nil {
 		return err
 	}
 

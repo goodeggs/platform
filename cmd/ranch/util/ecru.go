@@ -10,17 +10,6 @@ import (
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/viper"
 )
 
-type EcruError struct {
-	Message string `json:"error"`
-}
-
-type EcruRelease struct {
-	Id            string `json:"_id"`
-	ProjectId     string `json:"project"`
-	ConvoxRelease string `json:"convoxRelease"`
-	Sha           string `json:"sha"`
-}
-
 type EcruSecret struct {
 	Id string `json:"_id"`
 }
@@ -40,92 +29,6 @@ func ecruClient() (*gorequest.SuperAgent, error) {
 		SetBasicAuth(viper.GetString("convox.password"), "x-auth-token")
 
 	return request, nil
-}
-
-func EcruReleaseExists(appName, sha string) (exists bool, err error) {
-	client, err := ecruClient()
-
-	if err != nil {
-		return false, err
-	}
-
-	url := fmt.Sprintf("/projects/%s/releases/%s", appName, sha)
-	resp, _, errs := client.Get(ecruUrl(url)).End()
-
-	if len(errs) > 0 {
-		return false, errs[0]
-	} else if resp.StatusCode == 404 {
-		return false, nil
-	} else if resp.StatusCode == 200 {
-		return true, nil
-	}
-
-	return false, fmt.Errorf("error fetching release info: HTTP %d", resp.StatusCode)
-}
-
-func EcruCreateRelease(appName, sha, convoxRelease string) error {
-
-	client, err := ecruClient()
-
-	if err != nil {
-		return err
-	}
-
-	pathname := fmt.Sprintf("/projects/%s/releases", appName)
-	reqBody := fmt.Sprintf(`{"sha":"%s","convoxRelease":"%s"}`, sha, convoxRelease)
-
-	resp, body, errs := client.Post(ecruUrl(pathname)).Send(reqBody).End()
-
-	if len(errs) > 0 {
-		return errs[0]
-	}
-
-	makeError := func(statusCode int, message string) error {
-		return fmt.Errorf("Error creating Ecru release [HTTP %d]: %s", statusCode, message)
-	}
-
-	switch resp.StatusCode {
-	case 201:
-		return nil
-	case 400:
-		var ecruError EcruError
-		err := json.Unmarshal([]byte(body), &ecruError)
-		if err == nil {
-			return makeError(resp.StatusCode, ecruError.Message)
-		}
-	}
-
-	return makeError(resp.StatusCode, body)
-}
-
-func EcruReleases(appName string) ([]EcruRelease, error) {
-
-	client, err := ecruClient()
-
-	if err != nil {
-		return nil, err
-	}
-
-	pathname := fmt.Sprintf("/projects/%s/releases", appName)
-
-	resp, body, errs := client.Get(ecruUrl(pathname)).End()
-
-	if len(errs) > 0 {
-		return nil, errs[0]
-	}
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Error fetching releases from Ecru: status code %d", resp.StatusCode)
-	}
-
-	var ecruReleases []EcruRelease
-	err = json.Unmarshal([]byte(body), &ecruReleases)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return ecruReleases, nil
 }
 
 func EcruGetSecret(appName, secretId string) (plaintext string, err error) {
