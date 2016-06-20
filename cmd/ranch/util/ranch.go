@@ -19,6 +19,17 @@ type RanchApiError struct {
 	Message string `json:"error"`
 }
 
+type RanchApiRelease struct {
+	Id            string `json:"id"` // sha
+	App           string `json:"app"`
+	ConvoxRelease string `json:"convoxRelease"`
+}
+
+type RanchApiSecret struct {
+	Id      string `json:"_id"`
+	Content string `json:"content"`
+}
+
 type RanchConfig struct {
 	AppName   string                `json:"name"`
 	ImageName string                `json:"image_name"`
@@ -59,19 +70,12 @@ type Process struct {
 
 type Processes []Process
 
-type Release struct {
+type RanchRelease struct {
 	Id      string    `json:"id"`
 	App     string    `json:"app"`
 	Created time.Time `json:"created"`
 	Status  string    `json:"status"`
 }
-
-type RanchApiSecret struct {
-	Id      string `json:"_id"`
-	Content string `json:"content"`
-}
-
-type Releases []Release
 
 var ValidAppName = regexp.MustCompile(`\A[a-z][-a-z0-9]{3,29}\z`)
 var ValidProcessName = regexp.MustCompile(`\A[a-z][-a-z0-9]{2,29}\z`)
@@ -180,7 +184,7 @@ func RanchGetSecret(appName, secretId string) (string, error) {
 func RanchReleaseExists(appName, sha string) (exists bool, err error) {
 	client := ranchClient()
 
-	url := fmt.Sprintf("/apps/%s/releases/%s", appName, sha)
+	url := fmt.Sprintf("/v1/apps/%s/releases/%s", appName, sha)
 	resp, _, errs := client.Get(ranchUrl(url)).End()
 
 	if len(errs) > 0 {
@@ -223,6 +227,32 @@ func RanchCreateRelease(appName, sha, convoxRelease string) error {
 	}
 
 	return makeError(resp.StatusCode, body)
+}
+
+func RanchReleases(appName string) ([]RanchApiRelease, error) {
+
+	client := ranchClient()
+
+	pathname := fmt.Sprintf("/v1/apps/%s/releases", appName)
+
+	resp, body, errs := client.Get(ranchUrl(pathname)).End()
+
+	if len(errs) > 0 {
+		return nil, errs[0]
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error fetching releases from Ranch: status code %d", resp.StatusCode)
+	}
+
+	var ranchReleases []RanchApiRelease
+	err := json.Unmarshal([]byte(body), &ranchReleases)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ranchReleases, nil
 }
 
 func RanchCreateSecret(appName, plaintext string) (secretId string, err error) {

@@ -25,7 +25,7 @@ func convoxClient() (*client.Client, error) {
 	return client.New(host, password, version), nil
 }
 
-func ConvoxReleases(appName string) (Releases, error) {
+func ConvoxReleases(appName string) ([]RanchRelease, error) {
 	client, err := convoxClient()
 
 	if err != nil {
@@ -50,7 +50,7 @@ func ConvoxReleases(appName string) (Releases, error) {
 		return nil, err
 	}
 
-	var releases Releases
+	var releases []RanchRelease
 
 	for _, convoxRelease := range convoxReleases {
 		status := ""
@@ -65,7 +65,7 @@ func ConvoxReleases(appName string) (Releases, error) {
 			continue
 		}
 
-		release := Release{
+		release := RanchRelease{
 			Id:      appVersion,
 			App:     appName,
 			Created: convoxRelease.Created,
@@ -409,7 +409,7 @@ func ConvoxPs(appName string) (Processes, error) {
 }
 
 func buildShaMap(appName string) (map[string]string, error) {
-	ecruReleases, err := EcruReleases(appName)
+	ranchReleases, err := RanchReleases(appName)
 
 	if err != nil {
 		return nil, err
@@ -417,23 +417,23 @@ func buildShaMap(appName string) (map[string]string, error) {
 
 	shaMap := make(map[string]string)
 
-	for _, ecruRelease := range ecruReleases {
-		shaMap[ecruRelease.ConvoxRelease] = ecruRelease.Sha
+	for _, ranchRelease := range ranchReleases {
+		shaMap[ranchRelease.ConvoxRelease] = ranchRelease.Id
 	}
 
 	return shaMap, nil
 }
 
 func getConvoxRelease(appName, appVersion string) (releaseId string, err error) {
-	ecruReleases, err := EcruReleases(appName)
+	ranchReleases, err := RanchReleases(appName)
 
 	if err != nil {
 		return "", err
 	}
 
-	for _, ecruRelease := range ecruReleases {
-		if ecruRelease.Sha == appVersion {
-			return ecruRelease.ConvoxRelease, nil
+	for _, ranchRelease := range ranchReleases {
+		if ranchRelease.Id == appVersion {
+			return ranchRelease.ConvoxRelease, nil
 		}
 	}
 
