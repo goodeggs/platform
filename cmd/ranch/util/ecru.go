@@ -42,27 +42,6 @@ func ecruClient() (*gorequest.SuperAgent, error) {
 	return request, nil
 }
 
-func EcruReleaseExists(appName, sha string) (exists bool, err error) {
-	client, err := ecruClient()
-
-	if err != nil {
-		return false, err
-	}
-
-	url := fmt.Sprintf("/projects/%s/releases/%s", appName, sha)
-	resp, _, errs := client.Get(ecruUrl(url)).End()
-
-	if len(errs) > 0 {
-		return false, errs[0]
-	} else if resp.StatusCode == 404 {
-		return false, nil
-	} else if resp.StatusCode == 200 {
-		return true, nil
-	}
-
-	return false, fmt.Errorf("error fetching release info: HTTP %d", resp.StatusCode)
-}
-
 func EcruCreateRelease(appName, sha, convoxRelease string) error {
 
 	client, err := ecruClient()

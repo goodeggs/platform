@@ -173,6 +173,23 @@ func RanchGetSecret(appName, secretId string) (string, error) {
 	return string(plaintextBytes), nil
 }
 
+func RanchReleaseExists(appName, sha string) (exists bool, err error) {
+	client := ranchClient()
+
+	url := fmt.Sprintf("/apps/%s/releases/%s", appName, sha)
+	resp, _, errs := client.Get(ranchUrl(url)).End()
+
+	if len(errs) > 0 {
+		return false, errs[0]
+	} else if resp.StatusCode == 404 {
+		return false, nil
+	} else if resp.StatusCode == 200 {
+		return true, nil
+	}
+
+	return false, fmt.Errorf("error fetching release info: HTTP %d", resp.StatusCode)
+}
+
 func RanchCreateSecret(appName, plaintext string) (secretId string, err error) {
 
 	client := ranchClient()

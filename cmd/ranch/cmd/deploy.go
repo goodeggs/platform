@@ -104,7 +104,7 @@ var deployCmd = &cobra.Command{
 
 		imageNameWithTag := strings.Join([]string{config.ImageName, appVersion}, ":")
 
-		exists, err := util.EcruReleaseExists(config.AppName, appVersion)
+		exists, err := util.RanchReleaseExists(config.AppName, appVersion)
 		if err != nil {
 			return err
 		} else if exists {
