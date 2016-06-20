@@ -170,7 +170,7 @@ func convoxDeploy(appName, appVersion, buildDir string) error {
 		return err
 	}
 
-	if err = util.EcruCreateRelease(appName, appVersion, releaseId); err != nil {
+	if err = util.RanchCreateRelease(appName, appVersion, releaseId); err != nil {
 		return err
 	}
 

@@ -42,41 +42,6 @@ func ecruClient() (*gorequest.SuperAgent, error) {
 	return request, nil
 }
 
-func EcruCreateRelease(appName, sha, convoxRelease string) error {
-
-	client, err := ecruClient()
-
-	if err != nil {
-		return err
-	}
-
-	pathname := fmt.Sprintf("/projects/%s/releases", appName)
-	reqBody := fmt.Sprintf(`{"sha":"%s","convoxRelease":"%s"}`, sha, convoxRelease)
-
-	resp, body, errs := client.Post(ecruUrl(pathname)).Send(reqBody).End()
-
-	if len(errs) > 0 {
-		return errs[0]
-	}
-
-	makeError := func(statusCode int, message string) error {
-		return fmt.Errorf("Error creating Ecru release [HTTP %d]: %s", statusCode, message)
-	}
-
-	switch resp.StatusCode {
-	case 201:
-		return nil
-	case 400:
-		var ecruError EcruError
-		err := json.Unmarshal([]byte(body), &ecruError)
-		if err == nil {
-			return makeError(resp.StatusCode, ecruError.Message)
-		}
-	}
-
-	return makeError(resp.StatusCode, body)
-}
-
 func EcruReleases(appName string) ([]EcruRelease, error) {
 
 	client, err := ecruClient()

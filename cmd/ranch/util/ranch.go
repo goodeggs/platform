@@ -15,6 +15,10 @@ import (
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/viper"
 )
 
+type RanchApiError struct {
+	Message string `json:"error"`
+}
+
 type RanchConfig struct {
 	AppName   string                `json:"name"`
 	ImageName string                `json:"image_name"`
@@ -188,6 +192,37 @@ func RanchReleaseExists(appName, sha string) (exists bool, err error) {
 	}
 
 	return false, fmt.Errorf("error fetching release info: HTTP %d", resp.StatusCode)
+}
+
+func RanchCreateRelease(appName, sha, convoxRelease string) error {
+
+	client := ranchClient()
+
+	pathname := fmt.Sprintf("/v1/apps/%s/releases", appName)
+	reqBody := fmt.Sprintf(`{"id":"%s","convoxRelease":"%s"}`, sha, convoxRelease)
+
+	resp, body, errs := client.Post(ranchUrl(pathname)).Send(reqBody).End()
+
+	if len(errs) > 0 {
+		return errs[0]
+	}
+
+	makeError := func(statusCode int, message string) error {
+		return fmt.Errorf("Error creating Ranch release [HTTP %d]: %s", statusCode, message)
+	}
+
+	switch resp.StatusCode {
+	case 201:
+		return nil
+	case 400:
+		var ranchError RanchApiError
+		err := json.Unmarshal([]byte(body), &ranchError)
+		if err == nil {
+			return makeError(resp.StatusCode, ranchError.Message)
+		}
+	}
+
+	return makeError(resp.StatusCode, body)
 }
 
 func RanchCreateSecret(appName, plaintext string) (secretId string, err error) {
