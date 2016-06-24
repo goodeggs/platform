@@ -30,6 +30,7 @@ USER app
 ENV HOME /app
 WORKDIR /app
 
+COPY node_modules /build/node_modules
 COPY . /build
 
 RUN sudo mkdir -p /cache && \
@@ -104,14 +105,7 @@ var deployCmd = &cobra.Command{
 
 		imageNameWithTag := strings.Join([]string{config.ImageName, appVersion}, ":")
 
-		exists, err := util.RanchReleaseExists(config.AppName, appVersion)
-		if err != nil {
-			return err
-		} else if exists {
-			return fmt.Errorf("release %s already exists. use `ranch panic:rollback %s -a %s` instead", appVersion, appVersion, appName)
-		}
-
-		exists, err = util.DockerImageExists(imageNameWithTag)
+		exists, err := util.DockerImageExists(imageNameWithTag)
 		if err != nil {
 			return err
 		} else if exists {
@@ -122,32 +116,54 @@ var deployCmd = &cobra.Command{
 			}
 		}
 
-		buildDir, err := ioutil.TempDir("", "ranch")
+		exists, err = util.RanchReleaseExists(config.AppName, appVersion)
 		if err != nil {
 			return err
-		}
-
-		fmt.Println("using build directory", buildDir)
-
-		var env map[string]string
-		if config.EnvId != "" {
-			plaintext, err := util.RanchGetSecret(appName, config.EnvId)
+		} else if exists {
+			currentVersion, err := util.ConvoxCurrentVersion(config.AppName)
 			if err != nil {
 				return err
 			}
 
-			env, err = util.ParseEnv(plaintext)
+			if currentVersion != appVersion {
+				fmt.Printf("promoting existing release %s\n", appVersion)
+				if err = util.ConvoxPromote(config.AppName, appVersion); err != nil {
+					return err
+				}
+				if err = util.ConvoxWaitForStatus(config.AppName, "running"); err != nil {
+					return err
+				}
+			} else {
+				fmt.Printf("existing release %s is currently live, skipping promote.\n", appVersion)
+			}
+		} else {
+			buildDir, err := ioutil.TempDir("", "ranch")
 			if err != nil {
 				return err
 			}
-		}
 
-		if err = generateDockerCompose(imageNameWithTag, config, env, buildDir); err != nil {
-			return err
-		}
+			fmt.Println("using build directory", buildDir)
 
-		if err = convoxDeploy(appName, appVersion, buildDir); err != nil {
-			return err
+			var env map[string]string
+			if config.EnvId != "" {
+				plaintext, err := util.RanchGetSecret(appName, config.EnvId)
+				if err != nil {
+					return err
+				}
+
+				env, err = util.ParseEnv(plaintext)
+				if err != nil {
+					return err
+				}
+			}
+
+			if err = generateDockerCompose(imageNameWithTag, config, env, buildDir); err != nil {
+				return err
+			}
+
+			if err = convoxDeploy(appName, appVersion, buildDir); err != nil {
+				return err
+			}
 		}
 
 		if err = util.ConvoxScale(appName, config); err != nil {

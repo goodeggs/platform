@@ -206,6 +206,30 @@ func ConvoxScale(appName string, config *RanchConfig) (err error) {
 	return nil
 }
 
+func ConvoxCurrentVersion(appName string) (string, error) {
+	client, err := convoxClient()
+	if err != nil {
+		return "", err
+	}
+
+	app, err := client.GetApp(appName)
+	if err != nil {
+		return "", err
+	}
+
+	shaMap, err := buildShaMap(appName)
+	if err != nil {
+		return "", err
+	}
+
+	sha, exists := shaMap[app.Release]
+	if !exists {
+		return "", fmt.Errorf("current running an unknown convox release %s", app.Release)
+	}
+
+	return sha, nil
+}
+
 func ConvoxPromote(appName string, appVersion string) error {
 	releaseId, err := getConvoxRelease(appName, appVersion)
 
