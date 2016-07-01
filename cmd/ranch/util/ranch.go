@@ -31,10 +31,10 @@ type RanchApiSecret struct {
 }
 
 type RanchConfig struct {
-	AppName   string                `json:"name"`
-	ImageName string                `json:"image_name"`
-	EnvId     string                `json:"env_id"`
-	Processes RanchConfigProcessMap `json:"processes"`
+	AppName   string                        `json:"name"`
+	ImageName string                        `json:"image_name"`
+	EnvId     string                        `json:"env_id"`
+	Processes map[string]RanchConfigProcess `json:"processes"`
 }
 
 type RanchConfigProcess struct {
@@ -43,8 +43,6 @@ type RanchConfigProcess struct {
 	Instances int    `json:"instances"` // deprecated
 	Memory    int    `json:"memory"`
 }
-
-type RanchConfigProcessMap map[string]RanchConfigProcess
 
 type RanchFormationEntry struct {
 	Balancer string `json:"balancer"`
