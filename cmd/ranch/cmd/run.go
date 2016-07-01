@@ -1,24 +1,31 @@
 package cmd
 
 import (
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/golang.org/x/crypto/ssh/terminal"
+	"fmt"
 	"os"
 	"strings"
+
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/golang.org/x/crypto/ssh/terminal"
 
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra"
 	"github.com/goodeggs/platform/cmd/ranch/util"
 )
 
 var runCmd = &cobra.Command{
-	Use:   "run",
+	Use:   "run <command>",
 	Short: "Run a one-off command",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		if len(args) == 0 {
+			cmd.Usage()
+			return fmt.Errorf("must specify command")
+		}
+
 		appName, err := util.AppName(cmd)
 		if err != nil {
 			return err
 		}
 
-		process := "web"
+		process := "run"
 		command := strings.Join(args, " ")
 
 		exitCode, err := runAttached(appName, process, command)

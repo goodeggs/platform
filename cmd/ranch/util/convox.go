@@ -186,6 +186,19 @@ func ConvoxScale(appName string, config *RanchConfig) (err error) {
 		return err
 	}
 
+	// scale down hidden 'run' process, which is used by ranch run and cron.
+	if existingEntry, ok := existingFormation["run"]; ok {
+		if existingEntry.Count != 0 || existingEntry.Memory != 2048 {
+			if err = ConvoxScaleProcess(appName, "run", 0, 2048); err != nil {
+				return err
+			}
+
+			if err = ConvoxWaitForStatus(appName, "running"); err != nil {
+				return err
+			}
+		}
+	}
+
 	for processName, processConfig := range config.Processes {
 		if existingEntry, ok := existingFormation[processName]; ok {
 			if existingEntry.Count == processConfig.Count && existingEntry.Memory == processConfig.Memory {
@@ -390,7 +403,7 @@ func ConvoxWaitForStatus(appName, status string) error {
 		}
 
 		fmt.Print(".")
-		time.Sleep(5 * time.Second)
+		time.Sleep(15 * time.Second)
 	}
 }
 

@@ -103,6 +103,9 @@ func RanchValidateConfig(config *RanchConfig) (errors []error) {
 		if !ValidProcessName.MatchString(name) {
 			errors = append(errors, fmt.Errorf("process name '%s' is invalid: must match %s", name, ValidProcessName.String()))
 		}
+		if name == "run" {
+			errors = append(errors, fmt.Errorf("process name 'run' is invalid: 'run' is a reserved process name"))
+		}
 	}
 
 	return errors
