@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"path"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/parnurzeal/gorequest"
@@ -35,6 +36,7 @@ type RanchConfig struct {
 	ImageName string                        `json:"image_name"`
 	EnvId     string                        `json:"env_id"`
 	Processes map[string]RanchConfigProcess `json:"processes"`
+	Cron      map[string]string             `json:"cron"`
 }
 
 type RanchConfigProcess struct {
@@ -75,6 +77,7 @@ type RanchRelease struct {
 
 var ValidAppName = regexp.MustCompile(`\A[a-z][-a-z0-9]{3,29}\z`)
 var ValidProcessName = regexp.MustCompile(`\A[a-z][-a-z0-9]{2,29}\z`)
+var ValidCronName = regexp.MustCompile(`\A[a-z][a-z0-9]{2,29}\z`)
 
 func ranchUrl(pathname string) string {
 	u, _ := url.Parse(viper.GetString("endpoint"))
@@ -103,6 +106,19 @@ func RanchValidateConfig(config *RanchConfig) (errors []error) {
 		}
 		if name == "run" {
 			errors = append(errors, fmt.Errorf("process name 'run' is invalid: 'run' is a reserved process name"))
+		}
+	}
+
+	for name, entry := range config.Cron {
+		if !ValidCronName.MatchString(name) {
+			errors = append(errors, fmt.Errorf("cron name '%s' is invalid: must match %s", name, ValidCronName.String()))
+		}
+		tokens := strings.Fields(entry)
+		if len(tokens) < 6 {
+			errors = append(errors, fmt.Errorf("cron entry '%s' is invalid: must be of format '* * * * * command'", name))
+		}
+		if tokens[2] != "?" && tokens[4] != "?" {
+			errors = append(errors, fmt.Errorf("cron entry '%s' is invalid: either day-of-week or day-of-month field must equal '?'", name))
 		}
 	}
 
