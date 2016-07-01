@@ -30,7 +30,6 @@ USER app
 ENV HOME /app
 WORKDIR /app
 
-COPY node_modules /build/node_modules
 COPY . /build
 
 RUN sudo mkdir -p /cache && \
