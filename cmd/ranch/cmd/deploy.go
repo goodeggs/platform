@@ -69,6 +69,8 @@ run:
   command: sh -c 'while true; do echo this process should not be running; sleep 300; done'
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
+  labels:
+{{ range $k, $v := $.Config.Cron }}{{ printf "    - convox.cron.%s=%s\n" $k $v }}{{ end }}
   environment:
 {{ range $k, $v := $.Environment }}{{ printf "    - %s=%s\n" $k $v }}{{ end }}
 `))
