@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/keegancsmith/shell"
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra"
 	"github.com/goodeggs/platform/cmd/ranch/util"
 )
@@ -44,7 +45,7 @@ var envCmd = &cobra.Command{
 		sort.Strings(keys)
 
 		for _, key := range keys {
-			fmt.Printf("%s=%s\n", key, env[key])
+			fmt.Printf("%s=%s\n", key, shell.ReadableEscapeArg(env[key]))
 		}
 
 		return nil
