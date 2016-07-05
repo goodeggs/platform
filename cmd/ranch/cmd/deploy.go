@@ -139,6 +139,9 @@ var deployCmd = &cobra.Command{
 				if err = util.ConvoxPromote(config.AppName, appVersion); err != nil {
 					return err
 				}
+
+				time.Sleep(10 * time.Second) // wait for promote to apply
+
 				if err = util.ConvoxWaitForStatus(config.AppName, "running"); err != nil {
 					return err
 				}
@@ -204,6 +207,8 @@ func convoxDeploy(appName, appVersion, buildDir string) error {
 	if err = util.ConvoxPromote(appName, appVersion); err != nil {
 		return err
 	}
+
+	time.Sleep(10 * time.Second) // wait for promote to apply
 
 	if err = util.ConvoxWaitForStatus(appName, "running"); err != nil {
 		return err
