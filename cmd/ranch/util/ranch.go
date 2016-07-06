@@ -144,6 +144,36 @@ func RanchLoadSettings() (err error) {
 	return // success
 }
 
+func RanchCreateApp(appName string) (err error) {
+	client := ranchClient()
+
+	pathname := "/v1/apps"
+	reqBody := fmt.Sprintf(`{"name":"%s"}`, appName)
+
+	resp, body, errs := client.Post(ranchUrl(pathname)).Send(reqBody).End()
+
+	if len(errs) > 0 {
+		return errs[0]
+	}
+
+	makeError := func(statusCode int, message string) error {
+		return fmt.Errorf("Error creating Ranch app [HTTP %d]: %s", statusCode, message)
+	}
+
+	switch resp.StatusCode {
+	case 201:
+		return nil
+	case 400:
+		var ranchError RanchApiError
+		err := json.Unmarshal([]byte(body), &ranchError)
+		if err == nil {
+			return makeError(resp.StatusCode, ranchError.Message)
+		}
+	}
+
+	return makeError(resp.StatusCode, body)
+}
+
 func RanchUpdateEnvId(ranchFile, envId string) (err error) {
 	contents, err := ioutil.ReadFile(ranchFile)
 	if err != nil {
