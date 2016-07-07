@@ -78,9 +78,9 @@ type RanchRelease struct {
 }
 
 type RanchApp struct {
-	Name    string `json:name`
-	Status  string `json:status`
-	Release string `json:release`
+	Name    string `json:"name"`
+	Status  string `json:"status"`
+	Release string `json:"release"`
 }
 
 var ValidAppName = regexp.MustCompile(`\A[a-z][-a-z0-9]{3,29}\z`)
