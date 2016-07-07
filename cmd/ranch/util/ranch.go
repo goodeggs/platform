@@ -47,9 +47,11 @@ type RanchConfigProcess struct {
 }
 
 type RanchFormationEntry struct {
+	Name     string `json:"name"`
 	Balancer string `json:"balancer"`
 	Count    int    `json:"count"`
 	Memory   int    `json:"memory"`
+	Ports    []int  `json:"ports"`
 }
 
 type RanchFormation map[string]RanchFormationEntry
@@ -73,6 +75,12 @@ type RanchRelease struct {
 	App     string    `json:"app"`
 	Created time.Time `json:"created"`
 	Status  string    `json:"status"`
+}
+
+type RanchApp struct {
+	Name    string `json:name`
+	Status  string `json:status`
+	Release string `json:release`
 }
 
 var ValidAppName = regexp.MustCompile(`\A[a-z][-a-z0-9]{3,29}\z`)
@@ -326,4 +334,52 @@ func RanchCreateSecret(appName, plaintext string) (secretId string, err error) {
 	}
 
 	return secret.Id, nil
+}
+
+func RanchGetApp(appName string) (app *RanchApp, err error) {
+
+	client := ranchClient()
+
+	pathname := fmt.Sprintf("/v1/apps/%s", appName)
+
+	resp, body, errs := client.
+		Get(ranchUrl(pathname)).
+		End()
+
+	if len(errs) > 0 {
+		return nil, errs[0]
+	} else if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting app from ranch-api: status code %d", resp.StatusCode)
+	}
+
+	if err = json.Unmarshal([]byte(body), &app); err != nil {
+		return nil, err
+	}
+
+	return app, nil
+}
+
+func RanchGetFormation(appName string) (formation RanchFormation, err error) {
+
+	formation = make(RanchFormation)
+
+	client := ranchClient()
+
+	pathname := fmt.Sprintf("/v1/apps/%s/formation", appName)
+
+	resp, body, errs := client.
+		Get(ranchUrl(pathname)).
+		End()
+
+	if len(errs) > 0 {
+		return nil, errs[0]
+	} else if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting app formation from ranch-api: status code %d", resp.StatusCode)
+	}
+
+	if err = json.Unmarshal([]byte(body), &formation); err != nil {
+		return nil, err
+	}
+
+	return formation, nil
 }
