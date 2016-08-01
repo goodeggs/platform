@@ -129,18 +129,21 @@ var deployCmd = &cobra.Command{
 			}
 		}
 
-		exists, err = util.RanchReleaseExists(config.AppName, appVersion)
+		// both code and conf are being deployed
+		releaseId := strings.Join([]string{appVersion, appVersion}, "-")
+
+		exists, err = util.RanchReleaseExists(config.AppName, releaseId)
 		if err != nil {
 			return err
 		} else if exists {
-			currentVersion, err := util.ConvoxCurrentVersion(config.AppName)
+			currentRelease, err := util.ConvoxCurrentVersion(config.AppName)
 			if err != nil {
 				return err
 			}
 
-			if currentVersion != appVersion {
-				fmt.Printf("promoting existing release %s\n", appVersion)
-				if err = util.ConvoxPromote(config.AppName, appVersion); err != nil {
+			if currentRelease != releaseId {
+				fmt.Printf("promoting existing release %s\n", releaseId)
+				if err = util.ConvoxPromote(config.AppName, releaseId); err != nil {
 					return err
 				}
 
@@ -150,7 +153,7 @@ var deployCmd = &cobra.Command{
 					return err
 				}
 			} else {
-				fmt.Printf("existing release %s is currently live, skipping promote.\n", appVersion)
+				fmt.Printf("existing release %s is currently live, skipping promote.\n", releaseId)
 			}
 		} else {
 			buildDir, err := ioutil.TempDir("", "ranch")
@@ -177,7 +180,7 @@ var deployCmd = &cobra.Command{
 				return err
 			}
 
-			if err = convoxDeploy(appName, appVersion, buildDir); err != nil {
+			if err = convoxDeploy(appName, releaseId, buildDir); err != nil {
 				return err
 			}
 		}
@@ -195,20 +198,20 @@ func init() {
 	RootCmd.AddCommand(deployCmd)
 }
 
-func convoxDeploy(appName, appVersion, buildDir string) error {
-	releaseId, err := util.ConvoxDeploy(appName, buildDir)
+func convoxDeploy(appName, releaseId, buildDir string) error {
+	convoxReleaseId, err := util.ConvoxDeploy(appName, buildDir)
 
 	if err != nil {
 		return err
 	}
 
-	if err = util.RanchCreateRelease(appName, appVersion, releaseId); err != nil {
+	if err = util.RanchCreateRelease(appName, releaseId, convoxReleaseId); err != nil {
 		return err
 	}
 
-	fmt.Printf("promoting release %s\n", appVersion)
+	fmt.Printf("promoting release %s\n", releaseId)
 
-	if err = util.ConvoxPromote(appName, appVersion); err != nil {
+	if err = util.ConvoxPromote(appName, releaseId); err != nil {
 		return err
 	}
 

@@ -234,10 +234,10 @@ func RanchGetSecret(appName, secretId string) (string, error) {
 	return string(plaintextBytes), nil
 }
 
-func RanchReleaseExists(appName, sha string) (exists bool, err error) {
+func RanchReleaseExists(appName, id string) (exists bool, err error) {
 	client := ranchClient()
 
-	url := fmt.Sprintf("/v1/apps/%s/releases/%s", appName, sha)
+	url := fmt.Sprintf("/v1/apps/%s/releases/%s", appName, id)
 	resp, _, errs := client.Get(ranchUrl(url)).End()
 
 	if len(errs) > 0 {
@@ -251,12 +251,12 @@ func RanchReleaseExists(appName, sha string) (exists bool, err error) {
 	return false, fmt.Errorf("error fetching release info: HTTP %d", resp.StatusCode)
 }
 
-func RanchCreateRelease(appName, sha, convoxRelease string) error {
+func RanchCreateRelease(appName, id, convoxRelease string) error {
 
 	client := ranchClient()
 
 	pathname := fmt.Sprintf("/v1/apps/%s/releases", appName)
-	reqBody := fmt.Sprintf(`{"id":"%s","convoxRelease":"%s"}`, sha, convoxRelease)
+	reqBody := fmt.Sprintf(`{"id":"%s","convoxRelease":"%s"}`, id, convoxRelease)
 
 	resp, body, errs := client.Post(ranchUrl(pathname)).Send(reqBody).End()
 
