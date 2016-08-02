@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/olekukonko/tablewriter"
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra"
 	"github.com/goodeggs/platform/cmd/ranch/util"
-	"github.com/olekukonko/tablewriter"
 )
 
 var infoCmd = &cobra.Command{

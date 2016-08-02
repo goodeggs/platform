@@ -45,8 +45,8 @@ func GitCurrentSha(appDir string) (string, error) {
 	return strings.TrimSpace(out), nil
 }
 
-func GitIsClean(appDir string) (bool, error) {
-	git := exec.Command("git", "status", "--porcelain")
+func GitFileIsClean(appDir, file string) (bool, error) {
+	git := exec.Command("git", "status", "--porcelain", file)
 	git.Dir = appDir
 	var out bytes.Buffer
 	git.Stdout = &out
@@ -70,4 +70,8 @@ func GitIsClean(appDir string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func GitIsClean(appDir string) (bool, error) {
+	return GitFileIsClean(appDir, "") // "" checks the whole repo
 }

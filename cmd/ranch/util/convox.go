@@ -247,8 +247,8 @@ func ConvoxCurrentVersion(appName string) (string, error) {
 	return sha, nil
 }
 
-func ConvoxPromote(appName string, appVersion string) error {
-	releaseId, err := getConvoxRelease(appName, appVersion)
+func ConvoxPromote(appName string, ranchReleaseId string) error {
+	convoxReleaseId, err := getConvoxRelease(appName, ranchReleaseId)
 
 	if err != nil {
 		return err
@@ -260,7 +260,7 @@ func ConvoxPromote(appName string, appVersion string) error {
 		return err
 	}
 
-	_, err = client.PromoteRelease(appName, releaseId)
+	_, err = client.PromoteRelease(appName, convoxReleaseId)
 
 	return err
 }
@@ -465,7 +465,7 @@ func buildShaMap(appName string) (map[string]string, error) {
 	return shaMap, nil
 }
 
-func getConvoxRelease(appName, appVersion string) (releaseId string, err error) {
+func getConvoxRelease(appName, ranchReleaseId string) (convoxReleaseId string, err error) {
 	ranchReleases, err := RanchReleases(appName)
 
 	if err != nil {
@@ -473,10 +473,10 @@ func getConvoxRelease(appName, appVersion string) (releaseId string, err error) 
 	}
 
 	for _, ranchRelease := range ranchReleases {
-		if ranchRelease.Id == appVersion {
+		if ranchRelease.Id == ranchReleaseId {
 			return ranchRelease.ConvoxRelease, nil
 		}
 	}
 
-	return "", fmt.Errorf("could not find Convox release for sha " + appVersion)
+	return "", fmt.Errorf("could not map release %s to a Convox release", ranchReleaseId)
 }
