@@ -52,29 +52,6 @@ func parseLine(line string) (key string, value string, err error) {
 		return
 	}
 
-	// ditch the comments (but keep quoted hashes)
-	if strings.Contains(line, "#") {
-		segmentsBetweenHashes := strings.Split(line, "#")
-		quotesAreOpen := false
-		var segmentsToKeep []string
-		for _, segment := range segmentsBetweenHashes {
-			if strings.Count(segment, "\"") == 1 || strings.Count(segment, "'") == 1 {
-				if quotesAreOpen {
-					quotesAreOpen = false
-					segmentsToKeep = append(segmentsToKeep, segment)
-				} else {
-					quotesAreOpen = true
-				}
-			}
-
-			if len(segmentsToKeep) == 0 || quotesAreOpen {
-				segmentsToKeep = append(segmentsToKeep, segment)
-			}
-		}
-
-		line = strings.Join(segmentsToKeep, "#")
-	}
-
 	// now split key from value
 	splitString := strings.SplitN(line, "=", 2)
 
