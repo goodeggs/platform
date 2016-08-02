@@ -93,6 +93,7 @@ var envSetCmd = &cobra.Command{
 		}
 
 		fmt.Printf("[%s] %s\n", sha, message)
+		fmt.Println("NOTE: you must deploy to apply this change, or you can use `ranch deploy:conf -f " + configPath + "` to apply it to the active release.")
 
 		return nil
 	},
