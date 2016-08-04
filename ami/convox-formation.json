@@ -88,33 +88,61 @@
         },
         "Yes"
       ]
+    },
+    "RegionHasEFS": {
+      "Fn::Or": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::Region"
+            },
+            "us-east-1"
+          ]
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::Region"
+            },
+            "us-west-2"
+          ]
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::Region"
+            },
+            "eu-west-1"
+          ]
+        }
+      ]
     }
   },
   "Mappings": {
     "RegionConfig": {
       "us-east-1": {
-        "Ami": "ami-67a3a90d"
+        "Ami": "ami-8f7687e2"
       },
       "us-west-1": {
-        "Ami": "ami-b7d5a8d7"
+        "Ami": "ami-bb473cdb"
       },
       "us-west-2": {
-        "Ami": "ami-c7a451a7"
+        "Ami": "ami-84b44de4"
       },
       "eu-west-1": {
-        "Ami": "ami-9c9819ef"
+        "Ami": "ami-4e6ffe3d"
       },
       "eu-central-1": {
-        "Ami": "ami-9aeb0af5"
+        "Ami": "ami-b0cc23df"
       },
       "ap-northeast-1": {
-        "Ami": "ami-7e4a5b10"
+        "Ami": "ami-095dbf68"
       },
       "ap-southeast-1": {
-        "Ami": "ami-be63a9dd"
+        "Ami": "ami-cf03d2ac"
       },
       "ap-southeast-2": {
-        "Ami": "ami-b8cbe8db"
+        "Ami": "ami-697a540a"
       }
     }
   },
@@ -211,11 +239,6 @@
       "Condition": "Development",
       "Value": {
         "Ref": "EncryptionKey"
-      }
-    },
-    "Kinesis": {
-      "Value": {
-        "Ref": "Kinesis"
       }
     },
     "LogGroup": {
@@ -389,6 +412,11 @@
       "Description": "SSL certificate",
       "Default": ""
     },
+    "ContainerDisk": {
+      "Type": "Number",
+      "Description": "Default container disk size in GB",
+      "Default": "10"
+    },
     "Development": {
       "Type": "String",
       "Description": "Development mode",
@@ -447,6 +475,12 @@
       "Default": "t2.small",
       "Description": "The type of the instances in the runtime cluster",
       "Type": "String"
+    },
+    "InstanceUpdateBatchSize": {
+      "Default": "1",
+      "Description": "The number of instances to update in a batch",
+      "MinValue": "1",
+      "Type": "Number"
     },
     "Key": {
       "Default": "",
@@ -526,7 +560,7 @@
       "Description": "(REQUIRED) Convox release version",
       "MinLength": "1",
       "Type": "String",
-      "Default": "20160606214509"
+      "Default": "20160719172302"
     },
     "VolumeSize": {
       "Type": "Number",
@@ -562,12 +596,6 @@
         "Description": "Convox Master Encryption",
         "KeyUsage": "ENCRYPT_DECRYPT"
       }
-    },
-    "Kinesis": {
-      "Properties": {
-        "ShardCount": 1
-      },
-      "Type": "AWS::Kinesis::Stream"
     },
     "LogGroup": {
       "Type": "AWS::Logs::LogGroup"
@@ -1013,6 +1041,23 @@
       ],
       "Type": "AWS::EC2::Subnet",
       "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                " ",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "public",
+                  "0"
+                ]
+              ]
+            }
+          }
+        ],
         "AvailabilityZone": {
           "Fn::GetAtt": [
             "AvailabilityZones",
@@ -1034,6 +1079,23 @@
       ],
       "Type": "AWS::EC2::Subnet",
       "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                " ",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "public",
+                  "1"
+                ]
+              ]
+            }
+          }
+        ],
         "AvailabilityZone": {
           "Fn::GetAtt": [
             "AvailabilityZones",
@@ -1055,6 +1117,23 @@
       ],
       "Type": "AWS::EC2::Subnet",
       "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                " ",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "public",
+                  "2"
+                ]
+              ]
+            }
+          }
+        ],
         "AvailabilityZone": {
           "Fn::GetAtt": [
             "AvailabilityZones",
@@ -1077,6 +1156,23 @@
       ],
       "Type": "AWS::EC2::Subnet",
       "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                " ",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "private",
+                  "0"
+                ]
+              ]
+            }
+          }
+        ],
         "AvailabilityZone": {
           "Fn::GetAtt": [
             "AvailabilityZones",
@@ -1099,6 +1195,23 @@
       ],
       "Type": "AWS::EC2::Subnet",
       "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                " ",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "private",
+                  "1"
+                ]
+              ]
+            }
+          }
+        ],
         "AvailabilityZone": {
           "Fn::GetAtt": [
             "AvailabilityZones",
@@ -1121,6 +1234,23 @@
       ],
       "Type": "AWS::EC2::Subnet",
       "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                " ",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "private",
+                  "2"
+                ]
+              ]
+            }
+          }
+        ],
         "AvailabilityZone": {
           "Fn::GetAtt": [
             "AvailabilityZones",
@@ -1479,7 +1609,6 @@
         "Cluster",
         "InstanceProfile",
         "SecurityGroup",
-        "Kinesis",
         "LogGroup"
       ],
       "Type": "AWS::AutoScaling::LaunchConfiguration",
@@ -1569,6 +1698,30 @@
                 "bootcmd:\n",
                 "  - mkswap /dev/xvdb\n",
                 "  - swapon /dev/xvdb\n",
+                "  - yum install -y nfs-utils\n",
+                "  - mkdir /volumes\n",
+                {
+                  "Fn::If": [
+                    "RegionHasEFS",
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "  - while true; do mount -t nfs -o nfsvers=4.1 $(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone).",
+                          {
+                            "Ref": "VolumeFilesystem"
+                          },
+                          ".efs.",
+                          {
+                            "Ref": "AWS::Region"
+                          },
+                          ".amazonaws.com:/ /volumes && break; sleep 5; done\n"
+                        ]
+                      ]
+                    },
+                    ""
+                  ]
+                },
                 "  - [ cloud-init-per, instance, docker_storage_setup, /usr/bin/docker-storage-setup ]\n",
                 "  - echo ECS_CLUSTER=",
                 {
@@ -1579,6 +1732,18 @@
                 "  - head -n -1 /etc/sysconfig/docker >> /etc/sysconfig/docker-tmp\n",
                 "  - mv /etc/sysconfig/docker-tmp /etc/sysconfig/docker\n",
                 "  - echo 'OPTIONS=\"--default-ulimit nofile=1024000:1024000\"' >> /etc/sysconfig/docker\n",
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "  - echo 'OPTIONS=\"${OPTIONS} --storage-opt dm.basesize=",
+                      {
+                        "Ref": "ContainerDisk"
+                      },
+                      "G\"' >> /etc/sysconfig/docker\n"
+                    ]
+                  ]
+                },
                 {
                   "Fn::If": [
                     "BlankCertificate",
@@ -1667,15 +1832,10 @@
                 "\" > /etc/convox/client_id\n",
                 "  - echo \"",
                 {
-                  "Ref": "Kinesis"
-                },
-                "\" > /etc/convox/kinesis\n",
-                "  - echo \"",
-                {
                   "Ref": "LogGroup"
                 },
                 "\" > /etc/convox/log_group\n",
-                "  - curl -s https://convox.s3.amazonaws.com/agent/0.68/convox.conf > /etc/init/convox.conf\n",
+                "  - curl -s https://convox.s3.amazonaws.com/agent/0.70/convox.conf > /etc/init/convox.conf\n",
                 "  - echo -e '/var/log/docker {\\n  rotate 7\\n  daily\\n  nocompress\\n  copytruncate\\n}' >> /etc/logrotate.d/docker\n",
                 {
                   "Fn::If": [
@@ -1823,7 +1983,9 @@
       },
       "UpdatePolicy": {
         "AutoScalingRollingUpdate": {
-          "MaxBatchSize": "1",
+          "MaxBatchSize": {
+            "Ref": "InstanceUpdateBatchSize"
+          },
           "MinInstancesInService": {
             "Ref": "InstanceCount"
           },
@@ -2236,19 +2398,43 @@
         },
         "SecurityGroupIngress": [
           {
-            "CidrIp": "0.0.0.0/0",
+            "CidrIp": {
+              "Fn::If": [
+                "PrivateApi",
+                {
+                  "Ref": "VPCCIDR"
+                },
+                "0.0.0.0/0"
+              ]
+            },
             "IpProtocol": "tcp",
             "FromPort": "80",
             "ToPort": "80"
           },
           {
-            "CidrIp": "0.0.0.0/0",
+            "CidrIp": {
+              "Fn::If": [
+                "PrivateApi",
+                {
+                  "Ref": "VPCCIDR"
+                },
+                "0.0.0.0/0"
+              ]
+            },
             "IpProtocol": "tcp",
             "FromPort": "443",
             "ToPort": "443"
           },
           {
-            "CidrIp": "0.0.0.0/0",
+            "CidrIp": {
+              "Fn::If": [
+                "PrivateApi",
+                {
+                  "Ref": "VPCCIDR"
+                },
+                "0.0.0.0/0"
+              ]
+            },
             "IpProtocol": "tcp",
             "FromPort": "5000",
             "ToPort": "5000"
@@ -2478,14 +2664,14 @@
               "ProjectionType": "ALL"
             },
             "ProvisionedThroughput": {
-              "ReadCapacityUnits": "20",
-              "WriteCapacityUnits": "20"
+              "ReadCapacityUnits": "5",
+              "WriteCapacityUnits": "5"
             }
           }
         ],
         "ProvisionedThroughput": {
-          "ReadCapacityUnits": "20",
-          "WriteCapacityUnits": "20"
+          "ReadCapacityUnits": "5",
+          "WriteCapacityUnits": "5"
         }
       }
     },
@@ -2540,15 +2726,108 @@
               "ProjectionType": "ALL"
             },
             "ProvisionedThroughput": {
-              "ReadCapacityUnits": "20",
-              "WriteCapacityUnits": "20"
+              "ReadCapacityUnits": "5",
+              "WriteCapacityUnits": "5"
             }
           }
         ],
         "ProvisionedThroughput": {
-          "ReadCapacityUnits": "20",
-          "WriteCapacityUnits": "20"
+          "ReadCapacityUnits": "5",
+          "WriteCapacityUnits": "5"
         }
+      }
+    },
+    "VolumeFilesystem": {
+      "Type": "AWS::EFS::FileSystem",
+      "Condition": "RegionHasEFS",
+      "Properties": {
+        "FileSystemTags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "-",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "shared-volumes"
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "VolumeSecurity": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Condition": "RegionHasEFS",
+      "Properties": {
+        "GroupDescription": "volume security group",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "2049",
+            "ToPort": "2049",
+            "CidrIp": {
+              "Ref": "VPCCIDR"
+            }
+          }
+        ],
+        "VpcId": {
+          "Ref": "Vpc"
+        }
+      }
+    },
+    "VolumeTarget0": {
+      "Type": "AWS::EFS::MountTarget",
+      "Condition": "RegionHasEFS",
+      "Properties": {
+        "FileSystemId": {
+          "Ref": "VolumeFilesystem"
+        },
+        "SubnetId": {
+          "Ref": "Subnet0"
+        },
+        "SecurityGroups": [
+          {
+            "Ref": "VolumeSecurity"
+          }
+        ]
+      }
+    },
+    "VolumeTarget1": {
+      "Type": "AWS::EFS::MountTarget",
+      "Condition": "RegionHasEFS",
+      "Properties": {
+        "FileSystemId": {
+          "Ref": "VolumeFilesystem"
+        },
+        "SubnetId": {
+          "Ref": "Subnet1"
+        },
+        "SecurityGroups": [
+          {
+            "Ref": "VolumeSecurity"
+          }
+        ]
+      }
+    },
+    "VolumeTarget2": {
+      "Type": "AWS::EFS::MountTarget",
+      "Condition": "RegionHasEFS",
+      "Properties": {
+        "FileSystemId": {
+          "Ref": "VolumeFilesystem"
+        },
+        "SubnetId": {
+          "Ref": "Subnet2"
+        },
+        "SecurityGroups": [
+          {
+            "Ref": "VolumeSecurity"
+          }
+        ]
       }
     },
     "Settings": {
@@ -2578,7 +2857,6 @@
         "DynamoBuilds",
         "DynamoReleases",
         "KernelAccess",
-        "Kinesis",
         "LogGroup",
         "RegistryAccess",
         "RegistryBucket",
@@ -2661,9 +2939,6 @@
               },
               "ENCRYPTION_KEY": {
                 "Ref": "EncryptionKey"
-              },
-              "KINESIS": {
-                "Ref": "Kinesis"
               },
               "LOG_GROUP": {
                 "Ref": "LogGroup"
@@ -2824,9 +3099,6 @@
               "BUCKET": {
                 "Ref": "RegistryBucket"
               },
-              "KINESIS": {
-                "Ref": "Kinesis"
-              },
               "LOG_GROUP": {
                 "Ref": "LogGroup"
               },
@@ -2872,7 +3144,6 @@
         "DynamoBuilds",
         "DynamoReleases",
         "KernelAccess",
-        "Kinesis",
         "LogGroup",
         "Subnet0",
         "Subnet1",
@@ -2960,9 +3231,6 @@
               },
               "ENCRYPTION_KEY": {
                 "Ref": "EncryptionKey"
-              },
-              "KINESIS": {
-                "Ref": "Kinesis"
               },
               "LOG_GROUP": {
                 "Ref": "LogGroup"

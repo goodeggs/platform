@@ -20,7 +20,7 @@
       "secret_key": "{{user `aws_secret_key`}}",
       "token": "{{user `aws_security_token`}}",
       "region": "{{user `aws_region`}}",
-      "source_ami": "ami-67a3a90d",
+      "source_ami": "ami-8f7687e2",
       "instance_type": "t2.micro",
       "ssh_username": "ec2-user",
       "communicator": "ssh",
@@ -83,6 +83,12 @@
     {
       "type": "shell",
       "inline": [
+        "while [ ! -f /run/cloud-init/result.json ]; do echo 'Waiting for cloud-init...'; sleep 10; done",
+
+        "echo '# Clear docker fs'",
+        "sudo service docker stop",
+        "sudo rm -rf /var/lib/docker",
+
         "echo '# Install goodeggs-hostname.conf'",
         "sudo mv {/home/ec2-user,/etc/init}/goodeggs-hostname.conf",
         "sudo sed -i -- 's/%ENV%/{{user `env`}}/' /etc/init/goodeggs-hostname.conf",
@@ -127,11 +133,7 @@
         "sudo chmod 0600 /etc/collectd.conf",
         "sudo mkdir -p /var/lib/collectd",
         "sudo mv {/home/ec2-user,/var/lib/collectd}/memory-available.sh",
-        "sudo chmod 0755 /var/lib/collectd/memory-available.sh",
-
-        "echo '# Clear docker fs'",
-        "sudo service docker stop",
-        "sudo rm -rf /var/lib/docker/*"
+        "sudo chmod 0755 /var/lib/collectd/memory-available.sh"
       ]
     }
   ]
