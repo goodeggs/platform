@@ -8,28 +8,22 @@ Our custom AMI runs a script on first boot that creates a [logspout ECS task](..
 ## Development
 
 ```
-$ CONVOX_VERSION=$( curl http://convox.s3.amazonaws.com/release/versions.json | jq -r 'map(select(.published)) | map(.version) | sort | last') )
-$ curl https://convox.s3.amazonaws.com/release/$CONVOX_VERSION/formation.json > convox-formation.json
-$ SOURCE_AMI=$( cat convox-formation.json | jq -r '.Mappings.RegionConfig["us-east-1"].Ami' )
+$ export CONVOX_VERSION=$( curl -s http://convox.s3.amazonaws.com/release/versions.json | jq -r 'map(select(.published)) | map(.version) | sort | last' )
+$ echo source_ami=$( curl -s https://convox.s3.amazonaws.com/release/$CONVOX_VERSION/formation.json | jq -r '.Mappings.RegionConfig["us-east-1"].Ami' )
 ```
 
-Update `packer.json` with the new `source_ami` value from above.
+Update `variables.dev.json` with the new `source_ami` value from above.
 
 We use [packer](https://packer.io/) to build the custom AMI.  This step should be done in the `dev` AWS account!
 
     $ brew install packer
-    $ packer build \
-      -var 'env=dev' \
-      -var 'librato_email=...' \
-      -var 'librato_token=...' \
-      -var 'logspout_token=...' \
-      -var 'sumo_access_id=...' \
-      -var 'sumo_access_key=...' \
-      packer.json
+    $ aws-vault exec dev -- packer build -var="env=dev" -var="version=$(git rev-parse --short HEAD)" -var-file="variables.dev.json" packer.json
+
+You can also push a branch to Github and Travis will run this for you.
 
 ## Test
 
-Once you have an AMI candidate, you should upload the `convox-formation.json` file, update the `Ami` and `Version` CloudFormation parameters in the dev cluster and verify:
+Once you have an AMI candidate, proceed to the [goodeggs/goodeggs-terraform](https://github.com/goodeggs/goodeggs-terraform) repo to apply your changes to dev.  Return here to manually test the development rack:
 
 1. That `convox rack` still works and returns the correct information
 2. The `hello-world` app is accessible via its ELB
@@ -40,15 +34,7 @@ Once you have an AMI candidate, you should upload the `convox-formation.json` fi
 
 Switch to the `prod` AWS account and rebuild the AMI.  You should use the short git SHA as the version:
 
-    $ packer build \
-      -var 'env=prod' \
-      -var 'version=abcdef2' \
-      -var 'librato_email=...' \
-      -var 'librato_token=...' \
-      -var 'logspout_token=...' \
-      -var 'sumo_access_id=...' \
-      -var 'sumo_access_key=...' \
-      packer.json
+    $ aws-vault exec prod -- packer build -var="env=prod" -var="version=$(git rev-parse --short HEAD)" -var-file="variables.prod.json" packer.json
 
-Now you can upload the `convox-formation.json`, update the `Ami` and `Version` CloudFormation parameters, and verify as before.
+Same as before, proceed to [goodeggs/goodeggs-terraform](https://github.com/goodeggs/goodeggs-terraform) and apply your changes to prod.
 
