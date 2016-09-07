@@ -67,6 +67,7 @@ var dockerComposeTemplate = template.Must(template.New("docker-compose").Parse(`
   {{ if eq $name "web" }}
   labels:
     - convox.port.443.protocol=https
+    - convox.idle.timeout=60
   ports:
     - 443:3000
   {{ end }}
