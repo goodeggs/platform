@@ -25,6 +25,8 @@ func convoxClient() (*client.Client, error) {
 	return client.New(host, password, version), nil
 }
 
+// ConvoxReleases returns a list of releases with the Convox ReleaseId mapped
+// to a Ranch ReleaseId.
 func ConvoxReleases(appName string) ([]RanchRelease, error) {
 	client, err := convoxClient()
 
@@ -78,6 +80,7 @@ func ConvoxReleases(appName string) ([]RanchRelease, error) {
 	return releases, nil
 }
 
+// ConvoxRunDetached starts a detached run of a given app, process, and command.
 func ConvoxRunDetached(appName, process, command string) error {
 	client, err := convoxClient()
 
@@ -88,6 +91,7 @@ func ConvoxRunDetached(appName, process, command string) error {
 	return client.RunProcessDetached(appName, process, command)
 }
 
+// ConvoxRunAttached starts an attached run of a given app, process, and command.
 func ConvoxRunAttached(appName, process, command string, input io.Reader, output io.WriteCloser) (int, error) {
 	client, err := convoxClient()
 
@@ -98,6 +102,7 @@ func ConvoxRunAttached(appName, process, command string, input io.Reader, output
 	return client.RunProcessAttached(appName, process, command, input, output)
 }
 
+// ConvoxExec runs a command inside the given Convox pid, using `docker exec`.
 func ConvoxExec(appName, pid, command string, input io.Reader, output io.WriteCloser) (int, error) {
 	client, err := convoxClient()
 
@@ -108,6 +113,7 @@ func ConvoxExec(appName, pid, command string, input io.Reader, output io.WriteCl
 	return client.ExecProcessAttached(appName, pid, command, input, output)
 }
 
+// ConvoxLogs tails (and follows) the logs for a given application.
 func ConvoxLogs(appName string, output io.WriteCloser) error {
 	client, err := convoxClient()
 
@@ -118,6 +124,7 @@ func ConvoxLogs(appName string, output io.WriteCloser) error {
 	return client.StreamAppLogs(appName, output)
 }
 
+// ConvoxGetFormation returns the formation of the given app translated into a RanchFormation.
 func ConvoxGetFormation(appName string) (formation RanchFormation, err error) {
 
 	formation = make(RanchFormation)
@@ -145,6 +152,7 @@ func ConvoxGetFormation(appName string) (formation RanchFormation, err error) {
 	return formation, nil
 }
 
+// ConvoxScaleProcess applies the given scale (count, memory) to the given process.
 func ConvoxScaleProcess(appName, processName string, count, memory int) (err error) {
 	client, err := convoxClient()
 
@@ -178,6 +186,7 @@ func ConvoxScaleProcess(appName, processName string, count, memory int) (err err
 	return nil
 }
 
+// ConvoxScale iterates over the given RanchConfig applying the correct scale to each named process.
 func ConvoxScale(appName string, config *RanchConfig) (err error) {
 
 	existingFormation, err := ConvoxGetFormation(appName)
@@ -223,6 +232,7 @@ func ConvoxScale(appName string, config *RanchConfig) (err error) {
 	return nil
 }
 
+// ConvoxCurrentVersion returns the currently active Convox release mapped to Ranch release.
 func ConvoxCurrentVersion(appName string) (string, error) {
 	client, err := convoxClient()
 	if err != nil {
@@ -247,8 +257,9 @@ func ConvoxCurrentVersion(appName string) (string, error) {
 	return sha, nil
 }
 
-func ConvoxPromote(appName string, ranchReleaseId string) error {
-	convoxReleaseId, err := getConvoxRelease(appName, ranchReleaseId)
+// ConvoxPromote promotes a given Ranch release by mapping it back to a Convox release.
+func ConvoxPromote(appName string, ranchReleaseID string) error {
+	convoxReleaseID, err := getConvoxRelease(appName, ranchReleaseID)
 
 	if err != nil {
 		return err
@@ -260,11 +271,12 @@ func ConvoxPromote(appName string, ranchReleaseId string) error {
 		return err
 	}
 
-	_, err = client.PromoteRelease(appName, convoxReleaseId)
+	_, err = client.PromoteRelease(appName, convoxReleaseID)
 
 	return err
 }
 
+// ConvoxDeploy creates a new Convox release given an app and build directory.
 func ConvoxDeploy(appName string, buildDir string) (string, error) {
 	client, err := convoxClient()
 
@@ -304,6 +316,7 @@ func ConvoxDeploy(appName string, buildDir string) (string, error) {
 	return finishBuild(client, appName, build)
 }
 
+// ConvoxPsStop stops a Convox process.
 func ConvoxPsStop(appName string, pid string) error {
 	client, err := convoxClient()
 
@@ -363,30 +376,45 @@ func finishBuild(client *client.Client, appName string, build *client.Build) (st
 	return waitForBuild(client, appName, build.Id)
 }
 
-func waitForBuild(client *client.Client, appName, buildId string) (string, error) {
+func waitForBuild(client *client.Client, appName, buildID string) (string, error) {
+	timeout := time.After(30 * time.Minute)
+	tick := time.Tick(10 * time.Second)
+
+	fmt.Print("waiting for build to become available")
+
 	for {
-		build, err := client.GetBuild(appName, buildId)
+		select {
+		case <-tick:
+			build, err := client.GetBuild(appName, buildID)
+			if err != nil {
+				return "", err
+			}
 
-		if err != nil {
-			return "", err
+			switch build.Status {
+			case "complete":
+				fmt.Println(" DONE")
+				return build.Release, nil
+			case "error", "failed":
+				fmt.Println(" ERROR")
+				return "", fmt.Errorf("%s build failed: %s", appName, build.Status)
+			default:
+				fmt.Print(".")
+			}
+		case <-timeout:
+			fmt.Println(" TIMEOUT")
+			return "", fmt.Errorf("%s build failed: timeout", appName)
 		}
-
-		switch build.Status {
-		case "complete":
-			return build.Release, nil
-		case "error":
-			return "", fmt.Errorf("%s build failed", appName)
-		case "failed":
-			return "", fmt.Errorf("%s build failed", appName)
-		}
-
-		time.Sleep(1 * time.Second)
 	}
 }
 
+// ConvoxWaitForStatus waits for a Convox app to have a particular status.
 func ConvoxWaitForStatus(appName, status string) error {
-	client, err := convoxClient()
+	timeout := time.After(30 * time.Minute)
+	tick := time.Tick(10 * time.Second)
 
+	failed := false
+
+	client, err := convoxClient()
 	if err != nil {
 		return err
 	}
@@ -394,23 +422,39 @@ func ConvoxWaitForStatus(appName, status string) error {
 	fmt.Printf("waiting for '%s' status", status)
 
 	for {
-		app, err := client.GetApp(appName)
+		select {
+		case <-tick:
+			app, err := client.GetApp(appName)
+			if err != nil {
+				fmt.Println(" ERROR")
+				return err
+			}
 
-		if err != nil {
-			fmt.Println(" ERROR")
-			return err
+			switch app.Status {
+			case "running":
+				fmt.Println(" DONE")
+				if failed {
+					return fmt.Errorf("Update rolled back")
+				}
+				return nil
+			case "rollback":
+				if !failed {
+					failed = true
+					fmt.Print(" FAILED\nRolling back")
+				}
+			default:
+				fmt.Print(".")
+			}
+
+		case <-timeout:
+			fmt.Println(" TIMEOUT")
+			return fmt.Errorf("TIMEOUT")
 		}
-
-		if app.Status == status {
-			fmt.Println(" OK")
-			return nil
-		}
-
-		fmt.Print(".")
-		time.Sleep(15 * time.Second)
 	}
+
 }
 
+// ConvoxPs returns an array of RanchProcess objects based on the currently running state of the app.
 func ConvoxPs(appName string) ([]RanchProcess, error) {
 	client, err := convoxClient()
 
@@ -465,7 +509,7 @@ func buildShaMap(appName string) (map[string]string, error) {
 	return shaMap, nil
 }
 
-func getConvoxRelease(appName, ranchReleaseId string) (convoxReleaseId string, err error) {
+func getConvoxRelease(appName, ranchReleaseID string) (convoxReleaseID string, err error) {
 	ranchReleases, err := RanchReleases(appName)
 
 	if err != nil {
@@ -473,10 +517,10 @@ func getConvoxRelease(appName, ranchReleaseId string) (convoxReleaseId string, e
 	}
 
 	for _, ranchRelease := range ranchReleases {
-		if ranchRelease.Id == ranchReleaseId {
+		if ranchRelease.Id == ranchReleaseID {
 			return ranchRelease.ConvoxRelease, nil
 		}
 	}
 
-	return "", fmt.Errorf("could not map release %s to a Convox release", ranchReleaseId)
+	return "", fmt.Errorf("could not map release %s to a Convox release", ranchReleaseID)
 }
