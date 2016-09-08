@@ -377,23 +377,28 @@ func finishBuild(client *client.Client, appName string, build *client.Build) (st
 }
 
 func waitForBuild(client *client.Client, appName, buildID string) (string, error) {
+	timeout := time.After(30 * time.Minute)
+	tick := time.Tick(10 * time.Second)
+
 	for {
-		build, err := client.GetBuild(appName, buildID)
+		select {
+		case <-tick:
+			build, err := client.GetBuild(appName, buildID)
+			if err != nil {
+				return "", err
+			}
 
-		if err != nil {
-			return "", err
+			switch build.Status {
+			case "complete":
+				return build.Release, nil
+			case "error":
+				return "", fmt.Errorf("%s build failed", appName)
+			case "failed":
+				return "", fmt.Errorf("%s build failed", appName)
+			}
+		case <-timeout:
+			return "", fmt.Errorf("%s build failed: TIMEOUT", appName)
 		}
-
-		switch build.Status {
-		case "complete":
-			return build.Release, nil
-		case "error":
-			return "", fmt.Errorf("%s build failed", appName)
-		case "failed":
-			return "", fmt.Errorf("%s build failed", appName)
-		}
-
-		time.Sleep(1 * time.Second)
 	}
 }
 
