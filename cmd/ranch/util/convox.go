@@ -404,8 +404,12 @@ func waitForBuild(client *client.Client, appName, buildID string) (string, error
 
 // ConvoxWaitForStatus waits for a Convox app to have a particular status.
 func ConvoxWaitForStatus(appName, status string) error {
-	client, err := convoxClient()
+	timeout := time.After(30 * time.Minute)
+	tick := time.Tick(10 * time.Second)
 
+	failed := false
+
+	client, err := convoxClient()
 	if err != nil {
 		return err
 	}
@@ -413,21 +417,35 @@ func ConvoxWaitForStatus(appName, status string) error {
 	fmt.Printf("waiting for '%s' status", status)
 
 	for {
-		app, err := client.GetApp(appName)
+		select {
+		case <-tick:
+			app, err := client.GetApp(appName)
+			if err != nil {
+				fmt.Println(" ERROR")
+				return err
+			}
 
-		if err != nil {
-			fmt.Println(" ERROR")
-			return err
+			switch app.Status {
+			case "running":
+				if failed {
+					fmt.Println(" DONE")
+					return fmt.Errorf("Update rolled back")
+				}
+				return nil
+			case "rollback":
+				if !failed {
+					failed = true
+					fmt.Print(" FAILED\nRolling back")
+				}
+			default:
+				fmt.Print(".")
+			}
+
+		case <-timeout:
+			return fmt.Errorf("TIMEOUT")
 		}
-
-		if app.Status == status {
-			fmt.Println(" OK")
-			return nil
-		}
-
-		fmt.Print(".")
-		time.Sleep(15 * time.Second)
 	}
+
 }
 
 // ConvoxPs returns an array of RanchProcess objects based on the currently running state of the app.
