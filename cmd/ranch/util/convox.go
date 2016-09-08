@@ -380,6 +380,8 @@ func waitForBuild(client *client.Client, appName, buildID string) (string, error
 	timeout := time.After(30 * time.Minute)
 	tick := time.Tick(10 * time.Second)
 
+	fmt.Print("waiting for build to become available")
+
 	for {
 		select {
 		case <-tick:
@@ -390,14 +392,17 @@ func waitForBuild(client *client.Client, appName, buildID string) (string, error
 
 			switch build.Status {
 			case "complete":
+				fmt.Println(" DONE")
 				return build.Release, nil
-			case "error":
-				return "", fmt.Errorf("%s build failed", appName)
-			case "failed":
-				return "", fmt.Errorf("%s build failed", appName)
+			case "error", "failed":
+				fmt.Println(" ERROR")
+				return "", fmt.Errorf("%s build failed: %s", appName, build.Status)
+			default:
+				fmt.Print(".")
 			}
 		case <-timeout:
-			return "", fmt.Errorf("%s build failed: TIMEOUT", appName)
+			fmt.Println(" TIMEOUT")
+			return "", fmt.Errorf("%s build failed: timeout", appName)
 		}
 	}
 }
@@ -427,8 +432,8 @@ func ConvoxWaitForStatus(appName, status string) error {
 
 			switch app.Status {
 			case "running":
+				fmt.Println(" DONE")
 				if failed {
-					fmt.Println(" DONE")
 					return fmt.Errorf("Update rolled back")
 				}
 				return nil
@@ -442,6 +447,7 @@ func ConvoxWaitForStatus(appName, status string) error {
 			}
 
 		case <-timeout:
+			fmt.Println(" TIMEOUT")
 			return fmt.Errorf("TIMEOUT")
 		}
 	}
