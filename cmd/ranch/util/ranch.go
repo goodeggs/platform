@@ -512,7 +512,14 @@ func RanchDeploy(appDir string, config *RanchConfig, appSha, codeSha string) (er
 
 		fmt.Println("using build directory", buildDir)
 
-		if err = generateDockerCompose(imageNameWithTag, config, buildDir); err != nil {
+		dockerComposeContent, err := generateDockerCompose(imageNameWithTag, config)
+		if err != nil {
+			return err
+		}
+
+		dockerCompose := path.Join(buildDir, "docker-compose.yml")
+
+		if err = ioutil.WriteFile(dockerCompose, dockerComposeContent, 0644); err != nil {
 			return err
 		}
 
@@ -559,26 +566,26 @@ func quoteEnvForConvox(inEnv map[string]string) map[string]string {
 	return outEnv
 }
 
-func generateDockerCompose(imageName string, config *RanchConfig, buildDir string) error {
+func generateDockerCompose(imageName string, config *RanchConfig) ([]byte, error) {
 	var out bytes.Buffer
 	var env map[string]string
 
 	if config.EnvId != "" {
 		plaintext, err := RanchGetSecret(config.AppName, config.EnvId)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		env, err = ParseEnv(plaintext)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	absoluteImageName, err := DockerResolveImageName(imageName)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = dockerComposeTemplate.Execute(&out, composeTemplateVars{
@@ -588,17 +595,10 @@ func generateDockerCompose(imageName string, config *RanchConfig, buildDir strin
 	})
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	dockerCompose := path.Join(buildDir, "docker-compose.yml")
-	err = ioutil.WriteFile(dockerCompose, out.Bytes(), 0644)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return out.Bytes(), nil
 }
 
 func dockerBuildAndPush(appDir, imageName string, config *RanchConfig) (err error) {
