@@ -512,20 +512,14 @@ func RanchDeploy(appDir string, config *RanchConfig, appSha, codeSha string) (er
 
 		fmt.Println("using build directory", buildDir)
 
-		var env map[string]string
-		if config.EnvId != "" {
-			plaintext, err := RanchGetSecret(config.AppName, config.EnvId)
-			if err != nil {
-				return err
-			}
-
-			env, err = ParseEnv(plaintext)
-			if err != nil {
-				return err
-			}
+		dockerComposeContent, err := GenerateDockerCompose(imageNameWithTag, config)
+		if err != nil {
+			return err
 		}
 
-		if err = generateDockerCompose(imageNameWithTag, config, env, buildDir); err != nil {
+		dockerCompose := path.Join(buildDir, "docker-compose.yml")
+
+		if err = ioutil.WriteFile(dockerCompose, dockerComposeContent, 0644); err != nil {
 			return err
 		}
 
@@ -563,33 +557,48 @@ func convoxDeploy(appName, releaseId, buildDir string) error {
 	return nil
 }
 
-func generateDockerCompose(imageName string, config *RanchConfig, env map[string]string, buildDir string) error {
+// see https://github.com/convox/rack/pull/1044
+func quoteEnvForConvox(inEnv map[string]string) map[string]string {
+	outEnv := make(map[string]string)
+	for k, v := range inEnv {
+		outEnv[k] = strings.Replace(v, "$", "$$", -1)
+	}
+	return outEnv
+}
+
+func GenerateDockerCompose(imageName string, config *RanchConfig) ([]byte, error) {
 	var out bytes.Buffer
+	var env map[string]string
+
+	if config.EnvId != "" {
+		plaintext, err := RanchGetSecret(config.AppName, config.EnvId)
+		if err != nil {
+			return nil, err
+		}
+
+		env, err = ParseEnv(plaintext)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	absoluteImageName, err := DockerResolveImageName(imageName)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = dockerComposeTemplate.Execute(&out, composeTemplateVars{
 		ImageName:   absoluteImageName,
-		Environment: env,
+		Environment: quoteEnvForConvox(env),
 		Config:      config,
 	})
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	dockerCompose := path.Join(buildDir, "docker-compose.yml")
-	err = ioutil.WriteFile(dockerCompose, out.Bytes(), 0644)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return out.Bytes(), nil
 }
 
 func dockerBuildAndPush(appDir, imageName string, config *RanchConfig) (err error) {
