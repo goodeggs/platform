@@ -512,7 +512,7 @@ func RanchDeploy(appDir string, config *RanchConfig, appSha, codeSha string) (er
 
 		fmt.Println("using build directory", buildDir)
 
-		dockerComposeContent, err := generateDockerCompose(imageNameWithTag, config)
+		dockerComposeContent, err := GenerateDockerCompose(imageNameWithTag, config)
 		if err != nil {
 			return err
 		}
@@ -566,7 +566,7 @@ func quoteEnvForConvox(inEnv map[string]string) map[string]string {
 	return outEnv
 }
 
-func generateDockerCompose(imageName string, config *RanchConfig) ([]byte, error) {
+func GenerateDockerCompose(imageName string, config *RanchConfig) ([]byte, error) {
 	var out bytes.Buffer
 	var env map[string]string
 
