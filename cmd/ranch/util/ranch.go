@@ -566,6 +566,20 @@ func quoteEnvForConvox(inEnv map[string]string) map[string]string {
 	return outEnv
 }
 
+func GenerateProcfile(imageName string, config *RanchConfig) ([]byte, error) {
+	var out bytes.Buffer
+	err := procfileTemplate.Execute(&out, composeTemplateVars{
+		ImageName: imageName,
+		Config:    config,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return out.Bytes(), nil
+}
+
 func GenerateDockerCompose(imageName string, config *RanchConfig) ([]byte, error) {
 	var out bytes.Buffer
 	var env map[string]string
@@ -642,18 +656,12 @@ func dockerBuildAndPush(appDir, imageName string, config *RanchConfig) (err erro
 	procfile := path.Join(appDir, "Procfile")
 
 	if _, err := os.Stat(procfile); os.IsNotExist(err) {
-		var out bytes.Buffer
-		err = procfileTemplate.Execute(&out, composeTemplateVars{
-			ImageName: imageName,
-			Config:    config,
-		})
-
+		content, err := GenerateProcfile(imageName, config)
 		if err != nil {
 			return err
 		}
 
-		err = ioutil.WriteFile(procfile, out.Bytes(), 0644)
-
+		err = ioutil.WriteFile(procfile, content, 0644)
 		if err != nil {
 			return err
 		}

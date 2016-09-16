@@ -16,7 +16,18 @@ var debugCmd = &cobra.Command{
 			return err
 		}
 
+		fmt.Print("\n\n------------ docker-compose.yml ------------\n\n")
+
 		content, err := util.GenerateDockerCompose("FIXME", config)
+		if err != nil {
+			return err
+		}
+
+		fmt.Print(string(content))
+
+		fmt.Print("\n\n------------ Procfile ------------\n\n")
+
+		content, err = util.GenerateProcfile("FIXME", config)
 		if err != nil {
 			return err
 		}
