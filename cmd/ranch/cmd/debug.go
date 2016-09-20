@@ -25,15 +25,6 @@ var debugCmd = &cobra.Command{
 
 		fmt.Print(string(content))
 
-		fmt.Print("\n\n------------ Procfile ------------\n\n")
-
-		content, err = util.GenerateProcfile("FIXME", config)
-		if err != nil {
-			return err
-		}
-
-		fmt.Print(string(content))
-
 		return nil
 	},
 }
