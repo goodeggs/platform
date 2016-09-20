@@ -38,7 +38,7 @@ var dockerComposeTemplate = template.Must(template.New("docker-compose").Parse(`
 {{ range $name, $process := .Config.Processes }}
 {{ $name }}:
   image: {{ $.ImageName }}
-  command: /start {{ $process.Command }}
+  command: {{ $process.Command }}
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
   {{ if eq $name "web" }}
