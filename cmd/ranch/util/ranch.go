@@ -434,7 +434,7 @@ func RanchGetFormation(appName string) (formation RanchFormation, err error) {
 
 func RanchDeploy(appDir string, config *RanchConfig, appSha, codeSha string) (err error) {
 
-	imageNameWithTag := strings.Join([]string{config.ImageName, appSha}, ":")
+	imageNameWithTag := fmt.Sprintf("%s:%s", config.ImageName, appSha)
 
 	exists, err := DockerImageExists(imageNameWithTag)
 	if err != nil {
@@ -451,7 +451,10 @@ func RanchDeploy(appDir string, config *RanchConfig, appSha, codeSha string) (er
 			return fmt.Errorf("you requested a deploy of a git sha other than HEAD, but its Docker image (%s) does not already exist.  we do not yet support this -- do a full deploy instead. ", imageNameWithTag)
 		}
 
-		if err = dockerBuildAndPush(appDir, imageNameWithTag, config); err != nil {
+		// pull the latest image but ignore errors -- it's just here to increase cache hit rate
+		_ = DockerPull(fmt.Sprintf("%s:latest", config.ImageName))
+
+		if err = dockerBuildAndPush(appDir, config.ImageName, appSha, config); err != nil {
 			return err
 		}
 	}
@@ -578,7 +581,7 @@ func GenerateDockerCompose(imageName string, config *RanchConfig) ([]byte, error
 	return out.Bytes(), nil
 }
 
-func dockerBuildAndPush(appDir, imageName string, config *RanchConfig) (err error) {
+func dockerBuildAndPush(appDir, imageName, appSha string, config *RanchConfig) (err error) {
 
 	env, err := EnvGet(config.AppName, config.EnvId)
 
@@ -599,15 +602,11 @@ func dockerBuildAndPush(appDir, imageName string, config *RanchConfig) (err erro
 		}
 
 		var out bytes.Buffer
-		err = template.Execute(&out, struct{}{})
-
-		if err != nil {
+		if err = template.Execute(&out, struct{}{}); err != nil {
 			return err
 		}
 
-		err = ioutil.WriteFile(dockerfile, out.Bytes(), 0644)
-
-		if err != nil {
+		if err = ioutil.WriteFile(dockerfile, out.Bytes(), 0644); err != nil {
 			return err
 		}
 
@@ -616,15 +615,21 @@ func dockerBuildAndPush(appDir, imageName string, config *RanchConfig) (err erro
 		fmt.Println("WARNING: using existing Dockerfile")
 	}
 
-	err = DockerBuild(appDir, imageName, env)
+	imageNameWithTag := fmt.Sprintf("%s:%s", imageName, appSha)
 
-	if err != nil {
+	if err = DockerBuild(appDir, imageNameWithTag, env); err != nil {
 		return err
 	}
 
-	err = DockerPush(imageName)
+	if err = DockerPush(imageNameWithTag); err != nil {
+		return err
+	}
 
-	if err != nil {
+	if err = DockerTag(imageNameWithTag, "latest"); err != nil {
+		return err
+	}
+
+	if err = DockerPush(fmt.Sprintf("%s:latest", imageName)); err != nil {
 		return err
 	}
 
