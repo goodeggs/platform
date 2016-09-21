@@ -86,6 +86,37 @@ func DockerImageExists(imageNameWithTag string) (bool, error) {
 	return true, nil
 }
 
+func DockerPull(imageNameWithTag string) error {
+	parts := strings.Split(imageNameWithTag, ":")
+	imageName, tag := parts[0], parts[1]
+
+	client, err := dockerClient()
+
+	if err != nil {
+		return err
+	}
+
+	absoluteImageName, err := DockerResolveImageName(imageName)
+
+	if err != nil {
+		return err
+	}
+
+	opts := docker.PullImageOptions{
+		Repository:   absoluteImageName,
+		Tag:          tag,
+		OutputStream: os.Stdout,
+	}
+
+	err = client.PullImage(opts, registryAuth())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func DockerPush(imageNameWithTag string) error {
 	parts := strings.Split(imageNameWithTag, ":")
 	imageName, tag := parts[0], parts[1]
@@ -115,6 +146,33 @@ func DockerPush(imageNameWithTag string) error {
 	}
 
 	return nil
+}
+
+func parseRepositoryTag(imageName string) (string, string) {
+	parts := strings.SplitN(imageName, ":", 2)
+	return parts[0], parts[1]
+}
+
+func DockerTag(imageName, tag string) error {
+	client, err := dockerClient()
+
+	if err != nil {
+		return err
+	}
+
+	absoluteImageName, err := DockerResolveImageName(imageName)
+	if err != nil {
+		return err
+	}
+
+	repo, _ := parseRepositoryTag(absoluteImageName)
+
+	opts := docker.TagImageOptions{
+		Repo: repo,
+		Tag:  tag,
+	}
+
+	return client.TagImage(absoluteImageName, opts)
 }
 
 func DockerBuild(appDir string, imageName string, buildEnv map[string]string) error {
