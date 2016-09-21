@@ -7,13 +7,15 @@ indent() {
 }
 
 version=$(cat .goxc.json | jq -r '.PackageVersion')
+minorver=$(echo $version | awk -F. '{print $1 "." $2}')
 
 echo "releasing v${version}..."
 
 goxc 2>&1 | indent
 
 echo "syncing ranch-updates S3 bucket"
-aws-vault exec prod -- aws s3 sync s3://ranch-updates.goodeggs.com/stable/ranch/ public/
+rm -rf public/
+aws-vault exec prod -- aws s3 sync --exclude "*" --include "${minorver}.*" --include "darwin-amd64.json" --include "linux-amd64.json" s3://ranch-updates.goodeggs.com/stable/ranch/ public/
 
 echo "go-selfupdate generating bindiffs"
 mkdir releases/${version}/bins
