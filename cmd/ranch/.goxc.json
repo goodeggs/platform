@@ -9,7 +9,7 @@
 		"publish-github"
 	],
 	"BuildConstraints": "linux,amd64 darwin,amd64",
-	"PackageVersion": "6.0.1",
+	"PackageVersion": "6.1.0",
 	"TaskSettings": {
 		"publish-github": {
 			"owner": "goodeggs",
