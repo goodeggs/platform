@@ -81,7 +81,7 @@ var envSetCmd = &cobra.Command{
 			return err
 		}
 
-		message := fmt.Sprintf("set env %s", strings.Join(updatedKeys, ","))
+		message := fmt.Sprintf("set env %s\n\n[ci skip]", strings.Join(updatedKeys, ","))
 
 		if err = util.GitCommit(appDir, message); err != nil {
 			return err
