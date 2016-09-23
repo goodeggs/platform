@@ -16,3 +16,5 @@ func jsonClient() *gorequest.SuperAgent {
 		Set("Accept", "application/json").
 		Set("Content-Type", "application/json")
 }
+
+var Verbose bool

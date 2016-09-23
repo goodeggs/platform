@@ -440,7 +440,7 @@ func RanchDeploy(appDir string, config *RanchConfig, appSha, codeSha string) (er
 	if err != nil {
 		return err
 	} else if exists {
-		fmt.Printf("%s docker image already exists in registry, skipping build.\n", imageNameWithTag)
+		fmt.Printf("🐮  Docker image %s already exists, skipping build.\n", imageNameWithTag)
 	} else {
 		currentSha, err := GitCurrentSha(appDir)
 		if err != nil {
@@ -471,26 +471,17 @@ func RanchDeploy(appDir string, config *RanchConfig, appSha, codeSha string) (er
 		}
 
 		if currentRelease != releaseId {
-			fmt.Printf("promoting existing release %s\n", releaseId)
 			if err = ConvoxPromote(config.AppName, releaseId); err != nil {
 				return err
 			}
-
-			time.Sleep(10 * time.Second) // wait for promote to apply
-
-			if err = ConvoxWaitForStatus(config.AppName, "running"); err != nil {
-				return err
-			}
 		} else {
-			fmt.Printf("existing release %s is currently live, skipping promote.\n", releaseId)
+			fmt.Printf("🐮  Existing release %s is currently active, skipping promote.\n", releaseId)
 		}
 	} else {
 		buildDir, err := ioutil.TempDir("", "ranch")
 		if err != nil {
 			return err
 		}
-
-		fmt.Println("using build directory", buildDir)
 
 		dockerComposeContent, err := GenerateDockerCompose(imageNameWithTag, config)
 		if err != nil {
@@ -522,19 +513,7 @@ func convoxDeploy(appName, releaseId, buildDir string) error {
 		return err
 	}
 
-	fmt.Printf("promoting release %s\n", releaseId)
-
-	if err = ConvoxPromote(appName, releaseId); err != nil {
-		return err
-	}
-
-	time.Sleep(10 * time.Second) // wait for promote to apply
-
-	if err = ConvoxWaitForStatus(appName, "running"); err != nil {
-		return err
-	}
-
-	return nil
+	return ConvoxPromote(appName, releaseId)
 }
 
 // see https://github.com/convox/rack/pull/1044
