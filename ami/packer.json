@@ -81,9 +81,23 @@
       "destination": "/home/ec2-user/collectd.spec.amzn1"
     },
     {
+      "type": "file",
+      "source": "sysctl.conf",
+      "destination": "/home/ec2-user/sysctl.conf"
+    },
+    {
+      "type": "file",
+      "source": "tsc-clocksource.conf",
+      "destination": "/home/ec2-user/tsc-clocksource.conf"
+    },
+    {
       "type": "shell",
       "inline": [
         "while [ ! -f /run/cloud-init/result.json ]; do echo 'Waiting for cloud-init...'; sleep 10; done",
+
+        "echo '# Performance tweaks'",
+        "sudo mv /home/ec2-user/sysctl.conf /etc/sysctl.d/50-goodeggs.conf",
+        "sudo mv {/home/ec2-user,/etc/init}/tsc-clocksource.conf",
 
         "echo '# Clear docker fs'",
         "sudo service docker stop",
