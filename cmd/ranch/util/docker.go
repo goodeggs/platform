@@ -2,6 +2,9 @@ package util
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"path"
@@ -11,6 +14,13 @@ import (
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/heroku/docker-registry-client/registry"
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/viper"
 )
+
+type jsonMessage struct {
+	Status   string `json:"status,omitempty"`
+	Progress string `json:"progress,omitempty"`
+	Error    string `json:"error,omitempty"`
+	Stream   string `json:"stream,omitempty"`
+}
 
 func dockerClient() (*docker.Client, error) {
 	return docker.NewClientFromEnv()
@@ -102,19 +112,70 @@ func DockerPull(imageNameWithTag string) error {
 		return err
 	}
 
+	silencer := NewDockerSilencer()
+
 	opts := docker.PullImageOptions{
-		Repository:   absoluteImageName,
-		Tag:          tag,
-		OutputStream: os.Stdout,
+		Repository:    absoluteImageName,
+		Tag:           tag,
+		OutputStream:  silencer.Writer(),
+		RawJSONStream: true,
 	}
 
-	err = client.PullImage(opts, registryAuth())
+	fmt.Printf("Pulling docker image %q:", absoluteImageName)
 
-	if err != nil {
+	if err = client.PullImage(opts, registryAuth()); err != nil {
+		fmt.Println("ERROR")
 		return err
 	}
 
+	if err = silencer.Finalize(); err != nil {
+		fmt.Println("ERROR")
+		return err
+	}
+
+	fmt.Println("DONE")
 	return nil
+}
+
+type DockerSilencer struct {
+	r   *io.PipeReader
+	w   *io.PipeWriter
+	res chan error
+}
+
+func NewDockerSilencer() *DockerSilencer {
+	r, w := io.Pipe()
+	res := make(chan error)
+	h := DockerSilencer{r, w, res}
+
+	go func() {
+		dec := json.NewDecoder(r)
+		for {
+			var m jsonMessage
+			if err := dec.Decode(&m); err == io.EOF {
+				h.res <- nil
+				break
+			} else if err != nil {
+				h.res <- err
+				break
+			} else if m.Error != "" {
+				h.res <- errors.New(m.Error)
+				break
+			}
+		}
+	}()
+
+	return &h
+}
+
+func (h *DockerSilencer) Writer() *io.PipeWriter {
+	return h.w
+}
+
+func (h *DockerSilencer) Finalize() error {
+	h.w.Close()
+	close(h.res)
+	return <-h.res
 }
 
 func DockerPush(imageNameWithTag string) error {
@@ -133,18 +194,28 @@ func DockerPush(imageNameWithTag string) error {
 		return err
 	}
 
+	silencer := NewDockerSilencer()
+
 	opts := docker.PushImageOptions{
-		Name:         absoluteImageName,
-		Tag:          tag,
-		OutputStream: os.Stdout,
+		Name:          absoluteImageName,
+		Tag:           tag,
+		OutputStream:  silencer.Writer(),
+		RawJSONStream: true,
 	}
 
-	err = client.PushImage(opts, registryAuth())
+	fmt.Printf("Pushing docker image %s: ", absoluteImageName)
 
-	if err != nil {
+	if err = client.PushImage(opts, registryAuth()); err != nil {
+		fmt.Println("ERROR")
 		return err
 	}
 
+	if err = silencer.Finalize(); err != nil {
+		fmt.Println("ERROR")
+		return err
+	}
+
+	fmt.Println("DONE")
 	return nil
 }
 
