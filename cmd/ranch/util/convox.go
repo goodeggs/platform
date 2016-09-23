@@ -189,6 +189,8 @@ func ConvoxScaleProcess(appName, processName string, count, memory int) (err err
 // ConvoxScale iterates over the given RanchConfig applying the correct scale to each named process.
 func ConvoxScale(appName string, config *RanchConfig) (err error) {
 
+	fmt.Println("🐮  Scaling your app:")
+
 	existingFormation, err := ConvoxGetFormation(appName)
 
 	if err != nil {
@@ -197,36 +199,45 @@ func ConvoxScale(appName string, config *RanchConfig) (err error) {
 
 	// scale down hidden 'run' process, which is used by ranch run and cron.
 	if existingEntry, ok := existingFormation["run"]; ok {
+		fmt.Printf(" - run count=0 memory=2048 ")
 		if existingEntry.Count != 0 || existingEntry.Memory != 2048 {
 			if err = ConvoxScaleProcess(appName, "run", 0, 2048); err != nil {
+				fmt.Println("✘")
 				return err
 			}
 
 			time.Sleep(5 * time.Second) // wait for scale to apply
 
-			if err = ConvoxWaitForStatus(appName, "running"); err != nil {
+			if err = ConvoxWaitForStatusWithMessage(appName, "running", ""); err != nil {
+				// graphics handled by parent
 				return err
 			}
+		} else {
+			fmt.Println("✔")
 		}
 	}
 
 	for processName, processConfig := range config.Processes {
+		fmt.Printf(" - %s count=%d memory=%d ", processName, processConfig.Count, processConfig.Memory)
 		if existingEntry, ok := existingFormation[processName]; ok {
 			if existingEntry.Count == processConfig.Count && existingEntry.Memory == processConfig.Memory {
-				fmt.Printf("%s already scaled to count=%d memory=%d\n", processName, processConfig.Count, processConfig.Memory)
+				fmt.Println("✔")
 				continue
 			}
 		}
 
 		if err = ConvoxScaleProcess(appName, processName, processConfig.Count, processConfig.Memory); err != nil {
+			fmt.Println("✘")
 			return err
 		}
 
 		time.Sleep(5 * time.Second) // wait for scale to apply
 
-		if err = ConvoxWaitForStatus(appName, "running"); err != nil {
+		if err = ConvoxWaitForStatusWithMessage(appName, "running", ""); err != nil {
+			// graphics handled by parent
 			return err
 		}
+		fmt.Println("✔")
 	}
 
 	return nil
@@ -260,20 +271,28 @@ func ConvoxCurrentVersion(appName string) (string, error) {
 // ConvoxPromote promotes a given Ranch release by mapping it back to a Convox release.
 func ConvoxPromote(appName string, ranchReleaseID string) error {
 	convoxReleaseID, err := getConvoxRelease(appName, ranchReleaseID)
-
 	if err != nil {
 		return err
 	}
 
 	client, err := convoxClient()
-
 	if err != nil {
 		return err
 	}
 
-	_, err = client.PromoteRelease(appName, convoxReleaseID)
+	fmt.Printf("🐮  Promoting release %s... ", ranchReleaseID)
 
-	return err
+	if _, err = client.PromoteRelease(appName, convoxReleaseID); err != nil {
+		fmt.Println("✘")
+		return err
+	}
+
+	if err = ConvoxWaitForStatusWithMessage(appName, "updating", ""); err != nil {
+		// graphics handled in WaitForStatus
+		return err
+	}
+
+	return ConvoxWaitForStatusWithMessage(appName, "running", fmt.Sprintf("🐮  Waiting for release %s to roll out... ", ranchReleaseID))
 }
 
 // ConvoxDeploy creates a new Convox release given an app and build directory.
@@ -307,11 +326,15 @@ func ConvoxDeploy(appName string, buildDir string) (string, error) {
 	cache := true
 	config := "docker-compose.yml"
 
-	build, err := client.CreateBuildSource(appName, tar, cache, config)
+	fmt.Print("🐮  Uploading Convox build... ")
 
+	build, err := client.CreateBuildSource(appName, tar, cache, config)
 	if err != nil {
+		fmt.Println("✘")
 		return "", err
 	}
+
+	fmt.Println("✔")
 
 	return finishBuild(client, appName, build)
 }
@@ -331,7 +354,6 @@ func ConvoxPsStop(appName string, pid string) error {
 func createTarball(buildDir string) ([]byte, error) {
 	tmpDir, err := ioutil.TempDir("", "ranch")
 	defer os.RemoveAll(tmpDir)
-	fmt.Println(tmpDir)
 
 	if err != nil {
 		return nil, err
@@ -365,12 +387,12 @@ func finishBuild(client *client.Client, appName string, build *client.Build) (st
 		return "", fmt.Errorf("unable to fetch build id")
 	}
 
-	reader, writer := io.Pipe()
-	go io.Copy(os.Stdout, reader)
-	err := client.StreamBuildLogs(appName, build.Id, writer)
-
-	if err != nil {
-		return "", err
+	if Verbose {
+		reader, writer := io.Pipe()
+		go io.Copy(os.Stdout, reader)
+		if err := client.StreamBuildLogs(appName, build.Id, writer); err != nil {
+			return "", err
+		}
 	}
 
 	return waitForBuild(client, appName, build.Id)
@@ -380,28 +402,31 @@ func waitForBuild(client *client.Client, appName, buildID string) (string, error
 	timeout := time.After(30 * time.Minute)
 	tick := time.Tick(10 * time.Second)
 
-	fmt.Print("waiting for build to become available")
+	fmt.Print("🐮  Waiting for Convox build to finish... ")
 
 	for {
 		select {
 		case <-tick:
 			build, err := client.GetBuild(appName, buildID)
 			if err != nil {
+				fmt.Println("✘")
 				return "", err
 			}
 
 			switch build.Status {
 			case "complete":
-				fmt.Println(" DONE")
+				fmt.Println("✔")
 				return build.Release, nil
 			case "error", "failed":
-				fmt.Println(" ERROR")
+				fmt.Println("✘")
 				return "", fmt.Errorf("%s build failed: %s", appName, build.Status)
 			default:
-				fmt.Print(".")
+				if Verbose {
+					fmt.Print(".")
+				}
 			}
 		case <-timeout:
-			fmt.Println(" TIMEOUT")
+			fmt.Println("✘")
 			return "", fmt.Errorf("%s build failed: timeout", appName)
 		}
 	}
@@ -409,6 +434,11 @@ func waitForBuild(client *client.Client, appName, buildID string) (string, error
 
 // ConvoxWaitForStatus waits for a Convox app to have a particular status.
 func ConvoxWaitForStatus(appName, status string) error {
+	return ConvoxWaitForStatusWithMessage(appName, status, fmt.Sprintf("🐮  Waiting for '%s' status... ", status))
+}
+
+// ConvoxWaitForStatusWithMessage waits for a Convox app to have a particular status and displays the given message.
+func ConvoxWaitForStatusWithMessage(appName, status string, message string) error {
 	timeout := time.After(30 * time.Minute)
 	tick := time.Tick(10 * time.Second)
 
@@ -419,36 +449,38 @@ func ConvoxWaitForStatus(appName, status string) error {
 		return err
 	}
 
-	fmt.Printf("waiting for '%s' status", status)
+	fmt.Print(message)
 
 	for {
 		select {
 		case <-tick:
 			app, err := client.GetApp(appName)
 			if err != nil {
-				fmt.Println(" ERROR")
+				fmt.Println("✘")
 				return err
 			}
 
 			switch app.Status {
-			case "running":
-				fmt.Println(" DONE")
+			case status:
+				fmt.Println("✔")
 				if failed {
-					return fmt.Errorf("Update rolled back")
+					return fmt.Errorf("Your deploy was not healthy and was rolled back to the previous version.  Consult your app's logs or ask #delivery-eng for help.")
 				}
 				return nil
 			case "rollback":
 				if !failed {
 					failed = true
-					fmt.Print(" FAILED\nRolling back")
+					fmt.Print("✘ ROLLBACK\nWaiting for rollback... ")
 				}
 			default:
-				fmt.Print(".")
+				if Verbose {
+					fmt.Print(".")
+				}
 			}
 
 		case <-timeout:
-			fmt.Println(" TIMEOUT")
-			return fmt.Errorf("TIMEOUT")
+			fmt.Println("✘")
+			return fmt.Errorf("The rollout took longer than 30 minutes so we gave up.")
 		}
 	}
 

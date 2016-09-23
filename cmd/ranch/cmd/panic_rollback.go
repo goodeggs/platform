@@ -23,13 +23,7 @@ var panicRollbackCmd = &cobra.Command{
 
 		appVersion := args[0]
 
-		fmt.Printf("promoting release %s", appVersion)
-
 		if err = util.ConvoxPromote(appName, appVersion); err != nil {
-			return err
-		}
-
-		if err = util.ConvoxWaitForStatus(appName, "running"); err != nil {
 			return err
 		}
 
