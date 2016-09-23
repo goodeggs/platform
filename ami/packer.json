@@ -86,15 +86,18 @@
       "destination": "/home/ec2-user/sysctl.conf"
     },
     {
+      "type": "file",
+      "source": "tsc-clocksource.conf",
+      "destination": "/home/ec2-user/tsc-clocksource.conf"
+    },
+    {
       "type": "shell",
       "inline": [
         "while [ ! -f /run/cloud-init/result.json ]; do echo 'Waiting for cloud-init...'; sleep 10; done",
 
         "echo '# Performance tweaks'",
         "sudo mv /home/ec2-user/sysctl.conf /etc/sysctl.d/50-goodeggs.conf",
-        "sudo sysctl -p",
-        "sudo sed -i -- '/^kernel / s/$/ clocksource=tsc/' /boot/grub/menu.lst",
-        "echo 'tsc' | sudo dd of=/sys/devices/system/clocksource/clocksource0/current_clocksource",
+        "sudo mv {/home/ec2-user,/etc/init}/tsc-clocksource.conf",
 
         "echo '# Clear docker fs'",
         "sudo service docker stop",
