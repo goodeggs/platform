@@ -451,9 +451,6 @@ func RanchDeploy(appDir string, config *RanchConfig, appSha, codeSha string) (er
 			return fmt.Errorf("you requested a deploy of a git sha other than HEAD, but its Docker image (%s) does not already exist.  we do not yet support this -- do a full deploy instead. ", imageNameWithTag)
 		}
 
-		// pull the latest image but ignore errors -- it's just here to increase cache hit rate
-		_ = DockerPull(fmt.Sprintf("%s:latest", config.ImageName))
-
 		if err = dockerBuildAndPush(appDir, config.ImageName, appSha, config); err != nil {
 			return err
 		}
