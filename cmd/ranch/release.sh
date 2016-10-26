@@ -15,7 +15,7 @@ goxc 2>&1 | indent
 
 echo "syncing ranch-updates S3 bucket"
 mkdir -p public
-ls -d public/*/ | grep -v "^public/${minorver}." | xargs rm -rf
+( ls -d public/*/ | grep -v "^public/${minorver}." | xargs rm -rf ) || true
 aws-vault exec prod -- aws s3 sync --exclude "*" --include "${minorver}.*" --include "darwin-amd64.json" --include "linux-amd64.json" s3://ranch-updates.goodeggs.com/stable/ranch/ public/
 
 echo "go-selfupdate generating bindiffs"
