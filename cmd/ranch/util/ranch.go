@@ -45,6 +45,10 @@ var dockerComposeTemplate = template.Must(template.New("docker-compose").Parse(`
   labels:
     - convox.port.443.protocol=https
     - convox.idle.timeout=60
+    {{ if $process.DowntimeDeploy -}}
+    - convox.deployment.minimum=0
+    - convox.deployment.maximum=200
+    {{ end }}
   ports:
     - 443:3000
   {{ end }}
@@ -88,10 +92,11 @@ type RanchConfig struct {
 }
 
 type RanchConfigProcess struct {
-	Command   string `json:"command"`
-	Count     int    `json:"count"`
-	Instances int    `json:"instances"` // deprecated
-	Memory    int    `json:"memory"`
+	Command        string `json:"command"`
+	Count          int    `json:"count"`
+	Instances      int    `json:"instances"` // deprecated
+	Memory         int    `json:"memory"`
+	DowntimeDeploy bool   `json:"downtime_deploy"`
 }
 
 type RanchFormationEntry struct {
