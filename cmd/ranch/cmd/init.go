@@ -20,8 +20,6 @@ processes:
     command: node server.js
     count: 2
     memory: 256
-    domains:
-      - {{.AppName}}
 `
 
 type yamlTemplateVars struct {
