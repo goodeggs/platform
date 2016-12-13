@@ -50,6 +50,7 @@ var dockerComposeTemplate = template.Must(template.New("docker-compose").Funcs(f
   command: {{ $process.Command | convoxQuote }}
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
+{{ range $v := $.Config.Volumes }}{{ printf "    - %s\n" $v | convoxQuote }}{{ end }}
   {{ if eq $name "web" }}
   labels:
     - convox.port.443.protocol=https
@@ -71,6 +72,7 @@ run:
   command: sh -c 'while true; do echo this process should not be running; sleep 300; done'
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
+{{ range $v := $.Config.Volumes }}{{ printf "    - %s\n" $v | convoxQuote }}{{ end }}
   labels:
 {{ range $k, $v := $.Config.Cron }}{{ printf "    - convox.cron.%s=%s\n" $k $v | convoxQuote }}{{ end }}
   environment:
@@ -98,6 +100,7 @@ type RanchConfig struct {
 	EnvId     string                        `json:"env_id"`
 	Processes map[string]RanchConfigProcess `json:"processes"`
 	Cron      map[string]string             `json:"cron"`
+	Volumes   []string                      `json:"volumes"`
 }
 
 type RanchConfigProcess struct {
