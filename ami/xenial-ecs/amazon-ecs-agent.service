@@ -1,0 +1,35 @@
+[Unit]
+Description=Amazon ECS Agent
+After=docker.service
+Requires=docker.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+EnvironmentFile=/etc/goodeggs-environment
+Restart=on-failure
+RestartSec=30
+RestartPreventExitStatus=5
+ExecStartPre=/sbin/sysctl -w net.ipv4.conf.all.route_localnet=1
+ExecStartPre=/sbin/iptables -t nat -A PREROUTING -p tcp -d 169.254.170.2 --dport 80 -j DNAT --to-destination 127.0.0.1:51679
+ExecStartPre=/sbin/iptables -t nat -A OUTPUT -d 169.254.170.2 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 51679
+ExecStartPre=-/usr/bin/docker kill ecs-agent
+ExecStartPre=-/usr/bin/docker rm ecs-agent
+ExecStartPre=/usr/bin/docker pull "amazon/amazon-ecs-agent:${ECS_VERSION}"
+ExecStart=/usr/bin/docker run --name ecs-agent \
+  --net=host \
+  --volume=/var/run/docker.sock:/var/run/docker.sock \
+  --volume=/var/log/ecs:/log \
+  --volume=/var/lib/ecs/data:/data \
+  --env=ECS_LOGFILE=/log/ecs-agent.log \
+  --env=ECS_LOGLEVEL="${ECS_LOGLEVEL}" \
+  --env=ECS_DATADIR=/data/ \
+  --env=ECS_CLUSTER="${ECS_CLUSTER}" \
+  --env=ECS_ENABLE_TASK_IAM_ROLE=true \
+  --env=ECS_ENABLE_TASK_IAM_ROLE_NETWORK_HOST=true \
+  --env=ECS_ENGINE_AUTH_TYPE="${ECS_ENGINE_AUTH_TYPE}" \
+  --env=ECS_ENGINE_AUTH_DATA="${ECS_ENGINE_AUTH_DATA}" \
+  --env=ECS_UPDATES_ENABLED="${ECS_UPDATES_ENABLED}" \
+  "amazon/amazon-ecs-agent:${ECS_VERSION}"
+ExecStop=/usr/bin/docker stop ecs-agent

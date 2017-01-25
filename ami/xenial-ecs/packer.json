@@ -1,0 +1,74 @@
+{
+  "variables": {
+    "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+    "aws_security_token": "{{env `AWS_SECURITY_TOKEN`}}",
+    "aws_region": "{{env `AWS_DEFAULT_REGION`}}",
+    "version": "{{isotime \"20060102T150405\"}}"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "token": "{{user `aws_security_token`}}",
+      "region": "{{user `aws_region`}}",
+      "source_ami": "ami-6edd3078",
+      "instance_type": "t2.micro",
+      "ssh_username": "ubuntu",
+      "communicator": "ssh",
+      "ssh_pty": true,
+      "ami_name": "Ubuntu Xenial 16.04 ECS Image {{user `version`}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "overlay2.conf",
+      "destination": "/tmp/overlay2.conf"
+    },
+    {
+      "type": "file",
+      "source": "logspout.service",
+      "destination": "/tmp/logspout.service"
+    },
+    {
+      "type": "file",
+      "source": "amazon-ecs-agent.service",
+      "destination": "/tmp/amazon-ecs-agent.service"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "while [ ! -f /run/cloud-init/result.json ]; do echo 'Waiting for cloud-init...'; sleep 10; done",
+
+        "echo '# key-pository'",
+        "curl -sSL https://github.com/goodeggs/key-pository/raw/master/bin/standalone_key_sync.sh | sudo -u ubuntu sh",
+
+        "sudo apt-get -y update",
+        "sudo apt-get -y dist-upgrade",
+
+        "echo '# Docker'",
+        "sudo apt-get install apt-transport-https ca-certificates",
+        "sudo mkdir /etc/systemd/system/docker.service.d",
+        "sudo mv /tmp/overlay2.conf /etc/systemd/system/docker.service.d",
+        "curl -fsSL https://yum.dockerproject.org/gpg | sudo apt-key add -",
+        "sudo add-apt-repository \"deb https://apt.dockerproject.org/repo/ ubuntu-$(lsb_release -cs) main\"",
+        "sudo apt-get -y update",
+        "sudo apt-get -y install docker-engine=1.12.*",
+
+        "echo '# Logspout'",
+        "sudo mv /tmp/logspout.service /etc/systemd/system",
+        "sudo systemctl daemon-reload",
+        "sudo systemctl enable logspout.service",
+
+        "echo '# Amazon ECS Agent'",
+        "sudo mkdir -p /var/log/ecs /etc/ecs /var/lib/ecs/data",
+        "sudo mv /tmp/amazon-ecs-agent.service /etc/systemd/system",
+        "sudo systemctl daemon-reload",
+        "sudo systemctl enable amazon-ecs-agent.service"
+      ]
+    }
+  ]
+}
+
