@@ -15,7 +15,6 @@ func AppConfigPath(cmd *cobra.Command) (string, error) {
 	configFile, err := cmd.Flags().GetString("filename")
 	
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
 		return "", err
 	} else {
 		return _appConfigPath(configFile)
