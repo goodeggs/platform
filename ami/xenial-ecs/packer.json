@@ -24,8 +24,8 @@
   "provisioners": [
     {
       "type": "file",
-      "source": "overlay2.conf",
-      "destination": "/tmp/overlay2.conf"
+      "source": "daemon.json",
+      "destination": "/tmp/daemon.json"
     },
     {
       "type": "file",
@@ -49,22 +49,20 @@
         "sudo apt-get -y dist-upgrade",
 
         "echo '# Docker'",
-        "sudo apt-get install apt-transport-https ca-certificates",
-        "sudo mkdir /etc/systemd/system/docker.service.d",
-        "sudo mv /tmp/overlay2.conf /etc/systemd/system/docker.service.d",
         "curl -fsSL https://yum.dockerproject.org/gpg | sudo apt-key add -",
         "sudo add-apt-repository \"deb https://apt.dockerproject.org/repo/ ubuntu-$(lsb_release -cs) main\"",
         "sudo apt-get -y update",
         "sudo apt-get -y install docker-engine=1.12.*",
+        "sudo mv /tmp/daemon.json /etc/docker/",
 
         "echo '# Logspout'",
-        "sudo mv /tmp/logspout.service /etc/systemd/system",
+        "sudo mv /tmp/logspout.service /etc/systemd/system/",
         "sudo systemctl daemon-reload",
         "sudo systemctl enable logspout.service",
 
         "echo '# Amazon ECS Agent'",
         "sudo mkdir -p /var/log/ecs /etc/ecs /var/lib/ecs/data",
-        "sudo mv /tmp/amazon-ecs-agent.service /etc/systemd/system",
+        "sudo mv /tmp/amazon-ecs-agent.service /etc/systemd/system/",
         "sudo systemctl daemon-reload",
         "sudo systemctl enable amazon-ecs-agent.service"
       ]
