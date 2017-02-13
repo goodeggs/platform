@@ -20,7 +20,8 @@ $ mkdir -p platform/src/github.com/goodeggs
 $ cd platform/src/github.com/goodeggs
 $ git clone https://github.com/goodeggs/platform.git
 $ cd cmd/ranch
-$ go get ...
+$ go get ./...
+$ go get github.com/stretchr/testify
 $ go test -v ./...
 ```
 

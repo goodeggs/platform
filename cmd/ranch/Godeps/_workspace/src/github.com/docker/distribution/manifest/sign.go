@@ -4,7 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/docker/libtrust"
+	"github.com/docker/libtrust"
 )
 
 // Sign signs the manifest with the provided private key, returning a

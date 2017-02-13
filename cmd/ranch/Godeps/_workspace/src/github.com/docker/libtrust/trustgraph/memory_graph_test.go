@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/docker/libtrust"
+	"github.com/docker/libtrust"
 )
 
 func createTestKeysAndGrants(count int) ([]*Grant, []libtrust.PrivateKey) {

@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/keegancsmith/shell"
+	"github.com/keegancsmith/shell"
 )
 
 func ExampleSprintf() {

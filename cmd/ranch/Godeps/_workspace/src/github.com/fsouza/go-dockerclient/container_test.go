@@ -23,7 +23,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/fsouza/go-dockerclient/external/github.com/hashicorp/go-cleanhttp"
+	"github.com/fsouza/go-dockerclient/external/github.com/hashicorp/go-cleanhttp"
 )
 
 func TestStateString(t *testing.T) {

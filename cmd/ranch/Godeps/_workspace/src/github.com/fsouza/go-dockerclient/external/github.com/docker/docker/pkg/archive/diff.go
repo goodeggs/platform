@@ -10,10 +10,10 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/fsouza/go-dockerclient/external/github.com/Sirupsen/logrus"
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/fsouza/go-dockerclient/external/github.com/docker/docker/pkg/idtools"
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/fsouza/go-dockerclient/external/github.com/docker/docker/pkg/pools"
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/fsouza/go-dockerclient/external/github.com/docker/docker/pkg/system"
+	"github.com/fsouza/go-dockerclient/external/github.com/Sirupsen/logrus"
+	"github.com/fsouza/go-dockerclient/external/github.com/docker/docker/pkg/idtools"
+	"github.com/fsouza/go-dockerclient/external/github.com/docker/docker/pkg/pools"
+	"github.com/fsouza/go-dockerclient/external/github.com/docker/docker/pkg/system"
 )
 
 // UnpackLayer unpack `layer` to a `dest`. The stream `layer` can be

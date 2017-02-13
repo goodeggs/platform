@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/docker/distribution/digest"
+	"github.com/docker/distribution/digest"
 )
 
 func (registry *Registry) DownloadLayer(repository string, digest digest.Digest) (io.ReadCloser, error) {

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 type Process struct {
