@@ -7,5 +7,6 @@ if ! git show --name-only --pretty=format: $TRAVIS_COMMIT_RANGE | grep "^cmd/ran
   exit 0
 fi
 
-go get .
+go get ./...
+go test -v ./...
 
