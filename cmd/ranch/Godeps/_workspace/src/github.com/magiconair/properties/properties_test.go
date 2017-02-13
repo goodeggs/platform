@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/magiconair/properties/_third_party/gopkg.in/check.v1"
+	. "github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/magiconair/properties/_third_party/gopkg.in/check.v1"
 )
 
 func Test(t *testing.T) { TestingT(t) }

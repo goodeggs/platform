@@ -18,7 +18,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fsouza/go-dockerclient/external/golang.org/x/sys/unix"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/fsouza/go-dockerclient/external/golang.org/x/sys/unix"
 )
 
 // Tests that below functions, structures and constants are consistent

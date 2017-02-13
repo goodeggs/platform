@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/mattn/go-isatty"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/mattn/go-isatty"
 )
 
 const (
@@ -466,7 +466,7 @@ loop:
 				continue
 			}
 			procGetConsoleScreenBufferInfo.Call(uintptr(w.handle), uintptr(unsafe.Pointer(&csbi)))
-			csbi.cursorPosition.x = short(n-1)
+			csbi.cursorPosition.x = short(n - 1)
 			procSetConsoleCursorPosition.Call(uintptr(w.handle), *(*uintptr)(unsafe.Pointer(&csbi.cursorPosition)))
 		case 'H':
 			token := strings.Split(buf.String(), ";")
@@ -481,8 +481,8 @@ loop:
 			if err != nil {
 				continue
 			}
-			csbi.cursorPosition.x = short(n2-1)
-			csbi.cursorPosition.y = short(n1-1)
+			csbi.cursorPosition.x = short(n2 - 1)
+			csbi.cursorPosition.y = short(n1 - 1)
 			procSetConsoleCursorPosition.Call(uintptr(w.handle), *(*uintptr)(unsafe.Pointer(&csbi.cursorPosition)))
 		case 'J':
 			n, err := strconv.Atoi(buf.String())

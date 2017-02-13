@@ -15,7 +15,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kr/binarydist"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/kr/binarydist"
 )
 
 var (

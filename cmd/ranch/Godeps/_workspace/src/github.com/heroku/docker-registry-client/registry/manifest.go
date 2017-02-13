@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/docker/distribution/manifest"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/docker/distribution/manifest"
 )
 
 func (registry *Registry) Manifest(repository, reference string) (*manifest.SignedManifest, error) {

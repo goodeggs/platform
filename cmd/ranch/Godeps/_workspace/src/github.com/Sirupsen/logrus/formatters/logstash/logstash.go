@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/Sirupsen/logrus"
 )
 
 // Formatter generates json in logstash format.
