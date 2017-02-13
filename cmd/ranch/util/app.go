@@ -12,12 +12,35 @@ import (
 )
 
 func AppConfigPath(cmd *cobra.Command) (string, error) {
-	if configFile, err := cmd.Flags().GetString("filename"); err == nil && configFile != "" {
+	configFile, err := cmd.Flags().GetString("filename")
+	
+	if err != nil {
+		return "", err
+	} else {
+		return _appConfigPath(configFile)
+	}
+}
+
+func _appConfigPath(configFile string) (string, error) {
+	// use specified config file
+	if configFile != "" {
 		fmt.Printf("using config file %s\n", configFile)
 		return filepath.EvalSymlinks(configFile)
 	}
+	
+	// No filename was specified, scan for .ranch.*.yaml files
+	files, err := filepath.Glob(".ranch.*.yaml")
 
-	return filepath.EvalSymlinks(".ranch.yaml")
+	if err != nil {
+		// scanning directory failed
+		return "", fmt.Errorf("failed to scan directory for .ranch.*.yaml files")
+	} else if len(files) >= 2 {
+		// too many .ranch.*.yaml files exist, we don't want to be ambiguous!
+		return "", fmt.Errorf("Multiple .ranch.*.yaml files exist, specify -f")
+	} else {
+		// fallback to default .ranch.yaml file
+		return filepath.EvalSymlinks(".ranch.yaml")
+	}
 }
 
 func LoadAppConfig(cmd *cobra.Command) (*RanchConfig, error) {
@@ -79,13 +102,31 @@ func AppVersion(cmd *cobra.Command) (string, error) {
 }
 
 func AppName(cmd *cobra.Command) (string, error) {
-	// use flag
-	if app := cmd.Flag("app").Value.String(); app != "" {
+	app := cmd.Flag("app").Value.String()
+	return _appName(app, cmd)
+}
+
+func _appName(app string, cmd *cobra.Command) (string, error) {
+	// use specified app name
+	if app != "" {
+		fmt.Printf("using app name %s\n", app)
 		return app, nil
 	}
 
-	// fall back to config
-	if config, err := LoadAppConfig(cmd); err == nil {
+	// No app name was specified, scan for .ranch.*.yaml files
+	files, err := filepath.Glob(".ranch.*.yaml")
+
+	if err != nil {
+		// scanning directory failed
+		return "", fmt.Errorf("failed to scan directory for .ranch.*.yaml files")
+	} else if len(files) >= 2 {
+		// too many .ranch.*.yaml files exist, we don't want to be ambiguous!
+		return "", fmt.Errorf("Multiple .ranch.*.yaml files exist, specify -a")
+	}
+
+	// fall back to config from .ranch.yaml
+	config, err := LoadAppConfig(cmd)
+	if err == nil {
 		return config.AppName, nil
 	}
 
