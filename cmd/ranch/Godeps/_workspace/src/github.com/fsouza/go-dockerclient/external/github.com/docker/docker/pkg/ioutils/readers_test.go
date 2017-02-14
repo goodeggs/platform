@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/fsouza/go-dockerclient/external/golang.org/x/net/context"
+	"github.com/fsouza/go-dockerclient/external/golang.org/x/net/context"
 )
 
 // Implement io.Reader

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/fsouza/go-dockerclient/external/github.com/stretchr/testify/assert"
+	"github.com/fsouza/go-dockerclient/external/github.com/stretchr/testify/assert"
 )
 
 func TestEntryWithError(t *testing.T) {

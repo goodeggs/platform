@@ -13,7 +13,7 @@
 
 package main
 
-import "github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra/cobra/cmd"
+import "github.com/spf13/cobra/cobra/cmd"
 
 func main() {
 	cmd.Execute()

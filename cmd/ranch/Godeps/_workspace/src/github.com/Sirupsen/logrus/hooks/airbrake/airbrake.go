@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/tobi/airbrake-go"
 )
 
