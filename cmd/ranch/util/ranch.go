@@ -14,6 +14,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/ghodss/yaml"
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/parnurzeal/gorequest"
 	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/viper"
 )
@@ -101,6 +102,46 @@ type RanchConfig struct {
 	Processes map[string]RanchConfigProcess `json:"processes"`
 	Cron      map[string]string             `json:"cron"`
 	Volumes   []string                      `json:"volumes"`
+}
+
+func LoadRanchConfig(filename string) (*RanchConfig, error) {
+	var config *RanchConfig
+
+	src, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = yaml.Unmarshal(src, &config); err != nil {
+		return nil, err
+	}
+	if config == nil { // empty file edge case
+		config = new(RanchConfig)
+	}
+
+	// initialize possibly nil fields
+	if config.Processes == nil {
+		config.Processes = make(map[string]RanchConfigProcess)
+	}
+
+	if config.Cron == nil {
+		config.Cron = make(map[string]string)
+	}
+
+	// fix up deprecations
+	for name, proc := range config.Processes {
+		if proc.Instances > 0 && proc.Count == 0 {
+			fmt.Printf("deprecated: rename `instances` to `count` in your .ranch.yaml for app '%s'\n", name)
+			proc.Count = proc.Instances
+			config.Processes[name] = proc // write it back to the map
+		}
+	}
+
+	if config.ImageName == "" {
+		config.ImageName = config.AppName
+	}
+
+	return config, nil
 }
 
 type RanchConfigProcess struct {
