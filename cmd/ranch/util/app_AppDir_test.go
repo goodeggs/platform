@@ -5,23 +5,24 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra"
 )
 
 type AppDirTestSuite struct {
 	suite.Suite
 }
 
-func (suite *AppDirTestSuite) TestRun() {
+func (suite *AppDirTestSuite) SetupTest() {
+	removeTestFiles()
+}
+
+func (suite *AppDirTestSuite) TearDownTest() {
+	removeTestFiles()
+}
+
+func (suite *AppDirTestSuite) TestWorks() {
 	assert := assert.New(suite.T())
+	testCmd := mockCmd("")
 
-	// create a junk cobra command for testing
-	var testCmd = cobra.Command{
-		Use: "junk",
-	}
-
-	// TODO: this needs some better coverage, might need to stub out the file system
 	_, err := AppDir(&testCmd)
 	assert.Nil(err)
 }

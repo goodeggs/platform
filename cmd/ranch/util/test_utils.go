@@ -2,32 +2,28 @@ package util
 
 import (
 	"os"
+	"strings"
+
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra"
 )
 
 const TEST_RANCHY = ".ranch.yaml"
 const TEST_FILE_1 = ".ranch.test1.yaml"
-const TEST_FILE_2 = ".ranch.test2.yaml"
-
-func fileExists(path string) (bool) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true
-	} else {
-		// this isn't actually always false, there might have been an error
-		// reading the file system, permission erorr, who knows...
-		return false
-	}
-}
-
-func removeFileIfExists(path string) {
-	if fileExists(path) {
-		os.Remove(path)
-	}
-}
 
 func removeTestFiles() {
-	// make sure files do not exist
-	removeFileIfExists(TEST_RANCHY)
-	removeFileIfExists(TEST_FILE_1)
-	removeFileIfExists(TEST_FILE_2)
+	_ = os.Remove(TEST_RANCHY)
+	_ = os.Remove(TEST_FILE_1)
+}
+
+func mockCmd(flags string) cobra.Command {
+	cmd := cobra.Command{
+		Use: "junk",
+	}
+	cmd.Flags().StringP("filename", "f", "", "config filename (defaults to .ranch.yaml)")
+	cmd.Flags().StringP("app", "a", "", "app name")
+	cmd.SetArgs(strings.Split(flags, " "))
+	cmd.SilenceErrors = true
+	cmd.SilenceUsage = true
+	cmd.Execute()
+	return cmd
 }
