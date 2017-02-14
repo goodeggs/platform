@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/parnurzeal/gorequest"
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/viper"
+	"github.com/parnurzeal/gorequest"
+	"github.com/spf13/viper"
 )
 
 type EcruSecret struct {

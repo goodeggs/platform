@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/keegancsmith/shell"
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra"
 	"github.com/goodeggs/platform/cmd/ranch/util"
+	"github.com/keegancsmith/shell"
+	"github.com/spf13/cobra"
 )
 
 var envCmd = &cobra.Command{

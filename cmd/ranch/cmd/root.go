@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra"
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/viper"
 	"github.com/goodeggs/platform/cmd/ranch/util"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var App string

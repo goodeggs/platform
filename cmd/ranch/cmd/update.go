@@ -5,8 +5,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/goodeggs/go-selfupdate/selfupdate"
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra"
+	"github.com/goodeggs/go-selfupdate/selfupdate"
+	"github.com/spf13/cobra"
 )
 
 type HTTPRequester struct {
