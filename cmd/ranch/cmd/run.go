@@ -41,6 +41,8 @@ var runCmd = &cobra.Command{
 func runAttached(appName, process, command string) (int, error) {
 	fd := os.Stdin.Fd()
 
+	var w, h int
+
 	if terminal.IsTerminal(int(fd)) {
 		stdinState, err := terminal.GetState(int(fd))
 
@@ -49,9 +51,14 @@ func runAttached(appName, process, command string) (int, error) {
 		}
 
 		defer terminal.Restore(int(fd), stdinState)
+
+		w, h, err = terminal.GetSize(int(fd))
+		if err != nil {
+			return -1, err
+		}
 	}
 
-	return util.ConvoxRunAttached(appName, process, command, os.Stdin, os.Stdout)
+	return util.ConvoxRunAttached(appName, process, command, w, h, os.Stdin, os.Stdout)
 }
 
 func init() {

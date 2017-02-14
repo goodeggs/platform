@@ -1,24 +1,33 @@
 package client
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/convox/rack/api/structs"
+)
 
 type System struct {
 	Count   int    `json:"count"`
 	Name    string `json:"name"`
+	Region  string `json:"region"`
 	Status  string `json:"status"`
 	Type    string `json:"type"`
 	Version string `json:"version"`
 }
 
+type SystemCapacity struct {
+	ClusterMemory  int64 `json:"cluster-memory"`
+	InstanceMemory int64 `json:"instance-memory"`
+	ProcessCount   int64 `json:"process-count"`
+	ProcessMemory  int64 `json:"process-memory"`
+	ProcessWidth   int64 `json:"process-width"`
+}
+
 func (c *Client) GetSystem() (*System, error) {
 	var system System
 
-	check := c.skipVersionCheck
-	c.skipVersionCheck = true
-
 	err := c.Get("/system", &system)
-
-	c.skipVersionCheck = check
 
 	if err != nil {
 		return nil, err
@@ -30,12 +39,7 @@ func (c *Client) GetSystem() (*System, error) {
 			Parameters map[string]string
 		}
 
-		check := c.skipVersionCheck
-		c.skipVersionCheck = true
-
 		err = c.Get("/system", &sys)
-
-		c.skipVersionCheck = check
 
 		if err != nil {
 			return nil, err
@@ -49,15 +53,43 @@ func (c *Client) GetSystem() (*System, error) {
 	return &system, nil
 }
 
-func (c *Client) restoreVersionCheck(check bool) {
-	c.skipVersionCheck = check
+func (c *Client) GetSystemCapacity() (*SystemCapacity, error) {
+	var capacity SystemCapacity
+
+	err := c.Get("/system/capacity", &capacity)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &capacity, nil
+}
+
+func (c *Client) GetSystemProcesses(opts structs.SystemProcessesOptions) (Processes, error) {
+	var processes Processes
+
+	err := c.Get(fmt.Sprintf("/system/processes?all=%t", opts.All), &processes)
+	if err != nil {
+		return nil, err
+	}
+
+	return processes, nil
+}
+
+func (c *Client) GetSystemReleases() (Releases, error) {
+	var releases Releases
+
+	err := c.Get("/system/releases", &releases)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return releases, nil
 }
 
 func (c *Client) UpdateSystem(version string) (*System, error) {
 	var system System
-
-	defer c.restoreVersionCheck(c.skipVersionCheck)
-	c.skipVersionCheck = true
 
 	err := c.Get("/system", &system)
 
@@ -83,9 +115,11 @@ func (c *Client) UpdateSystem(version string) (*System, error) {
 }
 
 func (c *Client) UpdateSystemOriginal(version string) (*System, error) {
-	c.WithoutVersionCheck(func(c *Client) {
-		c.Post("/system", map[string]string{"version": version}, nil)
-	})
+	err := c.Post("/system", map[string]string{"version": version}, nil)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return c.GetSystem()
 }
@@ -95,13 +129,8 @@ func (c *Client) ScaleSystem(count int, typ string) (*System, error) {
 
 	params := Params{}
 
-	if count > 0 {
-		params["count"] = strconv.Itoa(count)
-	}
-
-	if typ != "" {
-		params["type"] = typ
-	}
+	params["count"] = strconv.Itoa(count)
+	params["type"] = typ
 
 	err := c.Put("/system", params, &system)
 

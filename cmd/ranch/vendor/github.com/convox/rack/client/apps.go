@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 	"io"
+	"time"
 )
 
 type App struct {
@@ -41,6 +42,15 @@ func (c *Client) CreateApp(name string) (*App, error) {
 	return &app, nil
 }
 
+func (c *Client) CancelApp(name string) error {
+	err := c.Post(fmt.Sprintf("/apps/%s/cancel", name), nil, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Client) GetApp(name string) (*App, error) {
 	var app App
 
@@ -65,6 +75,10 @@ func (c *Client) DeleteApp(name string) (*App, error) {
 	return &app, nil
 }
 
-func (c *Client) StreamAppLogs(app string, output io.WriteCloser) error {
-	return c.Stream(fmt.Sprintf("/apps/%s/logs", app), nil, nil, output)
+func (c *Client) StreamAppLogs(app, filter string, follow bool, since time.Duration, output io.WriteCloser) error {
+	return c.Stream(fmt.Sprintf("/apps/%s/logs", app), map[string]string{
+		"Filter": filter,
+		"Follow": fmt.Sprintf("%t", follow),
+		"Since":  since.String(),
+	}, nil, output)
 }

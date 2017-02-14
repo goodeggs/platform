@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/convox/rack/Godeps/_workspace/src/golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 type Process struct {
@@ -39,7 +39,19 @@ func (c *Client) GetProcesses(app string, stats bool) (Processes, error) {
 	return processes, nil
 }
 
-func (c *Client) ExecProcessAttached(app, pid, command string, in io.Reader, out io.WriteCloser) (int, error) {
+func (c *Client) GetProcess(app, id string) (*Process, error) {
+	var process Process
+
+	err := c.Get(fmt.Sprintf("/apps/%s/processes/%s", app, id), &process)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &process, nil
+}
+
+func (c *Client) ExecProcessAttached(app, pid, command string, in io.Reader, out io.WriteCloser, height, width int) (int, error) {
 	r, w := io.Pipe()
 
 	defer r.Close()
@@ -49,7 +61,15 @@ func (c *Client) ExecProcessAttached(app, pid, command string, in io.Reader, out
 
 	go copyWithExit(out, r, ch)
 
-	err := c.Stream(fmt.Sprintf("/apps/%s/processes/%s/exec", app, pid), map[string]string{"Command": command}, in, w)
+	headers := map[string]string{
+		"Command": command,
+		"Height":  strconv.Itoa(height),
+		"Width":   strconv.Itoa(width),
+	}
+
+	err := c.Stream(fmt.Sprintf("/apps/%s/processes/%s/exec", app, pid), headers, in, w)
+
+	w.Close()
 
 	if err != nil {
 		return 0, err
@@ -60,7 +80,7 @@ func (c *Client) ExecProcessAttached(app, pid, command string, in io.Reader, out
 	return code, nil
 }
 
-func (c *Client) RunProcessAttached(app, process, command string, in io.Reader, out io.WriteCloser) (int, error) {
+func (c *Client) RunProcessAttached(app, process, command, release string, height, width int, in io.Reader, out io.WriteCloser) (int, error) {
 	r, w := io.Pipe()
 
 	defer r.Close()
@@ -70,8 +90,14 @@ func (c *Client) RunProcessAttached(app, process, command string, in io.Reader, 
 
 	go copyWithExit(out, r, ch)
 
-	err := c.Stream(fmt.Sprintf("/apps/%s/processes/%s/run", app, process), map[string]string{"Command": command}, in, w)
+	headers := map[string]string{
+		"Command": command,
+		"Release": release,
+		"Height":  strconv.Itoa(height),
+		"Width":   strconv.Itoa(width),
+	}
 
+	err := c.Stream(fmt.Sprintf("/apps/%s/processes/%s/run", app, process), headers, in, w)
 	if err != nil {
 		return 0, err
 	}
@@ -81,21 +107,17 @@ func (c *Client) RunProcessAttached(app, process, command string, in io.Reader, 
 	return code, nil
 }
 
-func (c *Client) RunProcessDetached(app, process, command string) error {
+func (c *Client) RunProcessDetached(app, process, command, release string) error {
 	var success interface{}
 
 	params := map[string]string{
 		"command": command,
+		"release": release,
 	}
 
-	err := c.Post(fmt.Sprintf("/apps/%s/processes/%s/run", app, process), params, &success)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return c.Post(fmt.Sprintf("/apps/%s/processes/%s/run", app, process), params, &success)
 }
+
 func (c *Client) StopProcess(app, id string) (*Process, error) {
 	var process Process
 
@@ -110,28 +132,29 @@ func (c *Client) StopProcess(app, id string) (*Process, error) {
 
 func copyWithExit(w io.Writer, r io.Reader, ch chan int) {
 	buf := make([]byte, 1024)
-	isTerminalRaw := false
+	code := 1
+	state, _ := terminal.MakeRaw(int(os.Stdin.Fd()))
+
+	defer func() {
+		if state != nil {
+			terminal.Restore(int(os.Stdin.Fd()), state)
+		}
+		ch <- code
+	}()
 
 	for {
 		n, err := r.Read(buf)
 
 		if err == io.EOF {
-			ch <- 1
-			return
+			break
 		}
 
 		if err != nil {
 			break
 		}
 
-		if !isTerminalRaw {
-			terminal.MakeRaw(int(os.Stdin.Fd()))
-			isTerminalRaw = true
-		}
-
 		if s := string(buf[0:n]); strings.HasPrefix(s, StatusCodePrefix) {
-			code, _ := strconv.Atoi(strings.TrimSpace(s[37:]))
-			ch <- code
+			code, _ = strconv.Atoi(strings.TrimSpace(s[len(StatusCodePrefix):]))
 			return
 		}
 

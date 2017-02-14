@@ -11,7 +11,6 @@ import (
 	"archive/zip"
 	"bufio"
 	"compress/gzip"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -138,7 +137,7 @@ func (z *ZipFile) AddAll(dir string, includeCurrentFolder bool) error {
 
 		// Add a trailing slash if the entry is a directory
 		if info.IsDir() {
-			header.Name += string(os.PathSeparator)
+			header.Name += "/"
 		}
 
 		// Get a writer in the archive based on our header
@@ -222,8 +221,6 @@ func (t *TarFile) Add(name string, file []byte) error {
 // Add add byte in archive tar
 func (t *TarFile) AddWithHeader(name string, file []byte, hdr *tar.Header) error {
 
-	fmt.Println(hdr)
-
 	if err := t.Writer.WriteHeader(hdr); err != nil {
 		return err
 	}
@@ -243,14 +240,10 @@ func (t *TarFile) AddFile(name string) error {
 		return err
 	}
 
-	fmt.Println(info)
-
 	header, err := tar.FileInfoHeader(info, "")
 	if err != nil {
 		return err
 	}
-
-	fmt.Println(header.Name)
 
 	err = t.Writer.WriteHeader(header)
 	if err != nil {
@@ -346,6 +339,11 @@ func (t *TarFile) Close() error {
 func getSubDir(dir string, rootDir string, includeCurrentFolder bool) (subDir string) {
 
 	subDir = strings.Replace(dir, rootDir, "", 1)
+	// Remove leading slashes, since this is intentionally a subdirectory.
+	if len(subDir) > 0 && subDir[0] == os.PathSeparator {
+		subDir = subDir[1:]
+	}
+	subDir = path.Join(strings.Split(subDir, string(os.PathSeparator))...)
 
 	if includeCurrentFolder {
 		parts := strings.Split(rootDir, string(os.PathSeparator))
@@ -367,22 +365,34 @@ func addAll(dir string, rootDir string, includeCurrentFolder bool, writerFunc Ar
 	// Loop through all entries
 	for _, info := range fileInfos {
 
-		full := path.Join(dir, info.Name())
+		full := filepath.Join(dir, info.Name())
 
 		// If the entry is a file, get an io.Reader for it
-		var file io.Reader
+		var file *os.File
+		var reader io.Reader
 		if !info.IsDir() {
 			file, err = os.Open(full)
 			if err != nil {
 				return err
 			}
+			reader = file
 		}
 
 		// Write the entry into the archive
 		subDir := getSubDir(dir, rootDir, includeCurrentFolder)
 		entryName := path.Join(subDir, info.Name())
-		if err := writerFunc(info, file, entryName); err != nil {
+		if err := writerFunc(info, reader, entryName); err != nil {
+			if file != nil {
+				file.Close()
+			}
 			return err
+		}
+
+		if file != nil {
+			if err := file.Close(); err != nil {
+				return err
+			}
+
 		}
 
 		// If the entry is a directory, recurse into it

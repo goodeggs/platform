@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/goodeggs/go-selfupdate/selfupdate"
+	"github.com/sanbornm/go-selfupdate/selfupdate"
 	"github.com/spf13/cobra"
 )
 

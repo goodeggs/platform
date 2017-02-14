@@ -35,6 +35,8 @@ var execCmd = &cobra.Command{
 func exec(appName, pid, command string) (int, error) {
 	fd := os.Stdin.Fd()
 
+	var w, h int
+
 	if terminal.IsTerminal(int(fd)) {
 		stdinState, err := terminal.GetState(int(fd))
 
@@ -43,9 +45,14 @@ func exec(appName, pid, command string) (int, error) {
 		}
 
 		defer terminal.Restore(int(fd), stdinState)
+
+		w, h, err = terminal.GetSize(int(fd))
+		if err != nil {
+			return -1, err
+		}
 	}
 
-	return util.ConvoxExec(appName, pid, command, os.Stdin, os.Stdout)
+	return util.ConvoxExec(appName, pid, command, w, h, os.Stdin, os.Stdout)
 }
 
 func init() {

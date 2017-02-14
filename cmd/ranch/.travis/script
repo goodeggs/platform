@@ -7,7 +7,5 @@ if ! git show --name-only --pretty=format: $TRAVIS_COMMIT_RANGE | grep "^cmd/ran
   exit 0
 fi
 
-go get github.com/stretchr/testify
-go get ./...
-go test -v ./...
+make
 

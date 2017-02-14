@@ -1,6 +1,7 @@
 package util
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -88,29 +89,29 @@ func ConvoxRunDetached(appName, process, command string) error {
 		return err
 	}
 
-	return client.RunProcessDetached(appName, process, command)
+	return client.RunProcessDetached(appName, process, command, "")
 }
 
 // ConvoxRunAttached starts an attached run of a given app, process, and command.
-func ConvoxRunAttached(appName, process, command string, input io.Reader, output io.WriteCloser) (int, error) {
+func ConvoxRunAttached(appName, process, command string, w, h int, input io.Reader, output io.WriteCloser) (int, error) {
 	client, err := convoxClient()
 
 	if err != nil {
 		return -1, err
 	}
 
-	return client.RunProcessAttached(appName, process, command, input, output)
+	return client.RunProcessAttached(appName, process, command, "", w, h, input, output)
 }
 
 // ConvoxExec runs a command inside the given Convox pid, using `docker exec`.
-func ConvoxExec(appName, pid, command string, input io.Reader, output io.WriteCloser) (int, error) {
+func ConvoxExec(appName, pid, command string, w, h int, input io.Reader, output io.WriteCloser) (int, error) {
 	client, err := convoxClient()
 
 	if err != nil {
 		return -1, err
 	}
 
-	return client.ExecProcessAttached(appName, pid, command, input, output)
+	return client.ExecProcessAttached(appName, pid, command, input, output, h, w)
 }
 
 // ConvoxLogs tails (and follows) the logs for a given application.
@@ -121,7 +122,7 @@ func ConvoxLogs(appName string, output io.WriteCloser) error {
 		return err
 	}
 
-	return client.StreamAppLogs(appName, output)
+	return client.StreamAppLogs(appName, "", true, (2 * time.Minute), output)
 }
 
 // ConvoxGetFormation returns the formation of the given app translated into a RanchFormation.
@@ -154,6 +155,8 @@ func ConvoxGetFormation(appName string) (formation RanchFormation, err error) {
 
 // ConvoxScaleProcess applies the given scale (count, memory) to the given process.
 func ConvoxScaleProcess(appName, processName string, count, memory int) (err error) {
+	opts := client.FormationOptions{}
+
 	client, err := convoxClient()
 
 	if err != nil {
@@ -169,17 +172,15 @@ func ConvoxScaleProcess(appName, processName string, count, memory int) (err err
 	}
 	fmt.Println(message)
 
-	strCount := ""
 	if count != -1 {
-		strCount = strconv.Itoa(count)
+		opts.Count = strconv.Itoa(count)
 	}
 
-	strMemory := ""
 	if memory != -1 {
-		strMemory = strconv.Itoa(memory)
+		opts.Memory = strconv.Itoa(memory)
 	}
 
-	if err = client.SetFormation(appName, processName, strCount, strMemory); err != nil {
+	if err = client.SetFormation(appName, processName, opts); err != nil {
 		return err
 	}
 
@@ -297,13 +298,13 @@ func ConvoxPromote(appName string, ranchReleaseID string) error {
 
 // ConvoxDeploy creates a new Convox release given an app and build directory.
 func ConvoxDeploy(appName string, buildDir string) (string, error) {
-	client, err := convoxClient()
+	c, err := convoxClient()
 
 	if err != nil {
 		return "", err
 	}
 
-	app, err := client.GetApp(appName)
+	app, err := c.GetApp(appName)
 
 	if err != nil {
 		return "", err
@@ -323,12 +324,14 @@ func ConvoxDeploy(appName string, buildDir string) (string, error) {
 		return "", err
 	}
 
-	cache := true
-	config := "docker-compose.yml"
+	opts := client.CreateBuildSourceOptions{
+		Cache:       true,
+		Config:      "docker-compose.yml",
+		Description: "",
+		Progress:    Progress("🐮  Uploading Convox build...", "🐮 Starting Convox build... ", os.Stdout),
+	}
 
-	fmt.Print("🐮  Uploading Convox build... ")
-
-	build, err := client.CreateBuildSource(appName, tar, cache, config)
+	build, err := c.CreateBuildSource(appName, bytes.NewReader(tar), opts)
 	if err != nil {
 		fmt.Println("✘")
 		return "", err
@@ -336,7 +339,7 @@ func ConvoxDeploy(appName string, buildDir string) (string, error) {
 
 	fmt.Println("✔")
 
-	return finishBuild(client, appName, build)
+	return finishBuild(c, appName, build)
 }
 
 // ConvoxPsStop stops a Convox process.

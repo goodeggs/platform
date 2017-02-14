@@ -12,9 +12,10 @@ type Instance struct {
 	Agent     bool      `json:"agent"`
 	Cpu       float64   `json:"cpu"`
 	Id        string    `json:"id"`
-	Ip        string    `json:"ip"`
 	Memory    float64   `json:"memory"`
+	PrivateIp string    `json:"private-ip"`
 	Processes int       `json:"processes"`
+	PublicIp  string    `json:"public-ip"`
 	Status    string    `json:"status"`
 	Started   time.Time `json:"started"`
 }
@@ -50,7 +51,6 @@ func (c *Client) SSHInstance(id, cmd string, height, width int, isTerm bool, in 
 	r, w := io.Pipe()
 
 	defer r.Close()
-	defer w.Close()
 
 	ch := make(chan int)
 
@@ -66,6 +66,8 @@ func (c *Client) SSHInstance(id, cmd string, height, width int, isTerm bool, in 
 		headers["Terminal"] = "xterm"
 	}
 	err := c.Stream(fmt.Sprintf("/instances/%s/ssh", id), headers, in, w)
+
+	w.Close()
 
 	if err != nil {
 		return -1, err
