@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra"
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/viper"
 	"github.com/goodeggs/platform/cmd/ranch/util"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var App string
@@ -30,7 +30,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	RootCmd.PersistentFlags().BoolVarP(&util.Verbose, "verbose", "v", false, "verbose output")
-	RootCmd.PersistentFlags().StringVarP(&App, "app", "a", "", "application name (defaults to CWD)")
+	RootCmd.PersistentFlags().StringVarP(&App, "app", "a", "", "application name")
 	RootCmd.PersistentFlags().StringP("filename", "f", "", "config filename (defaults to .ranch.yaml)")
 	RootCmd.SilenceUsage = true
 	RootCmd.SilenceErrors = true

@@ -3,9 +3,7 @@
 all: test
 
 test:
-	docker info >/dev/null
-	go get -t ./...
-	sh test.sh
+	go test -v ./cmd ./util
 
 vendor:
 	godep save -r ./...

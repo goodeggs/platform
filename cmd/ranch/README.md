@@ -16,14 +16,17 @@ Development
 -----------
 
 ```
+$ brew install golang direnv
 $ mkdir -p platform/src/github.com/goodeggs
-$ cd platform/src/github.com/goodeggs
+$ cd platform
+$ echo 'layout "go"' > .envrc
+$ cd src/github.com/goodeggs
 $ git clone https://github.com/goodeggs/platform.git
-$ cd cmd/ranch
-$ go get ./...
-$ go get github.com/stretchr/testify
-$ go test -v ./...
+$ cd platform/cmd/ranch
+$ make
 ```
+
+We use [gvt](https://github.com/FiloSottile/gvt) for dependency management, so `gvt fetch` instead of `go get`
 
 Releasing
 ---------

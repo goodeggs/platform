@@ -3,7 +3,7 @@ package util
 import (
 	"fmt"
 
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/parnurzeal/gorequest"
+	"github.com/parnurzeal/gorequest"
 )
 
 func noRedirects(req gorequest.Request, via []gorequest.Request) error {

@@ -14,9 +14,9 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/heroku/docker-registry-client/registry"
-	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/viper"
+	"github.com/fsouza/go-dockerclient"
+	"github.com/heroku/docker-registry-client/registry"
+	"github.com/spf13/viper"
 )
 
 type jsonMessage struct {
