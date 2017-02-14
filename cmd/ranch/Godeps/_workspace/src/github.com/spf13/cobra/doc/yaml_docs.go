@@ -21,9 +21,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-	"gopkg.in/yaml.v2"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/cobra"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/spf13/pflag"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/gopkg.in/yaml.v2"
 )
 
 type cmdOption struct {

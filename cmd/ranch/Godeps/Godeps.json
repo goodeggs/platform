@@ -17,11 +17,6 @@
 			"Rev": "98deecff052d2c0ad7dc763b7ca44d876ceaa414"
 		},
 		{
-			"ImportPath": "github.com/cpuguy83/go-md2man/md2man",
-			"Comment": "v1.0.4",
-			"Rev": "71acacd42f85e5e82f70a55327789582a5200a90"
-		},
-		{
 			"ImportPath": "github.com/docker/distribution/digest",
 			"Comment": "v2.1.0",
 			"Rev": "9ca7921603852314b18a6ecc19f91806935f34bd"
@@ -69,10 +64,6 @@
 			"ImportPath": "github.com/imdario/mergo",
 			"Comment": "0.2.1-3-gb1859b1",
 			"Rev": "b1859b199a7171589445bdea9fa8c19362613f80"
-		},
-		{
-			"ImportPath": "github.com/inconshreveable/mousetrap",
-			"Rev": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
 		},
 		{
 			"ImportPath": "github.com/jhoonb/archivex",
@@ -134,15 +125,6 @@
 			"ImportPath": "github.com/parnurzeal/gorequest",
 			"Comment": "v0.2.13-9-gc73179d",
 			"Rev": "c73179dd31355d86bd7692de9b47623d6d0fa696"
-		},
-		{
-			"ImportPath": "github.com/russross/blackfriday",
-			"Comment": "v1.3-11-ga18a46c",
-			"Rev": "a18a46c9b94395417241e528fc53478ad914c670"
-		},
-		{
-			"ImportPath": "github.com/shurcooL/sanitized_anchor_name",
-			"Rev": "244f5ac324cb97e1987ef901a0081a77bfd8e845"
 		},
 		{
 			"ImportPath": "github.com/spf13/cast",

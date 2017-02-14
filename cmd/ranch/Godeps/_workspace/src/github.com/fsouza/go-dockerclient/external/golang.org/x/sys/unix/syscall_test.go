@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/fsouza/go-dockerclient/external/golang.org/x/sys/unix"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/fsouza/go-dockerclient/external/golang.org/x/sys/unix"
 )
 
 func testSetGetenv(t *testing.T, key, value string) {

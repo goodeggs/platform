@@ -18,9 +18,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/moul/http2curl"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/github.com/moul/http2curl"
 
-	"golang.org/x/net/publicsuffix"
+	"github.com/goodeggs/platform/cmd/ranch/Godeps/_workspace/src/golang.org/x/net/publicsuffix"
 )
 
 type Request *http.Request
