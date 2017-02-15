@@ -6,7 +6,7 @@ indent() {
   sed -u 's/^/       /'
 }
 
-version=$(cat VERSION)
+version=$(cat ../../VERSION)
 minorver=$(echo $version | awk -F. '{print $1 "." $2}')
 
 make
