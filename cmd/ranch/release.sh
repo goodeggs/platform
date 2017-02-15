@@ -6,12 +6,24 @@ indent() {
   sed -u 's/^/       /'
 }
 
-version=$(cat .goxc.json | jq -r '.PackageVersion')
+version=$(cat VERSION)
 minorver=$(echo $version | awk -F. '{print $1 "." $2}')
+
+make
+
+go get github.com/mitchellh/gox
+go get github.com/tcnksm/ghr
+
+gox -osarch "darwin/amd64 linux/amd64" -ldflags "-X main.VERSION=$version" -output "releases/$version/{{.OS}}_{{.Arch}}/ranch"
+
+mkdir -p "releases/$version/dist"
+for bin in releases/$version/*/ranch; do
+  zip "releases/${version}/dist/ranch_${version}_$(basename "$(dirname "$bin")").zip" "$bin"
+done
 
 echo "releasing v${version}..."
 
-goxc 2>&1 | indent
+ghr -t "$GITHUB_TOKEN" -u goodeggs -r platform --replace "v$version" "releases/$version/dist/"
 
 echo "syncing ranch-updates S3 bucket"
 mkdir -p public
@@ -27,7 +39,7 @@ go-selfupdate releases/${version}/bins/ ${version}
 echo "syncing ranch-updates S3 bucket"
 aws-vault exec prod -- aws s3 sync --acl public-read public/ s3://ranch-updates.goodeggs.com/stable/ranch/
 
-sha=$(shasum -a 256 releases/${version}/ranch_${version}_darwin_amd64.zip | awk '{print $1}')
+sha=$(shasum -a 256 releases/${version}/dist/ranch_${version}_darwin_amd64.zip | awk '{print $1}')
 
 cat <<-EOF
 
