@@ -56,6 +56,7 @@ var dockerComposeTemplate = template.Must(template.New("docker-compose").Funcs(f
   labels:
     - convox.port.443.protocol=https
     - convox.idle.timeout=60
+    - convox.draining.timeout=30
     {{ if $process.DowntimeDeploy -}}
     - convox.deployment.minimum=0
     - convox.deployment.maximum=200
