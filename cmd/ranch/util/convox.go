@@ -328,7 +328,7 @@ func ConvoxDeploy(appName string, buildDir string) (string, error) {
 		Cache:       true,
 		Config:      "docker-compose.yml",
 		Description: "",
-		Progress:    Progress("🐮  Uploading Convox build...", "🐮 Starting Convox build... ", os.Stdout),
+		Progress:    Progress("🐮  Uploading Convox build...", "🐮  Starting Convox build... ", os.Stdout),
 	}
 
 	build, err := c.CreateBuildSource(appName, bytes.NewReader(tar), opts)
