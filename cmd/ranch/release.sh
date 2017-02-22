@@ -16,13 +16,9 @@ go get github.com/tcnksm/ghr
 
 gox -osarch "darwin/amd64 linux/amd64" -ldflags "-X main.VERSION=$version" -output "releases/$version/{{.OS}}_{{.Arch}}/ranch"
 
-mkdir -p "releases/$version/dist"
-builddir="$PWD"
-for bin in releases/$version/*/ranch; do
-  cd $(dirname "$bin")
-  zip "${builddir}/releases/${version}/dist/ranch_${version}_$(basename "$(dirname "$bin")").zip" ranch
-  cd -
-done
+rm -rf "releases/$version/dist" && mkdir -p "releases/$version/dist"
+( cd "releases/$version/darwin_amd64" && zip "../dist/ranch_${version}_darwin_amd64.zip" ranch )
+( cd "releases/$version/linux_amd64" && tar czvf "../dist/ranch_${version}_linux_amd64.tar.gz" ranch )
 
 echo "releasing v${version}..."
 
