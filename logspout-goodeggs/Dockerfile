@@ -1,3 +1,3 @@
-FROM goodeggs/logspout:reconnect-logs
+FROM gliderlabs/logspout:master
 MAINTAINER Good Eggs <open-source@goodeggs.com>
 
