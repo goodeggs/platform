@@ -37,6 +37,11 @@
     },
     {
       "type": "file",
+      "source": "tsc-clocksource.conf",
+      "destination": "/home/ec2-user/tsc-clocksource.conf"
+    },
+    {
+      "type": "file",
       "source": "logspout.conf",
       "destination": "/home/ec2-user/logspout.conf"
     },
@@ -92,6 +97,9 @@
         "echo '# Install goodeggs-hostname.conf'",
         "sudo mv {/home/ec2-user,/etc/init}/goodeggs-hostname.conf",
         "sudo sed -i -- 's/%ENV%/{{user `env`}}/' /etc/init/goodeggs-hostname.conf",
+
+        "echo '# Install tsc-clocksource.conf'",
+        "sudo mv {/home/ec2-user,/etc/init}/tsc-clocksource.conf",
 
         "echo '# Setup /etc/logspout'",
         "sudo mkdir -p /etc/logspout",
