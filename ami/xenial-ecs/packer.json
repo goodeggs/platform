@@ -38,6 +38,11 @@
       "destination": "/tmp/amazon-ecs-agent.service"
     },
     {
+      "type": "file",
+      "source": "tsc-clocksource.service",
+      "destination": "/tmp/tsc-clocksource.service"
+    },
+    {
       "type": "shell",
       "inline": [
         "while [ ! -f /run/cloud-init/result.json ]; do echo 'Waiting for cloud-init...'; sleep 10; done",
@@ -64,7 +69,12 @@
         "sudo mkdir -p /var/log/ecs /etc/ecs /var/lib/ecs/data",
         "sudo mv /tmp/amazon-ecs-agent.service /etc/systemd/system/",
         "sudo systemctl daemon-reload",
-        "sudo systemctl enable amazon-ecs-agent.service"
+        "sudo systemctl enable amazon-ecs-agent.service",
+
+        "echo '# TSC clocksource'",
+        "sudo mv /tmp/tsc-clocksource.service /etc/systemd/system/",
+        "sudo systemctl daemon-reload",
+        "sudo systemctl enable tsc-clocksource.service"
       ]
     }
   ]
