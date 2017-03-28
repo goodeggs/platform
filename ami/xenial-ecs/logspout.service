@@ -17,6 +17,7 @@ ExecStartPre=/usr/bin/docker pull ${LOGSPOUT_IMAGE}
 ExecStart=/usr/bin/docker run --name logspout \
   --env DEBUG=1 \
   --env LOGSPOUT=ignore \
+  --env INACTIVITY_TIMEOUT=1m \
   --volume=/var/run/docker.sock:/tmp/docker.sock \
   ${LOGSPOUT_IMAGE} "sumo://${LOGSPOUT_SUMO_TOKEN}/?host=%H"
 ExecStop=/usr/bin/docker stop logspout
