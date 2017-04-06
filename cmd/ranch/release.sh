@@ -17,8 +17,8 @@ go get github.com/tcnksm/ghr
 gox -osarch "darwin/amd64 linux/amd64" -ldflags "-X main.VERSION=$version" -output "releases/$version/{{.OS}}_{{.Arch}}/ranch"
 
 rm -rf "releases/$version/dist" && mkdir -p "releases/$version/dist"
-( cd "releases/$version/darwin_amd64" && zip "../dist/ranch_${version}_darwin_amd64.zip" ranch )
-( cd "releases/$version/linux_amd64" && tar czvf "../dist/ranch_${version}_linux_amd64.tar.gz" ranch )
+cp "releases/$version/darwin_amd64/ranch" "releases/$version/dist/ranch-Darwin-x86_64"
+cp "releases/$version/linux_amd64/ranch" "releases/$version/dist/ranch-Linux-x86_64"
 
 echo "releasing v${version}..."
 
@@ -38,7 +38,7 @@ go-selfupdate releases/${version}/bins/ ${version}
 echo "syncing ranch-updates S3 bucket"
 aws-vault exec prod -- aws s3 sync --acl public-read public/ s3://ranch-updates.goodeggs.com/stable/ranch/
 
-sha=$(shasum -a 256 releases/${version}/dist/ranch_${version}_darwin_amd64.zip | awk '{print $1}')
+sha=$(shasum -a 256 releases/${version}/dist/ranch-Darwin-x86_64 | awk '{print $1}')
 
 cat <<-EOF
 
