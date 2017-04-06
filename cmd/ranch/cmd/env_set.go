@@ -49,6 +49,10 @@ var envSetCmd = &cobra.Command{
 			return err
 		}
 
+		if len(config.Env) > 0 {
+			return fmt.Errorf("env:set is deprecated")
+		}
+
 		appName, err := util.AppName(cmd)
 		if err != nil {
 			return err
