@@ -22,13 +22,6 @@ var deployCmd = &cobra.Command{
 			return err
 		}
 
-		if errors := util.RanchValidateConfig(config); len(errors) > 0 {
-			for _, err := range errors {
-				fmt.Println(err.Error())
-			}
-			return fmt.Errorf(".ranch.yaml did not validate")
-		}
-
 		appConfigPath, err := util.AppConfigPath(cmd)
 		if err != nil {
 			return err

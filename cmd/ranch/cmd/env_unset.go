@@ -50,6 +50,10 @@ var envUnsetCmd = &cobra.Command{
 			return err
 		}
 
+		if len(config.Env) > 0 {
+			return fmt.Errorf("env:unset is deprecated")
+		}
+
 		appName, err := util.AppName(cmd)
 		if err != nil {
 			return err

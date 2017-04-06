@@ -18,21 +18,7 @@ var envCmd = &cobra.Command{
 			return err
 		}
 
-		appName, err := util.AppName(cmd)
-		if err != nil {
-			return err
-		}
-
-		if config.EnvId == "" {
-			return fmt.Errorf("your config does not contain an env_id")
-		}
-
-		plaintext, err := util.RanchGetSecret(appName, config.EnvId)
-		if err != nil {
-			return err
-		}
-
-		env, err := util.ParseEnv(plaintext)
+		env, err := util.RanchGetEnv(config)
 		if err != nil {
 			return err
 		}

@@ -100,6 +100,7 @@ type RanchConfig struct {
 	AppName   string                        `json:"name"`
 	ImageName string                        `json:"image_name"`
 	EnvId     string                        `json:"env_id"`
+	Env       []string                      `json:"env"`
 	Processes map[string]RanchConfigProcess `json:"processes"`
 	Cron      map[string]string             `json:"cron"`
 	Volumes   []string                      `json:"volumes"`
@@ -140,6 +141,13 @@ func LoadRanchConfig(filename string) (*RanchConfig, error) {
 
 	if config.ImageName == "" {
 		config.ImageName = config.AppName
+	}
+
+	if errors := ranchValidateConfig(config); len(errors) > 0 {
+		for _, err := range errors {
+			fmt.Println(err.Error())
+		}
+		return nil, fmt.Errorf("%s did not validate", filename)
 	}
 
 	return config, nil
@@ -206,7 +214,22 @@ func ranchClient() *gorequest.SuperAgent {
 		SetBasicAuth(authToken, "x-auth-token")
 }
 
-func RanchValidateConfig(config *RanchConfig) (errors []error) {
+func RanchGetEnv(config *RanchConfig) (_ map[string]string, err error) {
+	var plaintext string
+
+	if len(config.Env) > 0 {
+		plaintext = strings.Join(config.Env, "\n")
+	} else if config.EnvId != "" {
+		plaintext, err = RanchGetSecret(config.AppName, config.EnvId)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return ParseEnv(plaintext)
+}
+
+func ranchValidateConfig(config *RanchConfig) (errors []error) {
 	if !ValidAppName.MatchString(config.AppName) {
 		errors = append(errors, fmt.Errorf("app name '%s' is invalid: must match %s", config.AppName, ValidAppName.String()))
 	}
@@ -235,6 +258,10 @@ func RanchValidateConfig(config *RanchConfig) (errors []error) {
 		if tokens[2] != "?" && tokens[4] != "?" {
 			errors = append(errors, fmt.Errorf("cron entry '%s' is invalid: either day-of-week or day-of-month field must equal '?'", name))
 		}
+	}
+
+	if config.EnvId != "" && len(config.Env) > 0 {
+		errors = append(errors, fmt.Errorf("env_id and env are both set: pick one"))
 	}
 
 	return errors
@@ -510,7 +537,7 @@ func RanchDeploy(appDir string, config *RanchConfig, appSha, codeSha string) (er
 			return fmt.Errorf("you requested a deploy of a git sha other than HEAD, but its Docker image (%s) does not already exist.  we do not yet support this -- do a full deploy instead. ", imageNameWithTag)
 		}
 
-		if err = dockerBuildAndPush(appDir, config.ImageName, appSha, config); err != nil {
+		if err = DockerBuildAndPush(appDir, config.ImageName, appSha, config); err != nil {
 			return err
 		}
 	}
@@ -574,18 +601,10 @@ func convoxDeploy(appName, releaseId, buildDir string) error {
 
 func GenerateDockerCompose(imageName string, config *RanchConfig) ([]byte, error) {
 	var out bytes.Buffer
-	var env map[string]string
 
-	if config.EnvId != "" {
-		plaintext, err := RanchGetSecret(config.AppName, config.EnvId)
-		if err != nil {
-			return nil, err
-		}
-
-		env, err = ParseEnv(plaintext)
-		if err != nil {
-			return nil, err
-		}
+	env, err := RanchGetEnv(config)
+	if err != nil {
+		return nil, err
 	}
 
 	absoluteImageName, err := DockerResolveImageName(imageName)
@@ -607,10 +626,9 @@ func GenerateDockerCompose(imageName string, config *RanchConfig) ([]byte, error
 	return out.Bytes(), nil
 }
 
-func dockerBuildAndPush(appDir, imageName, appSha string, config *RanchConfig) (err error) {
+func DockerBuildAndPush(appDir, imageName, appSha string, config *RanchConfig) (err error) {
 
-	env, err := EnvGet(config.AppName, config.EnvId)
-
+	env, err := RanchGetEnv(config)
 	if err != nil {
 		return err
 	}
