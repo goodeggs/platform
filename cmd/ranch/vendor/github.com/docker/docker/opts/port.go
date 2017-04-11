@@ -98,11 +98,7 @@ func (p *PortOpt) Set(value string) error {
 		ports, portBindings, _ := nat.ParsePortSpecs([]string{value})
 
 		for port := range ports {
-			portConfig, err := ConvertPortToPortConfig(port, portBindings)
-			if err != nil {
-				return err
-			}
-			portConfigs = append(portConfigs, portConfig...)
+			portConfigs = append(portConfigs, ConvertPortToPortConfig(port, portBindings)...)
 		}
 		p.ports = append(p.ports, portConfigs...)
 	}
@@ -133,14 +129,11 @@ func (p *PortOpt) Value() []swarm.PortConfig {
 func ConvertPortToPortConfig(
 	port nat.Port,
 	portBindings map[nat.Port][]nat.PortBinding,
-) ([]swarm.PortConfig, error) {
+) []swarm.PortConfig {
 	ports := []swarm.PortConfig{}
 
 	for _, binding := range portBindings[port] {
-		hostPort, err := strconv.ParseUint(binding.HostPort, 10, 16)
-		if err != nil && binding.HostPort != "" {
-			return nil, fmt.Errorf("invalid hostport binding (%s) for port (%s)", binding.HostPort, port.Port())
-		}
+		hostPort, _ := strconv.ParseUint(binding.HostPort, 10, 16)
 		ports = append(ports, swarm.PortConfig{
 			//TODO Name: ?
 			Protocol:      swarm.PortConfigProtocol(strings.ToLower(port.Proto())),
@@ -149,5 +142,5 @@ func ConvertPortToPortConfig(
 			PublishMode:   swarm.PortConfigPublishModeIngress,
 		})
 	}
-	return ports, nil
+	return ports
 }

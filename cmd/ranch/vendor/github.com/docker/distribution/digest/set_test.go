@@ -15,14 +15,14 @@ func assertEqualDigests(t *testing.T, d1, d2 Digest) {
 
 func TestLookup(t *testing.T) {
 	digests := []Digest{
-		"sha256:12345",
-		"sha256:1234",
-		"sha256:12346",
-		"sha256:54321",
-		"sha256:65431",
-		"sha256:64321",
-		"sha256:65421",
-		"sha256:65321",
+		"sha256:1234511111111111111111111111111111111111111111111111111111111111",
+		"sha256:1234111111111111111111111111111111111111111111111111111111111111",
+		"sha256:1234611111111111111111111111111111111111111111111111111111111111",
+		"sha256:5432111111111111111111111111111111111111111111111111111111111111",
+		"sha256:6543111111111111111111111111111111111111111111111111111111111111",
+		"sha256:6432111111111111111111111111111111111111111111111111111111111111",
+		"sha256:6542111111111111111111111111111111111111111111111111111111111111",
+		"sha256:6532111111111111111111111111111111111111111111111111111111111111",
 	}
 
 	dset := NewSet()
@@ -55,10 +55,12 @@ func TestLookup(t *testing.T) {
 	}
 
 	dgst, err = dset.Lookup("sha256:1234")
-	if err != nil {
+	if err == nil {
+		t.Fatal("Expected ambiguous error looking up: sha256:1234")
+	}
+	if err != ErrDigestAmbiguous {
 		t.Fatal(err)
 	}
-	assertEqualDigests(t, dgst, digests[1])
 
 	dgst, err = dset.Lookup("sha256:12345")
 	if err != nil {
@@ -87,14 +89,14 @@ func TestLookup(t *testing.T) {
 
 func TestAddDuplication(t *testing.T) {
 	digests := []Digest{
-		"sha256:1234",
-		"sha256:12345",
-		"sha256:12346",
-		"sha256:54321",
-		"sha256:65431",
-		"sha512:65431",
-		"sha512:65421",
-		"sha512:65321",
+		"sha256:1234111111111111111111111111111111111111111111111111111111111111",
+		"sha256:1234511111111111111111111111111111111111111111111111111111111111",
+		"sha256:1234611111111111111111111111111111111111111111111111111111111111",
+		"sha256:5432111111111111111111111111111111111111111111111111111111111111",
+		"sha256:6543111111111111111111111111111111111111111111111111111111111111",
+		"sha512:65431111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+		"sha512:65421111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+		"sha512:65321111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
 	}
 
 	dset := NewSet()
@@ -108,7 +110,7 @@ func TestAddDuplication(t *testing.T) {
 		t.Fatal("Invalid dset size")
 	}
 
-	if err := dset.Add(Digest("sha256:12345")); err != nil {
+	if err := dset.Add(Digest("sha256:1234511111111111111111111111111111111111111111111111111111111111")); err != nil {
 		t.Fatal(err)
 	}
 
@@ -116,13 +118,73 @@ func TestAddDuplication(t *testing.T) {
 		t.Fatal("Duplicate digest insert allowed")
 	}
 
-	if err := dset.Add(Digest("sha384:12345")); err != nil {
+	if err := dset.Add(Digest("sha384:123451111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111")); err != nil {
 		t.Fatal(err)
 	}
 
 	if len(dset.entries) != 9 {
 		t.Fatal("Insert with different algorithm not allowed")
 	}
+}
+
+func TestRemove(t *testing.T) {
+	digests, err := createDigests(10)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dset := NewSet()
+	for i := range digests {
+		if err := dset.Add(digests[i]); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	dgst, err := dset.Lookup(digests[0].String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if dgst != digests[0] {
+		t.Fatalf("Unexpected digest value:\n\tExpected: %s\n\tActual: %s", digests[0], dgst)
+	}
+
+	if err := dset.Remove(digests[0]); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := dset.Lookup(digests[0].String()); err != ErrDigestNotFound {
+		t.Fatalf("Expected error %v when looking up removed digest, got %v", ErrDigestNotFound, err)
+	}
+}
+
+func TestAll(t *testing.T) {
+	digests, err := createDigests(100)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dset := NewSet()
+	for i := range digests {
+		if err := dset.Add(digests[i]); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	all := map[Digest]struct{}{}
+	for _, dgst := range dset.All() {
+		all[dgst] = struct{}{}
+	}
+
+	if len(all) != len(digests) {
+		t.Fatalf("Unexpected number of unique digests found:\n\tExpected: %d\n\tActual: %d", len(digests), len(all))
+	}
+
+	for i, dgst := range digests {
+		if _, ok := all[dgst]; !ok {
+			t.Fatalf("Missing element at position %d: %s", i, dgst)
+		}
+	}
+
 }
 
 func assertEqualShort(t *testing.T, actual, expected string) {
@@ -133,14 +195,14 @@ func assertEqualShort(t *testing.T, actual, expected string) {
 
 func TestShortCodeTable(t *testing.T) {
 	digests := []Digest{
-		"sha256:1234",
-		"sha256:12345",
-		"sha256:12346",
-		"sha256:54321",
-		"sha256:65431",
-		"sha256:64321",
-		"sha256:65421",
-		"sha256:65321",
+		"sha256:1234111111111111111111111111111111111111111111111111111111111111",
+		"sha256:1234511111111111111111111111111111111111111111111111111111111111",
+		"sha256:1234611111111111111111111111111111111111111111111111111111111111",
+		"sha256:5432111111111111111111111111111111111111111111111111111111111111",
+		"sha256:6543111111111111111111111111111111111111111111111111111111111111",
+		"sha256:6432111111111111111111111111111111111111111111111111111111111111",
+		"sha256:6542111111111111111111111111111111111111111111111111111111111111",
+		"sha256:6532111111111111111111111111111111111111111111111111111111111111",
 	}
 
 	dset := NewSet()
@@ -155,10 +217,9 @@ func TestShortCodeTable(t *testing.T) {
 	if len(dump) < len(digests) {
 		t.Fatalf("Error unexpected size: %d, expecting %d", len(dump), len(digests))
 	}
-
-	assertEqualShort(t, dump[digests[0]], "sha256:1234")
-	assertEqualShort(t, dump[digests[1]], "sha256:12345")
-	assertEqualShort(t, dump[digests[2]], "sha256:12346")
+	assertEqualShort(t, dump[digests[0]], "12341")
+	assertEqualShort(t, dump[digests[1]], "12345")
+	assertEqualShort(t, dump[digests[2]], "12346")
 	assertEqualShort(t, dump[digests[3]], "54")
 	assertEqualShort(t, dump[digests[4]], "6543")
 	assertEqualShort(t, dump[digests[5]], "64")
@@ -219,6 +280,29 @@ func benchLookupNTable(b *testing.B, n int, shortLen int) {
 	}
 }
 
+func benchRemoveNTable(b *testing.B, n int) {
+	digests, err := createDigests(n)
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		dset := &Set{entries: digestEntries(make([]*digestEntry, 0, n))}
+		b.StopTimer()
+		for j := range digests {
+			if err = dset.Add(digests[j]); err != nil {
+				b.Fatal(err)
+			}
+		}
+		b.StartTimer()
+		for j := range digests {
+			if err = dset.Remove(digests[j]); err != nil {
+				b.Fatal(err)
+			}
+		}
+	}
+}
+
 func benchShortCodeNTable(b *testing.B, n int, shortLen int) {
 	digests, err := createDigests(n)
 	if err != nil {
@@ -247,6 +331,18 @@ func BenchmarkAdd100(b *testing.B) {
 
 func BenchmarkAdd1000(b *testing.B) {
 	benchAddNTable(b, 1000)
+}
+
+func BenchmarkRemove10(b *testing.B) {
+	benchRemoveNTable(b, 10)
+}
+
+func BenchmarkRemove100(b *testing.B) {
+	benchRemoveNTable(b, 100)
+}
+
+func BenchmarkRemove1000(b *testing.B) {
+	benchRemoveNTable(b, 1000)
 }
 
 func BenchmarkLookup10(b *testing.B) {

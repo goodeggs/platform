@@ -26,7 +26,7 @@ $ cd platform/cmd/ranch
 $ make
 ```
 
-We use [gvt](https://github.com/FiloSottile/gvt) for dependency management, so `gvt fetch` instead of `go get`
+We use [dep](https://github.com/golang/dep) for dependency management.
 
 Releasing
 ---------

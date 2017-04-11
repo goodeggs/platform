@@ -1,0 +1,10 @@
+{
+    "dependencies": {
+        "github.com/stretchr/testify": {
+            "branch": "master"
+        },
+        "golang.org/x/crypto": {
+            "branch": "master"
+        }
+    }
+}
