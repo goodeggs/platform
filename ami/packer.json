@@ -26,7 +26,10 @@
       "communicator": "ssh",
       "ssh_pty": true,
       "ami_name": "Good Eggs ECS Image {{user `version`}}",
-      "user_data_file": "user_data.sh"
+      "user_data_file": "user_data.sh",
+      "ami_block_device_mappings": [
+        {"device_name": "/dev/xvdcz", "volume_size": 22, "volume_type": "gp2", "delete_on_termination": true}
+      ]
     }
   ],
   "provisioners": [
@@ -86,6 +89,11 @@
       "destination": "/home/ec2-user/collectd.spec.amzn1"
     },
     {
+      "type": "file",
+      "source": "detach-ebs-volumes.sh",
+      "destination": "/home/ec2-user/detach-ebs-volumes.sh"
+    },
+    {
       "type": "shell",
       "inline": [
         "while [ ! -f /run/cloud-init/result.json ]; do echo 'Waiting for cloud-init...'; sleep 10; done",
@@ -93,6 +101,11 @@
         "echo '# Clear docker fs'",
         "sudo service docker stop",
         "sudo rm -rf /var/lib/docker",
+
+        "echo '# Detach /dev/xvdcz EBS volume'",
+        "chmod +x /home/ec2-user/detach-ebs-volumes.sh",
+        "AWS_ACCESS_KEY_ID='{{user `aws_access_key`}}' AWS_SECRET_ACCESS_KEY='{{user `aws_secret_key`}}' AWS_DEFAULT_REGION='{{user `aws_region`}}' AWS_SECURITY_TOKEN='{{user `aws_security_token`}}' /home/ec2-user/detach-ebs-volumes.sh",
+        "rm -f /home/ec2-user/detach-ebs-volumes.sh",
 
         "echo '# Install goodeggs-hostname.conf'",
         "sudo mv {/home/ec2-user,/etc/init}/goodeggs-hostname.conf",
