@@ -48,7 +48,7 @@ var deployConfCmd = &cobra.Command{
 		parts := strings.SplitN(currentRelease, "-", 2)
 		codeSha := parts[0]
 
-		return util.RanchDeploy(appDir, config, codeSha, confSha)
+		return util.RanchDeploy(appDir, config, codeSha, confSha, true)
 	},
 }
 

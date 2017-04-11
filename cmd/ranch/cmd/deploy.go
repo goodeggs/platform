@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var nobuild = false
+
 var deployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "Deploy the application",
@@ -41,10 +43,11 @@ var deployCmd = &cobra.Command{
 		}
 		confSha := codeSha // same revision
 
-		return util.RanchDeploy(appDir, config, codeSha, confSha)
+		return util.RanchDeploy(appDir, config, codeSha, confSha, nobuild)
 	},
 }
 
 func init() {
+	deployCmd.Flags().BoolVar(&nobuild, "no-build", false, "bail if docker image does not already exist")
 	RootCmd.AddCommand(deployCmd)
 }

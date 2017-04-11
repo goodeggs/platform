@@ -518,7 +518,7 @@ func RanchGetFormation(appName string) (formation RanchFormation, err error) {
 	return formation, nil
 }
 
-func RanchDeploy(appDir string, config *RanchConfig, appSha, codeSha string) (err error) {
+func RanchDeploy(appDir string, config *RanchConfig, appSha, codeSha string, nobuild bool) (err error) {
 
 	imageNameWithTag := fmt.Sprintf("%s:%s", config.ImageName, appSha)
 
@@ -527,6 +527,8 @@ func RanchDeploy(appDir string, config *RanchConfig, appSha, codeSha string) (er
 		return err
 	} else if exists {
 		fmt.Printf("🐮  Docker image %s already exists, skipping build.\n", imageNameWithTag)
+	} else if nobuild {
+		return fmt.Errorf("docker image %s does not exist and you asked not to build it.  exiting.", imageNameWithTag)
 	} else {
 		currentSha, err := GitCurrentSha(appDir)
 		if err != nil {
