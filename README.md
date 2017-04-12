@@ -1,7 +1,7 @@
 platform
 ========
 
-The home of all things related to the Good Eggs [12 Factor App](http://12factor.net/) platform, currently based on [Convox](http://convox.com/).
+The home of all things related to the Good Eggs [12 Factor App](http://12factor.net/) platform.  We heavily leverage [Convox](http://convox.com/), but also believe in the [Paasta Principles](http://paasta.readthedocs.io/en/latest/about/paasta_principles.html).
 
 ## Concepts
 
@@ -16,9 +16,12 @@ Contains the [packer.io](https://packer.io/) definition for our custom AMI.
 ### [logspout-goodeggs](./logspout-goodeggs)
 Our custom build of [logspout-http](https://github.com/raychaser/logspout-http) that ships docker logs to a [Sumo Logic](https://www.sumologic.com/) collector.
 
-### [ansible](./ansible)
-Ansible playbooks used to manage the platform.
-
 ### [ranch](./cmd/ranch)
-The platform's CLI.
+The platform's CLI, which serves as the main interface for developers and CI/CD workers.
+
+### [ranch-api](https://github.com/goodeggs/ranch-api)
+The platform's API, to which the CLI communicates.
+
+### [goodeggs-terraform](https://github.com/goodeggs/goodeggs-terraform)
+Terraform for the entire infrastructure, including this platform.
 
