@@ -143,7 +143,7 @@ func LoadRanchConfig(filename string) (*RanchConfig, error) {
 		config.ImageName = config.AppName
 	}
 
-	if errors := ranchValidateConfig(config); len(errors) > 0 {
+	if errors := RanchValidateConfig(config); len(errors) > 0 {
 		for _, err := range errors {
 			fmt.Println(err.Error())
 		}
@@ -201,6 +201,7 @@ type RanchApp struct {
 var ValidAppName = regexp.MustCompile(`\A[a-z][-a-z0-9]{3,29}\z`)
 var ValidProcessName = regexp.MustCompile(`\A[a-z][-a-z0-9]{2,29}\z`)
 var ValidCronName = regexp.MustCompile(`\A[a-z][a-z0-9]{2,29}\z`)
+var ValidCronMinute = regexp.MustCompile(`\A(\d|\*/\d{2})\z`)
 
 func ranchUrl(pathname string) string {
 	u, _ := url.Parse(viper.GetString("endpoint"))
@@ -229,7 +230,7 @@ func RanchGetEnv(config *RanchConfig) (_ map[string]string, err error) {
 	return ParseEnv(plaintext)
 }
 
-func ranchValidateConfig(config *RanchConfig) (errors []error) {
+func RanchValidateConfig(config *RanchConfig) (errors []error) {
 	if !ValidAppName.MatchString(config.AppName) {
 		errors = append(errors, fmt.Errorf("app name '%s' is invalid: must match %s", config.AppName, ValidAppName.String()))
 	}
@@ -258,6 +259,9 @@ func ranchValidateConfig(config *RanchConfig) (errors []error) {
 		if tokens[2] != "?" && tokens[4] != "?" {
 			errors = append(errors, fmt.Errorf("cron entry '%s' is invalid: either day-of-week or day-of-month field must equal '?'", name))
 		}
+		if !ValidCronMinute.MatchString(tokens[0]) {
+			errors = append(errors, fmt.Errorf("cron entry '%s' is invalid: minute field must match %s, see %s", name, ValidCronMinute.String(), LinterUrl("cron-minutes")))
+		}
 	}
 
 	if config.EnvId != "" && len(config.Env) > 0 {
@@ -265,6 +269,10 @@ func ranchValidateConfig(config *RanchConfig) (errors []error) {
 	}
 
 	return errors
+}
+
+func LinterUrl(hash string) string {
+	return fmt.Sprintf("https://github.com/goodeggs/platform/blob/v%s/LINT_RULES.md#%s", Version, hash)
 }
 
 func RanchLoadSettings() (err error) {
