@@ -11,6 +11,7 @@ var VERSION = "dev"
 
 func init() {
 	cmd.Version = VERSION
+	util.Version = VERSION
 }
 
 func main() {

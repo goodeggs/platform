@@ -18,3 +18,4 @@ func jsonClient() *gorequest.SuperAgent {
 }
 
 var Verbose bool
+var Version string // copied from main
