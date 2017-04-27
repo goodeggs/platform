@@ -272,7 +272,7 @@ func RanchValidateConfig(config *RanchConfig) (errors []error) {
 }
 
 func LinterUrl(hash string) string {
-	return fmt.Sprintf("https://github.com/goodeggs/platform/blob/v%s/LINT_RULES.md#%s", Version, hash)
+	return fmt.Sprintf("https://github.com/goodeggs/platform/blob/v%s/cmd/ranch/LINT_RULES.md#%s", Version, hash)
 }
 
 func RanchLoadSettings() (err error) {

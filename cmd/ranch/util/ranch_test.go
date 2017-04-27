@@ -24,7 +24,7 @@ func (suite *RanchTestSuite) TestRanchValidateConfigOnValidConfig() {
 func (suite *RanchTestSuite) TestLinterUrl() {
 	assert := assert.New(suite.T())
 	Version = "1.0.0"
-	assert.Equal(LinterUrl("foobar"), "https://github.com/goodeggs/platform/blob/v1.0.0/LINT_RULES.md#foobar")
+	assert.Equal(LinterUrl("foobar"), "https://github.com/goodeggs/platform/blob/v1.0.0/cmd/ranch/LINT_RULES.md#foobar")
 }
 
 func (suite *RanchTestSuite) TestRanchValidateConfigOnTooShortCronInterval() {
