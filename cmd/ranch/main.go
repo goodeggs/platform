@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/goodeggs/platform/cmd/ranch/cmd"
+	"github.com/goodeggs/platform/cmd/ranch/util"
 )
 
 var VERSION = "dev"
