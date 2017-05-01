@@ -40,5 +40,9 @@ $ git push
 $ GITHUB_TOKEN=xxx ./release.sh
 ```
 
-Don't forget to update the [ranch homebrew formula](https://github.com/goodeggs/homebrew-delivery-eng/blob/master/Formula/ranch.rb) with the new `version` and `sha256`.
+Then update the [ranch homebrew formula](https://github.com/goodeggs/homebrew-delivery-eng/blob/master/Formula/ranch.rb) with the new `version` and `sha256`.
+
+Then update the blessed version in [goodeggs/travis-utils/install-ci-tools.sh](https://github.com/goodeggs/travis-utils/blob/master/install-ci-tools.sh)
+
+Then update the blessed version in [goodeggs/ecru/bin/onbuild](https://github.com/goodeggs/ecru/blob/master/bin/onbuild)
 
