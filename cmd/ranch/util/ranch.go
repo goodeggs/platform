@@ -201,7 +201,7 @@ type RanchApp struct {
 var ValidAppName = regexp.MustCompile(`\A[a-z][-a-z0-9]{3,29}\z`)
 var ValidProcessName = regexp.MustCompile(`\A[a-z][-a-z0-9]{2,29}\z`)
 var ValidCronName = regexp.MustCompile(`\A[a-z][a-z0-9]{2,29}\z`)
-var ValidCronMinute = regexp.MustCompile(`\A(\d|\*/\d{2})\z`)
+var ValidCronMinute = regexp.MustCompile(`\A(\d{1,2}|\*/\d{2})\z`)
 
 func ranchUrl(pathname string) string {
 	u, _ := url.Parse(viper.GetString("endpoint"))
