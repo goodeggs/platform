@@ -15,7 +15,7 @@ else
   aws_env="dev"
 fi
 
-version="${TRAVIS_BRANCH}@$(echo $TRAVIS_COMMIT | cut -c 1-7)"
+version="${TRAVIS_BRANCH}@$(echo $TRAVIS_COMMIT | cut -c 1-7 | sed 's/#//g')"
 
 /tmp/packer/packer build -var="env=$aws_env" -var="version=$version" -var-file="variables.${aws_env}.json" packer.json
 
