@@ -102,6 +102,9 @@
         "sudo service docker stop",
         "sudo rm -rf /var/lib/docker",
 
+        "echo '# Setting Swappiness to avoide swap usage unless out of memory condition exists'",
+        "echo 'vm.swappiness=0' | sudo tee -a /etc/sysctl.conf",
+
         "echo '# Detach /dev/xvdcz EBS volume'",
         "chmod +x /home/ec2-user/detach-ebs-volumes.sh",
         "AWS_ACCESS_KEY_ID='{{user `aws_access_key`}}' AWS_SECRET_ACCESS_KEY='{{user `aws_secret_key`}}' AWS_DEFAULT_REGION='{{user `aws_region`}}' AWS_SECURITY_TOKEN='{{user `aws_security_token`}}' /home/ec2-user/detach-ebs-volumes.sh",
@@ -154,7 +157,10 @@
         "sudo chmod 0600 /etc/collectd.conf",
         "sudo mkdir -p /var/lib/collectd",
         "sudo mv {/home/ec2-user,/var/lib/collectd}/memory-available.sh",
-        "sudo chmod 0755 /var/lib/collectd/memory-available.sh"
+        "sudo chmod 0755 /var/lib/collectd/memory-available.sh",
+
+        "echo '# Reserving 1536 MiB Ram for ECS Agent'",
+        "echo 'ECS_RESERVED_MEMORY=1536' | sudo tee -a /etc/ecs/ecs.config"
       ]
     }
   ]

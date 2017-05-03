@@ -52,7 +52,8 @@
 
         "sudo apt-get -y update",
         "sudo apt-get -y dist-upgrade",
-
+        "echo '# Setting Swappiness to avoide swap usage unless out of memory condition exists'",
+        "echo 'vm.swappiness=0' | sudo tee -a /etc/sysctl.conf",
         "echo '# Docker'",
         "curl -fsSL https://yum.dockerproject.org/gpg | sudo apt-key add -",
         "sudo add-apt-repository \"deb https://apt.dockerproject.org/repo/ ubuntu-$(lsb_release -cs) main\"",
