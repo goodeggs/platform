@@ -4,7 +4,7 @@
             "branch": "master"
         },
         "golang.org/x/crypto": {
-            "branch": "master"
+            "revision": "5dc8cb4b8a8eb076cbb5a06bc3b8682c15bdbbd3"
         }
     }
 }
