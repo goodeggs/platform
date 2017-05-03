@@ -1,5 +1,5 @@
 {
-    "memo": "79adc6b72a1e70998be4b9f7acdcebd851da99c3b46a9a86dae3dabb9d802725",
+    "memo": "4b76c7866c13f55f0e95df700a2abdb36468a76310f9fdb7ef65b0bbcd6679f8",
     "projects": [
         {
             "name": "github.com/Azure/go-ansiterm",
@@ -432,7 +432,8 @@
         },
         {
             "name": "golang.org/x/crypto",
-            "revision": "5dc8cb4b8a8eb076cbb5a06bc3b8682c15bdbbd3",
+            "branch": "master",
+            "revision": "04eae0b62feaaf659a0ce2c4e8dc70b6ae2fff67",
             "packages": [
                 "ssh/terminal"
             ]
