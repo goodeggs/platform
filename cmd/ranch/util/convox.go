@@ -100,7 +100,7 @@ func ConvoxRunAttached(appName, process, command string, w, h int, input io.Read
 		return -1, err
 	}
 
-	return client.RunProcessAttached(appName, process, command, "", w, h, input, output)
+	return client.RunProcessAttached(appName, process, command, "", h, w, input, output)
 }
 
 // ConvoxExec runs a command inside the given Convox pid, using `docker exec`.

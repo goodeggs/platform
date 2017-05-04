@@ -1,6 +1,7 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Conditions": {
+    "Agent": { "Fn::Equals": [ { "Ref": "Agent" }, "Yes" ] },
     "Autoscale": { "Fn::Equals": [ { "Ref": "Autoscale" }, "Yes" ] },
     "BlankAmi": { "Fn::Equals": [ { "Ref": "Ami" }, "" ] },
     "BlankBuildImage": { "Fn::Equals": [ { "Ref": "BuildImage" }, "" ] },
@@ -15,10 +16,6 @@
     "DedicatedBuilder": { "Fn::Not": [ { "Fn::Equals": [ { "Ref": "BuildInstance" }, "" ] } ] },
     "Development": { "Fn::Equals": [ { "Ref": "Development" }, "Yes" ] },
     "EncryptEbs" : { "Fn::Equals": [ { "Ref": "EncryptEbs" }, "Yes" ] },
-    "EventRuleForECS": { "Fn::Equals": [
-      { "Fn::FindInMap": [ "RegionConfig", { "Ref": "AWS::Region" }, "EventRuleForECS" ] },
-      "Yes"
-    ] },
     "ExistingVpc": { "Fn::Not": [ { "Fn::Equals": [ { "Ref": "ExistingVpc" }, "" ] } ] },
     "ExistingVpcAndBlankInternetGateway": {
       "Fn::And": [ { "Condition": "ExistingVpc" }, { "Condition": "BlankInternetGateway" } ]
@@ -26,6 +23,7 @@
     "ExistingVpcAndInternetGateway": {
       "Fn::And": [ { "Condition": "ExistingVpc" }, { "Condition": "InternetGateway" } ]
     },
+    "HttpProxy": { "Fn::Not": [ { "Fn::Equals": [ { "Ref": "HttpProxy" }, "" ] } ] },
     "InternetGateway": { "Fn::Not": [ { "Fn::Equals": [ { "Ref": "InternetGateway" }, "" ] } ] },
     "NotExistingVpcAndBlankInternetGateway": { "Fn::Not": [ { "Condition": "ExistingVpcAndBlankInternetGateway" } ] },
     "Private": { "Fn::Equals": [ { "Ref": "Private" }, "Yes" ] },
@@ -53,17 +51,17 @@
   },
   "Mappings": {
     "RegionConfig": {
-      "us-east-1": { "Ami": "ami-275ffe31", "EFS": "Yes", "EventRuleForECS": "Yes", "ThirdAvailabilityZone": "Yes" },
-      "us-east-2": { "Ami": "ami-62745007", "EFS": "Yes", "EventRuleForECS": "Yes", "ThirdAvailabilityZone": "Yes" },
-      "us-west-1": { "Ami": "ami-689bc208", "EFS": "No", "EventRuleForECS": "Yes", "ThirdAvailabilityZone": "No" },
-      "us-west-2": { "Ami": "ami-62d35c02", "EFS": "Yes", "EventRuleForECS": "Yes", "ThirdAvailabilityZone": "Yes" },
-      "eu-west-1": { "Ami": "ami-95f8d2f3", "EFS": "Yes", "EventRuleForECS": "Yes", "ThirdAvailabilityZone": "Yes" },
-      "eu-west-2": { "Ami": "ami-bf9481db", "EFS": "No", "EventRuleForECS": "No", "ThirdAvailabilityZone": "No" },
-      "eu-central-1": { "Ami": "ami-085e8a67", "EFS": "No", "EventRuleForECS": "Yes", "ThirdAvailabilityZone": "No" },
-      "ap-northeast-1": { "Ami": "ami-f63f6f91", "EFS": "No", "EventRuleForECS": "Yes", "ThirdAvailabilityZone": "No" },
-      "ap-southeast-1": { "Ami": "ami-b4ae1dd7", "EFS": "No", "EventRuleForECS": "Yes", "ThirdAvailabilityZone": "No" },
-      "ap-southeast-2": { "Ami": "ami-fbe9eb98", "EFS": "No", "EventRuleForECS": "Yes", "ThirdAvailabilityZone": "Yes" },
-      "ca-central-1": { "Ami": "ami-ee58e58a", "EFS": "No", "EventRuleForECS": "No", "ThirdAvailabilityZone": "No" }
+      "us-east-1":      { "Ami": "ami-275ffe31", "EFS": "Yes", "ThirdAvailabilityZone": "Yes" },
+      "us-east-2":      { "Ami": "ami-62745007", "EFS": "Yes", "ThirdAvailabilityZone": "Yes" },
+      "us-west-1":      { "Ami": "ami-689bc208", "EFS": "No",  "ThirdAvailabilityZone": "No"  },
+      "us-west-2":      { "Ami": "ami-62d35c02", "EFS": "Yes", "ThirdAvailabilityZone": "Yes" },
+      "eu-west-1":      { "Ami": "ami-95f8d2f3", "EFS": "Yes", "ThirdAvailabilityZone": "Yes" },
+      "eu-west-2":      { "Ami": "ami-bf9481db", "EFS": "No",  "ThirdAvailabilityZone": "No"  },
+      "eu-central-1":   { "Ami": "ami-085e8a67", "EFS": "No",  "ThirdAvailabilityZone": "No"  },
+      "ap-northeast-1": { "Ami": "ami-f63f6f91", "EFS": "No",  "ThirdAvailabilityZone": "No"  },
+      "ap-southeast-1": { "Ami": "ami-b4ae1dd7", "EFS": "No",  "ThirdAvailabilityZone": "No"  },
+      "ap-southeast-2": { "Ami": "ami-fbe9eb98", "EFS": "No",  "ThirdAvailabilityZone": "Yes" },
+      "ca-central-1":   { "Ami": "ami-ee58e58a", "EFS": "No",  "ThirdAvailabilityZone": "No"  }
     }
   },
   "Outputs": {
@@ -93,8 +91,8 @@
     "BuildCluster": {
       "Value": { "Fn::If": [ "DedicatedBuilder", { "Ref": "BuildCluster" }, { "Ref": "Cluster" } ] }
     },
-    "CloudformationEventsTopic": {
-      "Value" : { "Ref": "CloudformationEventsTopic" }
+    "CloudformationTopic": {
+      "Value": { "Ref": "CloudformationTopic" }
     },
     "Cluster": {
       "Value": { "Ref": "Cluster" }
@@ -249,6 +247,12 @@
     }
   },
   "Parameters": {
+    "Agent": {
+      "Type": "String",
+      "Description": "Run Convox agent on each instance",
+      "Default": "Yes",
+      "AllowedValues": [ "Yes", "No" ]
+    },
     "Ami": {
       "Type": "String",
       "Description": "Amazon Machine Image: http://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_container_instance.html",
@@ -789,10 +793,12 @@
                       "kms:ListAliases",
                       "lambda:CreateFunction",
                       "logs:CreateLogGroup",
+                      "logs:CreateLogStream",
                       "logs:DeleteLogGroup",
                       "logs:DeleteSubscriptionFilter",
                       "logs:DescribeLogGroups",
                       "logs:FilterLogEvents",
+                      "logs:PutLogEvents",
                       "logs:PutSubscriptionFilter",
                       "rds:CreateDBInstance",
                       "rds:CreateDBParameterGroup",
@@ -813,8 +819,10 @@
                       "sns:Subscribe",
                       "sns:Unsubscribe",
                       "sqs:CreateQueue",
+                      "sqs:DeleteMessage",
                       "sqs:DeleteQueue",
                       "sqs:GetQueueAttributes",
+                      "sqs:ReceiveMessage",
                       "sqs:SetQueueAttributes"
                     ],
                     "Resource": "*"
@@ -1054,6 +1062,39 @@
       "Type": "AWS::EC2::EIP",
       "Properties": {
         "Domain": "vpc"
+      }
+    },
+    "SecureEnvironmentRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": { "Service": [ "ecs-tasks.amazonaws.com" ] },
+              "Action": [ "sts:AssumeRole" ]
+            }
+          ]
+        },
+        "Path": "/convox/",
+        "Policies": [
+          {
+            "PolicyName": "SecureEnvironmentPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": {
+                "Effect": "Allow",
+                "Action": [
+                  "kms:Decrypt"
+                ],
+                "Resource": [
+                  { "Ref": "EncryptionKey" }
+                ]
+              }
+            }
+          }
+        ]
       }
     },
     "Subnet0": {
@@ -1396,7 +1437,7 @@
           {
             "DeviceName": "/dev/xvdb",
             "Ebs": {
-              "Encrypted": { "Fn::If": [ "EncryptEbs", "true", "false" ] },
+              "Encrypted": { "Fn::If": [ "EncryptEbs", "true", { "Ref": "AWS::NoValue" } ] },
               "VolumeSize": { "Ref": "SwapSize" },
               "VolumeType":"gp2"
             }
@@ -1404,7 +1445,7 @@
           {
             "DeviceName": "/dev/xvdcz",
             "Ebs": {
-              "Encrypted": { "Fn::If": [ "EncryptEbs", "true", "false" ] },
+              "Encrypted": { "Fn::If": [ "EncryptEbs", "true", { "Ref": "AWS::NoValue" } ] },
               "VolumeSize": { "Ref": "VolumeSize" },
               "VolumeType":"gp2"
             }
@@ -1430,6 +1471,8 @@
             "  - mkswap /dev/xvdb\n",
             "  - swapon /dev/xvdb\n",
             "  - [ cloud-init-per, instance, docker_storage_setup, /usr/bin/docker-storage-setup ]\n",
+            "  - export HTTP_PROXY=", { "Ref": "HttpProxy" }, "\n",
+            "  - echo HTTP_PROXY=", { "Ref": "HttpProxy" }, " >> /etc/environment\n",
             "  - echo ECS_CLUSTER=", { "Ref": "BuildCluster" }, " >> /etc/ecs/ecs.config\n",
             "  - echo ECS_ENGINE_AUTH_TYPE=docker >> /etc/ecs/ecs.config\n",
             "  - echo HTTP_PROXY=", { "Ref": "HttpProxy" }, " >> /etc/ecs/ecs.config\n",
@@ -1442,6 +1485,11 @@
               "  - echo 'OPTIONS=\"${OPTIONS} --log-opt max-file=2 --log-opt max-size=50m --host=unix:///var/run/docker.sock --host=0.0.0.0:2376\"' >> /etc/sysconfig/docker\n",
               "  - echo 'ECS_ENGINE_AUTH_DATA={\"index.docker.io\":{\"username\":\"\",\"password\":\"\",\"email\":\"\"}' >> /etc/ecs/ecs.config\n"
             ] ] },
+            { "Fn::If": [ "HttpProxy",
+              { "Fn::Join": ["", ["  - echo \"export HTTP_PROXY=", { "Ref": "HttpProxy" }, "/\" >> /etc/sysconfig/docker\n"
+              ] ] },
+              { "Ref": "AWS::NoValue" }
+            ] },
             "  - mkdir -p /etc/convox\n",
             "  - echo -e '/var/log/docker {\\n  rotate 7\\n  daily\\n  nocompress\\n  copytruncate\\n}' >> /etc/logrotate.d/docker\n",
             { "Fn::If": [ "BlankInstanceBootCommand",
@@ -1530,7 +1578,7 @@
           {
             "DeviceName": "/dev/xvdb",
             "Ebs": {
-              "Encrypted": { "Fn::If": [ "EncryptEbs", "true", "false" ] },
+              "Encrypted": { "Fn::If": [ "EncryptEbs", "true", { "Ref": "AWS::NoValue" } ] },
               "VolumeSize": { "Ref": "SwapSize" },
               "VolumeType":"gp2"
             }
@@ -1538,7 +1586,7 @@
           {
             "DeviceName": "/dev/xvdcz",
             "Ebs": {
-              "Encrypted": { "Fn::If": [ "EncryptEbs", "true", "false" ] },
+              "Encrypted": { "Fn::If": [ "EncryptEbs", "true", { "Ref": "AWS::NoValue" } ] },
               "VolumeSize": { "Ref": "VolumeSize" },
               "VolumeType":"gp2"
             }
@@ -1563,6 +1611,8 @@
             "bootcmd:\n",
             "  - mkswap /dev/xvdb\n",
             "  - swapon /dev/xvdb\n",
+            "  - export HTTP_PROXY=", { "Ref": "HttpProxy" }, "\n",
+            "  - echo HTTP_PROXY=", { "Ref": "HttpProxy" }, " >> /etc/environment\n",
             "  - until yum install -y aws-cli nfs-utils; do echo \"Waiting for network\"; done;\n",
             "  - mkdir /volumes\n",
             { "Fn::If": [ "RegionHasEFS",
@@ -1578,6 +1628,8 @@
             "  - [ cloud-init-per, instance, docker_storage_setup, /usr/bin/docker-storage-setup ]\n",
             "  - echo ECS_CLUSTER=", { "Ref": "Cluster" }, " >> /etc/ecs/ecs.config\n",
             "  - echo ECS_ENGINE_AUTH_TYPE=docker >> /etc/ecs/ecs.config\n",
+            "  - echo HTTP_PROXY=", { "Ref": "HttpProxy" }, " >> /etc/ecs/ecs.config\n",
+            "  - echo NO_PROXY=169.254.169.254,169.254.170.2,/var/run/docker.sock >> /etc/ecs/ecs.config\n",
             "  - head -n -1 /etc/sysconfig/docker >> /etc/sysconfig/docker-tmp\n",
             "  - mv /etc/sysconfig/docker-tmp /etc/sysconfig/docker\n",
             "  - echo 'OPTIONS=\"--default-ulimit nofile=1024000:1024000\"' >> /etc/sysconfig/docker\n",
@@ -1586,11 +1638,19 @@
               "  - echo 'OPTIONS=\"${OPTIONS} --log-opt max-file=2 --log-opt max-size=50m --host=unix:///var/run/docker.sock --host=0.0.0.0:2376\"' >> /etc/sysconfig/docker\n",
               "  - echo 'ECS_ENGINE_AUTH_DATA={\"index.docker.io\":{\"username\":\"\",\"password\":\"\",\"email\":\"\"}' >> /etc/ecs/ecs.config\n"
             ] ] },
+            { "Fn::If": [ "HttpProxy",
+              { "Fn::Join": ["", ["  - echo \"export HTTP_PROXY=", { "Ref": "HttpProxy" }, "/\" >> /etc/sysconfig/docker\n"
+              ] ] },
+              { "Ref": "AWS::NoValue" }
+            ] },
             "  - mkdir -p /etc/convox\n",
             "  - echo \"", { "Ref": "AWS::Region" }, "\" > /etc/convox/region\n",
             "  - echo \"", { "Ref": "ClientId" }, "\" > /etc/convox/client_id\n",
             "  - echo \"", { "Ref": "LogGroup" }, "\" > /etc/convox/log_group\n",
-            "  - curl -s https://convox.s3.amazonaws.com/agent/0.71/convox.conf > /etc/init/convox.conf\n",
+            { "Fn::If": [ "Agent",
+              "  - curl -s https://convox.s3.amazonaws.com/agent/0.71/convox.conf > /etc/init/convox.conf\n",
+              ""
+            ] },
             "  - echo -e '/var/log/docker {\\n  rotate 7\\n  daily\\n  nocompress\\n  copytruncate\\n}' >> /etc/logrotate.d/docker\n",
             { "Fn::If": [ "BlankInstanceBootCommand",
               { "Ref": "AWS::NoValue" },
@@ -1805,136 +1865,33 @@
         ]
       }
     },
-    "CloudformationEventsTopic": {
-      "Type": "AWS::SNS::Topic",
-      "Properties": {
-        "Subscription": [ { "Endpoint": { "Fn::GetAtt": [ "CloudformationEventsHandler", "Arn" ] }, "Protocol": "lambda" } ],
-        "TopicName" : { "Fn::Join": ["", [{"Ref":"AWS::StackName"}, "-cloudformationevents"]] }
-      }
+    "AccountEvents": {
+      "Type": "AWS::SQS::Queue"
     },
-    "CloudformationEventsHandler": {
-      "DependsOn": ["CloudformationEventsHandlerRole"],
-      "Type": "AWS::Lambda::Function",
+    "AccountEventsPolicy": {
+      "Type": "AWS::SQS::QueuePolicy",
       "Properties": {
-        "Code": {
-          "S3Bucket": { "Fn::Join": [ "-", [ "convox", { "Ref": "AWS::Region" } ] ] },
-          "S3Key": { "Fn::Join": [ "", [ "release/", { "Ref": "Version" }, "/lambda/cloudformationevents.zip" ] ] }
-        },
-        "Description": "Handler for Cloudformation events.",
-        "Handler": "index.external",
-        "MemorySize": "128",
-        "Role": { "Fn::GetAtt": [ "CloudformationEventsHandlerRole", "Arn" ] },
-        "Runtime": "nodejs4.3",
-        "Timeout": "300"
-      }
-    },
-    "CloudformationEventsHandlerPermission": {
-      "Type": "AWS::Lambda::Permission",
-      "Properties": {
-        "FunctionName": { "Fn::GetAtt": [ "CloudformationEventsHandler", "Arn" ] },
-        "Action": "lambda:InvokeFunction",
-        "Principal": "sns.amazonaws.com",
-        "SourceArn": { "Ref": "CloudformationEventsTopic" }
-      }
-    },
-    "CloudformationEventsHandlerRole": {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
+        "Queues": [ { "Ref": "AccountEvents" } ],
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
               "Effect": "Allow",
-              "Principal": { "Service": [ "lambda.amazonaws.com" ] },
-              "Action": [ "sts:AssumeRole" ]
+              "Principal": { "AWS": "*" },
+              "Action": "sqs:SendMessage",
+              "Resource": { "Fn::GetAtt": [ "AccountEvents", "Arn" ] },
+              "Condition": { "ArnEquals": { "aws:SourceArn": { "Fn::GetAtt": [ "AccountEventsRule", "Arn" ] } } }
             }
           ]
-        },
-        "Path": "/convox/",
-        "Policies": [
-          {
-            "PolicyName": "CloudformationEventsHandlerRole",
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "cloudformation:DescribeStacks",
-                    "logs:CreateLogGroup",
-                    "logs:CreateLogStream",
-                    "logs:PutLogEvents"
-                  ],
-                  "Resource": "*"
-                }
-              ]
-            }
-          }
-        ]
+        }
       }
     },
-    "ECSEventHandlerRole": {
-      "Type": "AWS::IAM::Role",
-      "Condition": "EventRuleForECS",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Principal": { "Service": [ "lambda.amazonaws.com" ] },
-              "Action": [ "sts:AssumeRole" ]
-            }
-          ]
-        },
-        "Path": "/convox/",
-        "Policies": [
-          {
-            "PolicyName": "ECSEventHandlerRole",
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "cloudformation:DescribeStacks",
-                    "ecs:DescribeServices",
-                    "logs:CreateLogGroup",
-                    "logs:CreateLogStream",
-                    "logs:PutLogEvents"
-                  ],
-                  "Resource": "*"
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    "ECSEventHandler": {
-      "DependsOn": ["ECSEventHandlerRole"],
-      "Condition": "EventRuleForECS",
-      "Type": "AWS::Lambda::Function",
-      "Properties": {
-        "Code": {
-          "S3Bucket": { "Fn::Join": [ "-", [ "convox", { "Ref": "AWS::Region" } ] ] },
-          "S3Key": { "Fn::Join": [ "", [ "release/", { "Ref": "Version" }, "/lambda/ecsevents.zip" ] ] }
-        },
-        "Description": "Handler for ECS events.",
-        "Handler": "index.external",
-        "MemorySize": "128",
-        "Role": { "Fn::GetAtt": [ "ECSEventHandlerRole", "Arn" ] },
-        "Runtime": "nodejs4.3",
-        "Timeout": "300"
-      }
-    },
-    "ECSEventRule":{
+    "AccountEventsRule": {
       "Type" : "AWS::Events::Rule",
-      "DependsOn": ["ECSEventHandler"],
-      "Condition": "EventRuleForECS",
       "Properties" : {
-        "Description" : "Fires ECS Task change events",
+        "Description" : "Specified event changes",
         "EventPattern" : {
+          "account":  [ { "Ref": "AWS::AccountId" } ],
           "source": [
             "aws.ecs"
           ],
@@ -1943,25 +1900,44 @@
           ],
           "detail": {
             "clusterArn": [
-              { "Fn::Join": [ "", ["arn:aws:ecs:", { "Ref": "AWS::Region" }, ":", { "Ref": "AWS::AccountId"}, ":cluster/", { "Ref": "Cluster" }] ] }
+              { "Fn::Sub": "arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:cluster/${Cluster}" }
             ]
           }
         },
         "State" : "ENABLED",
-        "Targets" : [{
-          "Arn": { "Fn::GetAtt": [ "ECSEventHandler", "Arn" ] },
-          "Id": "ECSEventHandler"
-          }]
+        "Targets" : [
+          { "Arn": { "Fn::GetAtt": [ "AccountEvents", "Arn" ] }, "Id": "Events" }
+        ]
       }
     },
-    "ECSEventHandlerPermission": {
-      "Type": "AWS::Lambda::Permission",
-      "Condition": "EventRuleForECS",
+    "CloudformationEvents": {
+      "Type": "AWS::SQS::Queue"
+    },
+    "CloudformationEventsPolicy": {
+      "Type": "AWS::SQS::QueuePolicy",
       "Properties": {
-        "FunctionName": { "Fn::GetAtt": [ "ECSEventHandler", "Arn" ] },
-        "Action": "lambda:InvokeFunction",
-        "Principal": "events.amazonaws.com",
-        "SourceArn": { "Fn::GetAtt": [ "ECSEventRule", "Arn" ] }
+        "Queues": [ { "Ref": "CloudformationEvents" } ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": { "AWS": "*" },
+              "Action": "sqs:SendMessage",
+              "Resource": { "Fn::GetAtt": [ "CloudformationEvents", "Arn" ] },
+              "Condition": { "ArnEquals": { "aws:SourceArn": { "Ref": "CloudformationTopic" } } }
+            }
+          ]
+        }
+      }
+    },
+    "CloudformationTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "DisplayName": { "Fn::Sub": "${AWS::StackName}-events" },
+        "Subscription": [
+          { "Protocol": "sqs", "Endpoint": { "Fn::GetAtt": [ "CloudformationEvents", "Arn" ] } }
+        ]
       }
     },
     "Balancer": {
@@ -2302,6 +2278,7 @@
       "Properties": {
         "Name": { "Fn::Join": [ "-", [ { "Ref": "AWS::StackName" }, "build" ] ] },
         "ServiceToken": { "Fn::GetAtt": [ "CustomTopic", "Arn" ] },
+        "TaskRole": { "Fn::GetAtt": [ "SecureEnvironmentRole", "Arn" ] },
         "Tasks": [
           {
             "Cpu": { "Ref": "BuildCpu" },
@@ -2332,6 +2309,7 @@
             "Memory": { "Ref": "BuildMemory" },
             "Name": "build",
             "Volumes": [
+              "/etc/sysconfig/docker:/etc/sysconfig/docker",
               "/var/run/docker.sock:/var/run/docker.sock"
             ]
           }
@@ -2355,7 +2333,7 @@
               "AWS_SECRET": { "Fn::GetAtt": [ "KernelAccess", "SecretAccessKey" ] },
               "BUILD_CLUSTER": { "Fn::If": [ "DedicatedBuilder", { "Ref": "BuildCluster" }, { "Ref": "Cluster" } ] },
               "CLIENT_ID": { "Ref": "ClientId" },
-              "CLOUDFORMATION_EVENTS_TOPIC": { "Ref": "CloudformationEventsTopic" },
+              "CLOUDFORMATION_TOPIC": { "Ref": "CloudformationTopic" },
               "CLUSTER": { "Ref": "Cluster" },
               "CUSTOM_TOPIC": { "Fn::GetAtt": [ "CustomTopic", "Arn" ] },
               "DOCKER_IMAGE_API": { "Fn::Join": [ ":", [ "convox/api", { "Ref": "Version" } ] ] },
@@ -2433,7 +2411,7 @@
               "AWS_SECRET": { "Fn::GetAtt": [ "KernelAccess", "SecretAccessKey" ] },
               "BUILD_CLUSTER": { "Fn::If": [ "DedicatedBuilder", { "Ref": "BuildCluster" }, { "Ref": "Cluster" } ] },
               "CLIENT_ID": { "Ref": "ClientId" },
-              "CLOUDFORMATION_EVENTS_TOPIC": { "Ref": "CloudformationEventsTopic" },
+              "CLOUDFORMATION_TOPIC": { "Ref": "CloudformationTopic" },
               "CLUSTER": { "Ref": "Cluster" },
               "CUSTOM_TOPIC": { "Fn::GetAtt": [ "CustomTopic", "Arn" ] },
               "DOCKER_IMAGE_API": { "Fn::Join": [ ":", [ "convox/api", { "Ref": "Version" } ] ] },
