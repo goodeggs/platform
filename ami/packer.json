@@ -94,6 +94,16 @@
       "destination": "/home/ec2-user/detach-ebs-volumes.sh"
     },
     {
+      "type": "file",
+      "source": "disable-docker-swap.sh",
+      "destination": "/home/ec2-user/disable-docker-swap.sh"
+    },
+    {
+      "type": "file",
+      "source": "disable-docker-swap",
+      "destination": "/home/ec2-user/disable-docker-swap"
+    },
+    {
       "type": "shell",
       "inline": [
         "while [ ! -f /run/cloud-init/result.json ]; do echo 'Waiting for cloud-init...'; sleep 10; done",
@@ -160,7 +170,12 @@
         "sudo chmod 0755 /var/lib/collectd/memory-available.sh",
 
         "echo '# Reserving 1536 MiB Ram for ECS Agent'",
-        "echo 'ECS_RESERVED_MEMORY=1536' | sudo tee -a /etc/ecs/ecs.config"
+        "echo 'ECS_RESERVED_MEMORY=1536' | sudo tee -a /etc/ecs/ecs.config",
+
+        "echo '# Set up disable-docker-swap.sh'",
+        "sudo mv {/home/ec2-user,/usr/local/bin}/disable-docker-swap.sh",
+        "sudo chmod 0755 /usr/local/bin/disable-docker-swap.sh",
+        "sudo mv {/home/ec2-user,/etc/cron.d}/disable-docker-swap"
       ]
     }
   ]
