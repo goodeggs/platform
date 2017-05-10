@@ -175,7 +175,8 @@
         "echo '# Set up disable-docker-swap.sh'",
         "sudo mv {/home/ec2-user,/usr/local/bin}/disable-docker-swap.sh",
         "sudo chmod 0755 /usr/local/bin/disable-docker-swap.sh",
-        "sudo mv {/home/ec2-user,/etc/cron.d}/disable-docker-swap"
+        "sudo mv {/home/ec2-user,/etc/cron.d}/disable-docker-swap",
+        "sudo chown root:root /etc/cron.d/disable-docker-swap"
       ]
     }
   ]
