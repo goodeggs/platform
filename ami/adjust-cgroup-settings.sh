@@ -12,7 +12,7 @@ EOF
 )
 
 # Build a list of stuff we DO want to effect
-TARGETS=$(docker ps --no-trunc | grep -v 'CONTAINER' | grep -Ev "$EXCLUDES_PATTERN" | awk '{ print $1; }' | xargs)
+TARGETS=$( docker ps --no-trunc --format '{{.ID}} {{.Image}}' | grep -Ev "$EXCLUDES_PATTERN" | awk '{ print $1; }' | xargs)
 
 # Apply Modifications
 for a in $TARGETS; do
