@@ -33,4 +33,4 @@ for a in $TARGETS; do
 done
 
 # No more swap
-swapoff -a
+/sbin/swapoff -a
