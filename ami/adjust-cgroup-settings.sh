@@ -1,4 +1,13 @@
-#!/bin/sh
+#!/bin/bash
+
+# Make em quiet
+pushd () {
+  command pushd "$@" > /dev/null
+}
+
+popd () {
+  command popd "$@" > /dev/null
+}
 
 # Exclude containers we don't want effected by limits
 EXCLUDES_PATTERN=$(cat <<'EOF' | xargs | sed 's/ /|/g'
@@ -22,15 +31,25 @@ for a in $TARGETS; do
   cat "./memory.limit_in_bytes" > "./memory.memsw.limit_in_bytes"
   popd
 
+  # Keeping here for now incase we leave it later
   # Limit IOPS for all devices (5 IOPS/Sec to prevent thrashing, reads and writes)
-  pushd /cgroup/blkio/docker/$a
-  DEVICES="$(cat ./blkio.throttle.io_service_bytes  | awk '{print $1;}' | uniq | grep -v Total)"
-  for b in $DEVICES; do
-    echo "${b} 5" > ./blkio.throttle.write_iops_device
-    echo "${b} 5" > ./blkio.throttle.read_iops_device
-  done
-  popd
+  #pushd /cgroup/blkio/docker/$a
+  #DEVICES="$(cat ./blkio.throttle.io_service_bytes  | awk '{print $1;}' | uniq | grep -v Total)"
+  #for b in $DEVICES; do
+  #  echo "${b} 5" > ./blkio.throttle.write_iops_device
+  #  echo "${b} 5" > ./blkio.throttle.read_iops_device
+  #done
+  #popd
 done
 
 # No more swap
-/sbin/swapoff -a
+# /sbin/swapoff -a
+
+# Log major pagefaults
+for a in $TARGETS; do
+  pushd /cgroup/memory/docker/$a
+  echo "$(docker ps --no-trunc --format 'id={{.ID}} image={{.Image}} CreatedAt="{{.CreatedAt}}"' | grep "$a") pgmajfault=$(cat memory.stat | grep total_pgmajfault | awk '{print $2;}')"
+  logger $(echo "$(docker ps --no-trunc --format 'id={{.ID}} image={{.Image}} CreatedAt="{{.CreatedAt}}"' | grep "$a") pgmajfault=$(cat memory.stat | grep total_pgmajfault | awk '{print $2;}')" )
+  popd
+done
+
