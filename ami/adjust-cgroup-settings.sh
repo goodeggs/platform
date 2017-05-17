@@ -26,8 +26,8 @@ for a in $TARGETS; do
   pushd /cgroup/blkio/docker/$a
   DEVICES="$(cat ./blkio.throttle.io_service_bytes  | awk '{print $1;}' | uniq | grep -v Total)"
   for b in $DEVICES; do
-    echo "${b} 5" > ./blkio.throttle.write_iops_device
-    echo "${b} 5" > ./blkio.throttle.read_iops_device
+    echo "${b} 50" > ./blkio.throttle.write_iops_device
+    echo "${b} 50" > ./blkio.throttle.read_iops_device
   done
   popd
 done
