@@ -1,2 +1,0 @@
-# disable docker swap every minute
-* * * * * root /usr/local/bin/disable-docker-swap.sh
