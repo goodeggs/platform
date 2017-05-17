@@ -48,8 +48,9 @@ done
 # Log major pagefaults
 for a in $TARGETS; do
   pushd /cgroup/memory/docker/$a
-  echo "$(docker ps --no-trunc --format 'id={{.ID}} image={{.Image}} CreatedAt="{{.CreatedAt}}"' | grep "$a") pgmajfault=$(cat memory.stat | grep total_pgmajfault | awk '{print $2;}')"
-  logger $(echo "$(docker ps --no-trunc --format 'id={{.ID}} image={{.Image}} CreatedAt="{{.CreatedAt}}"' | grep "$a") pgmajfault=$(cat memory.stat | grep total_pgmajfault | awk '{print $2;}')" )
+  RESULT=$(echo "$(docker ps --no-trunc --format 'id={{.ID}} image={{.Image}} CreatedAt="{{.CreatedAt}}"' | grep "$a") pgmajfault=$(cat memory.stat | grep total_pgmajfault | awk '{print $2;}')")
+  logger $RESULT
+  echo $RESULT
   popd
 done
 
