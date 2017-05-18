@@ -53,7 +53,7 @@ for a in $TARGETS; do
   if [[ ${MEASURE} -gt 10000 ]]; then
     echo "Executing docker kill on container due to ${MEASURE} major page faults ($RESULT)"
     logger "Executing docker kill on container due to ${MEASURE} major page faults ($RESULT)"
-    docker kill $a
+    docker stop $a
   fi
 
   logger $RESULT
