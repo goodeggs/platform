@@ -52,7 +52,7 @@ for a in $TARGETS; do
 
   if [[ ${MEASURE} -gt 10000 ]]; then
     echo "Executing docker kill on misbehaving container $a due to ${MEASURE} major page faults over 10000"
-    logger "Executing docker kill on misbehaving container $a due to ${MEASURE} major page faults over 10000"
+    logger "Executing docker kill on misbehaving container $a due to ${MEASURE} major page faults over 10000 ($RESULT)"
     docker kill $a
   fi
 
