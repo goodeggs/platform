@@ -51,8 +51,8 @@ for a in $TARGETS; do
   MEASURE=$(echo ${RESULT} | awk '{ print $4;}' | sed 's/pgmajfault=//g')
 
   if [[ ${MEASURE} -gt 10000 ]]; then
-    echo "Executing docker kill on misbehaving container $a due to ${MEASURE} major page faults over 10000"
-    logger "Executing docker kill on misbehaving container $a due to ${MEASURE} major page faults over 10000 ($RESULT)"
+    echo "Executing docker kill on container due to ${MEASURE} major page faults ($RESULT)"
+    logger "Executing docker kill on container due to ${MEASURE} major page faults ($RESULT)"
     docker kill $a
   fi
 
