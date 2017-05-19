@@ -24,8 +24,10 @@ func (suite *RanchTestSuite) TestRanchValidateConfigNoCronJobs() {
 func (suite *RanchTestSuite) TestRanchValidateConfigValidCronJobs() {
 	assert := assert.New(suite.T())
 	crons := map[string]string{
-		"foo": "1 * * * ? echo foo",
-		"bar": "15 * * * ? echo bar",
+		"one": "1 * * * ? echo foo",
+		"fifteen": "15 * * * ? echo bar",
+		"every10": "*/10 * * * ? echo bar", // 00,10,20,30,40,50
+		"every10onthe3s": "3/10 * * * ? echo bar", // 03,13,23,33,43,53
 	}
 	config := &RanchConfig{
 		AppName:   "hello-world",
