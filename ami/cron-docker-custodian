@@ -10,4 +10,4 @@ docker run -a STDOUT -a STDERR --sig-proxy \
   --max-container-age 24hours \
   --max-image-age 24hours \
   --exclude-image yelp/docker-custodian:latest
-
+  --rm
