@@ -26,6 +26,13 @@ $ cd platform/cmd/ranch
 $ make
 ```
 
+Testing
+-----------
+
+```
+$ make test
+```
+
 We use [dep](https://github.com/golang/dep) for dependency management.
 
 Releasing
