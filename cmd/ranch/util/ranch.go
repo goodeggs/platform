@@ -97,17 +97,29 @@ type RanchApiSecret struct {
 }
 
 type RanchConfig struct {
-	AppName   string                        `json:"name"`
-	ImageName string                        `json:"image_name"`
-	EnvId     string                        `json:"env_id"`
-	Env       []string                      `json:"env"`
-	Processes map[string]RanchConfigProcess `json:"processes"`
-	Cron      map[string]string             `json:"cron"`
-	Volumes   []string                      `json:"volumes"`
+	AppName    string                        `json:"name"`
+	ImageName  string                        `json:"image_name"`
+	EnvId      string                        `json:"env_id"`
+	Env        []string                      `json:"env"`
+	Processes  map[string]RanchConfigProcess `json:"processes"`
+	CronMemory int                           `json:"cron_memory"`
+	Cron       map[string]string             `json:"cron"`
+	Volumes    []string                      `json:"volumes"`
+}
+
+func CreateRanchConfig() *RanchConfig {
+	config := new(RanchConfig)
+
+	config.Processes = make(map[string]RanchConfigProcess)
+	// latest node versions can use 1741 MB + 35 MB of patriotic buffer
+	config.CronMemory = 1776
+	config.Cron = make(map[string]string)
+
+	return config
 }
 
 func LoadRanchConfig(filename string) (*RanchConfig, error) {
-	var config *RanchConfig
+	config := CreateRanchConfig()
 
 	src, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -117,17 +129,13 @@ func LoadRanchConfig(filename string) (*RanchConfig, error) {
 	if err = yaml.Unmarshal(src, &config); err != nil {
 		return nil, err
 	}
+
 	if config == nil { // empty file edge case
-		config = new(RanchConfig)
+		config = CreateRanchConfig()
 	}
 
-	// initialize possibly nil fields
-	if config.Processes == nil {
-		config.Processes = make(map[string]RanchConfigProcess)
-	}
-
-	if config.Cron == nil {
-		config.Cron = make(map[string]string)
+	if config.ImageName == "" {
+		config.ImageName = config.AppName
 	}
 
 	// fix up deprecations
@@ -137,10 +145,6 @@ func LoadRanchConfig(filename string) (*RanchConfig, error) {
 			proc.Count = proc.Instances
 			config.Processes[name] = proc // write it back to the map
 		}
-	}
-
-	if config.ImageName == "" {
-		config.ImageName = config.AppName
 	}
 
 	if errors := RanchValidateConfig(config); len(errors) > 0 {
@@ -246,6 +250,10 @@ func RanchValidateConfig(config *RanchConfig) (errors []error) {
 		if name == "run" {
 			errors = append(errors, fmt.Errorf("process name 'run' is invalid: 'run' is a reserved process name"))
 		}
+	}
+
+	if config.CronMemory < 4 || config.CronMemory >= 6144 {
+		errors = append(errors, fmt.Errorf("cron memory %d is invalid: must be between 4 and 6144 MB", config.CronMemory))
 	}
 
 	for name, entry := range config.Cron {
