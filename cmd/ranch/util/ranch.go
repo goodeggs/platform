@@ -111,7 +111,8 @@ func CreateRanchConfig() *RanchConfig {
 	config := new(RanchConfig)
 
 	config.Processes = make(map[string]RanchConfigProcess)
-	config.CronMemory = 2048
+	// latest node versions can use 1741 MB + 35 MB of patriotic buffer
+	config.CronMemory = 1776
 	config.Cron = make(map[string]string)
 
 	return config

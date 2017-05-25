@@ -35,7 +35,7 @@ name: myapp
 
 	config, err := LoadRanchConfig(file.Name())
 	assert.Nil(err)
-	assert.Equal(config.CronMemory, 2048)
+	assert.Equal(config.CronMemory, 1776)
 }
 
 func (suite *RanchTestSuite) TestRanchLoadRanchConfigExplicitCronMemory() {
