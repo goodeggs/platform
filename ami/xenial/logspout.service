@@ -7,6 +7,7 @@ Requires=docker.service
 WantedBy=multi-user.target
 
 [Service]
+Environment="LOGSPOUT_IMAGE=goodeggs/logspout-goodeggs:ba137c4"
 EnvironmentFile=/etc/goodeggs-environment
 Restart=on-failure
 RestartSec=30
