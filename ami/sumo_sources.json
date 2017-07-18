@@ -92,14 +92,24 @@
             "pathExpression": "/var/log/yum.log"
         },
         {
-            "name": "logspout",
+            "name": "logstash-shipper",
             "sourceType": "LocalFile",
             "automaticDateParsing": true,
             "multilineProcessingEnabled": false,
             "useAutolineMatching": true,
             "forceTimeZone": false,
             "category": "unix_logs",
-            "pathExpression": "/var/log/logspout.log"
+            "pathExpression": "/var/log/logstash-shipper.log"
+        },
+        {
+            "name": "logstash-collector",
+            "sourceType": "LocalFile",
+            "automaticDateParsing": true,
+            "multilineProcessingEnabled": false,
+            "useAutolineMatching": true,
+            "forceTimeZone": false,
+            "category": "unix_logs",
+            "pathExpression": "/var/log/logstash-collector.log"
         }
     ]
 }

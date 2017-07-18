@@ -4,8 +4,6 @@
     "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
     "aws_security_token": "{{env `AWS_SECURITY_TOKEN`}}",
     "aws_region": "us-east-1",
-    "logspout_image": null,
-    "logspout_token": null,
     "sumo_access_id": null,
     "sumo_access_key": null,
     "librato_email": null,
@@ -45,13 +43,23 @@
     },
     {
       "type": "file",
-      "source": "logspout.conf",
-      "destination": "/home/ec2-user/logspout.conf"
+      "source": "logstash-shipper.conf",
+      "destination": "/home/ec2-user/logstash-shipper.conf"
     },
     {
       "type": "file",
-      "source": "logspout.logrotate.conf",
-      "destination": "/home/ec2-user/logspout.logrotate.conf"
+      "source": "logstash-shipper.logrotate.conf",
+      "destination": "/home/ec2-user/logstash-shipper.logrotate.conf"
+    },
+    {
+      "type": "file",
+      "source": "logstash-collector.conf",
+      "destination": "/home/ec2-user/logstash-collector.conf"
+    },
+    {
+      "type": "file",
+      "source": "logstash-collector.logrotate.conf",
+      "destination": "/home/ec2-user/logstash-collector.logrotate.conf"
     },
     {
       "type": "file",
@@ -127,17 +135,17 @@
         "echo '# Install tsc-clocksource.conf'",
         "sudo mv {/home/ec2-user,/etc/init}/tsc-clocksource.conf",
 
-        "echo '# Setup /etc/logspout'",
-        "sudo mkdir -p /etc/logspout",
-        "echo '{{user `logspout_image`}}' | sudo dd of=/etc/logspout/image",
-        "echo '{{user `logspout_token`}}' | sudo dd of=/etc/logspout/token",
-        "sudo chmod 0600 /etc/logspout/*",
+        "echo '# Install logstash-shipper.conf'",
+        "sudo mv {/home/ec2-user,/etc/init}/logstash-shipper.conf",
 
-        "echo '# Install logspout.conf'",
-        "sudo mv {/home/ec2-user,/etc/init}/logspout.conf",
+        "echo '# Install logstash-shipper.logrotate.conf'",
+        "sudo mv /home/ec2-user/logstash-shipper.logrotate.conf /etc/logrotate.d/logstash-shipper.conf",
 
-        "echo '# Install logspout.logrotate.conf'",
-        "sudo mv /home/ec2-user/logspout.logrotate.conf /etc/logrotate.d/logspout.conf",
+        "echo '# Install logstash-collector.conf'",
+        "sudo mv {/home/ec2-user,/etc/init}/logstash-collector.conf",
+
+        "echo '# Install logstash-collector.logrotate.conf'",
+        "sudo mv /home/ec2-user/logstash-collector.logrotate.conf /etc/logrotate.d/logstash-collector.conf",
 
         "echo '# Install sumo.conf'",
         "sudo mv {/home/ec2-user,/etc}/sumo.conf",
@@ -170,7 +178,7 @@
         "sudo chmod 0755 /var/lib/collectd/memory-available.sh",
 
         "echo '# Reserving 1536 MiB Ram for ECS Agent'",
-        "echo 'ECS_RESERVED_MEMORY=1536' | sudo tee -a /etc/ecs/ecs.config",
+        "echo 'ECS_RESERVED_MEMORY=3072' | sudo tee -a /etc/ecs/ecs.config",
 
         "echo '# Set up adjust-cgroup-settings.sh'",
         "sudo mv {/home/ec2-user,/usr/local/bin}/adjust-cgroup-settings.sh",
