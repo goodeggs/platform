@@ -34,6 +34,11 @@
     },
     {
       "type": "file",
+      "source": "sumologic.service",
+      "destination": "/tmp/sumologic.service"
+    },
+    {
+      "type": "file",
       "source": "tsc-clocksource.service",
       "destination": "/tmp/tsc-clocksource.service"
     },
@@ -80,6 +85,11 @@
         "sudo mv /tmp/logspout.service /etc/systemd/system/",
         "sudo systemctl daemon-reload",
         "sudo systemctl enable logspout.service",
+
+        "echo '# Sumo Logic Collector'",
+        "sudo mv /tmp/sumologic.service /etc/systemd/system/",
+        "sudo systemctl daemon-reload",
+        "sudo systemctl enable sumologic.service",
 
         "echo '# TSC clocksource'",
         "sudo mv /tmp/tsc-clocksource.service /etc/systemd/system/",

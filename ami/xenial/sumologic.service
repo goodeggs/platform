@@ -1,0 +1,26 @@
+[Unit]
+Description=Sumo Logic Collector
+After=docker.service
+Requires=docker.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Environment="SUMOLOGIC_IMAGE=sumologic/collector:release-v19.182-44"
+EnvironmentFile=/etc/goodeggs-environment
+Restart=on-failure
+RestartSec=30
+RestartPreventExitStatus=5
+ExecStartPre=-/usr/bin/docker kill sumologic
+ExecStartPre=-/usr/bin/docker rm sumologic
+ExecStartPre=/usr/bin/docker pull ${SUMOLOGIC_IMAGE}
+ExecStart=/usr/bin/docker run --name sumologic \
+  --env "SUMO_ACCESS_ID=${SUMO_ACCESS_ID}" \
+  --env "SUMO_ACCESS_KEY=${SUMO_ACCESS_KEY}" \
+  --env "SUMO_COLLECTOR_NAME=%H" \
+  --env LOGSPOUT=ignore \
+  -v /etc/sumo_sources.json:/etc/sumo_sources.json \
+  -v /var/log:/host/var/log \
+  ${SUMOLOGIC_IMAGE}
+ExecStop=/usr/bin/docker stop sumologic

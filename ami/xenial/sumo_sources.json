@@ -1,0 +1,45 @@
+{
+    "api.version": "v1",
+    "sources": [
+        {
+            "name": "syslog",
+            "sourceType": "LocalFile",
+            "automaticDateParsing": true,
+            "multilineProcessingEnabled": false,
+            "useAutolineMatching": true,
+            "forceTimeZone": false,
+            "category": "unix_logs",
+            "pathExpression": "/host/var/log/syslog"
+        },
+        {
+            "name": "auth",
+            "sourceType": "LocalFile",
+            "automaticDateParsing": true,
+            "multilineProcessingEnabled": false,
+            "useAutolineMatching": true,
+            "forceTimeZone": false,
+            "category": "unix_logs",
+            "pathExpression": "/host/var/log/auth.log"
+        },
+        {
+            "name": "cloud-init",
+            "sourceType": "LocalFile",
+            "automaticDateParsing": true,
+            "multilineProcessingEnabled": false,
+            "useAutolineMatching": true,
+            "forceTimeZone": false,
+            "category": "unix_logs",
+            "pathExpression": "/host/var/log/cloud-init*.log"
+        },
+        {
+            "name": "dpkg",
+            "sourceType": "LocalFile",
+            "automaticDateParsing": true,
+            "multilineProcessingEnabled": false,
+            "useAutolineMatching": true,
+            "forceTimeZone": false,
+            "category": "unix_logs",
+            "pathExpression": "/host/var/log/dpkg.log"
+        }
+    ]
+}
