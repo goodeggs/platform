@@ -18,7 +18,7 @@
       "ssh_username": "ubuntu",
       "communicator": "ssh",
       "ssh_pty": true,
-      "ami_name": "Ubuntu Xenial 16.04 Image {{user `version`}}"
+      "ami_name": "Good Eggs Xenial Image {{user `version`}}"
     }
   ],
   "provisioners": [
