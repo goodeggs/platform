@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+# Make em quiet
+pushd () {
+  command pushd "$@" > /dev/null
+}
+
+popd () {
+  command popd > /dev/null
+}
+
+# Exclude containers we don't want effected by limits
+EXCLUDES_PATTERN=$(cat <<'EOF' | xargs | sed 's/ /|/g'
+amazon/amazon-ecs-agent
+goodeggs/logspout-goodeggs
+yelp/docker-custodian
+convox/api
+convox/agent
+goodeggs/ranch-api
+EOF
+)
+
+# Build a list of stuff we DO want to effect
+TARGETS=$(docker ps --no-trunc --format '{{.ID}} {{.Image}}' | grep -Ev "$EXCLUDES_PATTERN" | awk '{ print $1; }' | xargs)
+
+# Log major pagefaults
+for a in $TARGETS; do
+  pushd "/cgroup/memory/docker/$a"
+  container_info=$(docker inspect --format 'image={{.Config.Image}} StartedAt="{{.State.StartedAt}}"' "$a")
+  mem_info=$(grep total_pgmajfault memory.stat | awk '{print $2;}')
+  logline="id=$a $container_info pgmajfault=$mem_info"
+  value=$(echo "$logline" | awk '{ print $4;}' | sed 's/pgmajfault=//g')
+
+  if [[ $value -gt 10000 ]]; then
+    echo "Executing docker stop on container due to $value major page faults ($logline)"
+    logger "Executing docker stop on container due to $value major page faults ($logline)"
+    docker stop "$a" &
+  fi
+
+  logger "$logline"
+  echo "$logline"
+  popd
+done
+
+wait

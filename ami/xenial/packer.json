@@ -38,6 +38,26 @@
       "destination": "/tmp/tsc-clocksource.service"
     },
     {
+      "type": "file",
+      "source": "docker-swapoff",
+      "destination": "/home/ec2-user/docker-swapoff"
+    },
+    {
+      "type": "file",
+      "source": "docker-swapoff.crontab",
+      "destination": "/home/ec2-user/docker-swapoff.crontab"
+    },
+    {
+      "type": "file",
+      "source": "docker-reaper",
+      "destination": "/home/ec2-user/docker-reaper"
+    },
+    {
+      "type": "file",
+      "source": "docker-reaper.crontab",
+      "destination": "/home/ec2-user/docker-reaper.crontab"
+    },
+    {
       "type": "shell",
       "inline": [
         "while [ ! -f /run/cloud-init/result.json ]; do echo 'Waiting for cloud-init...'; sleep 10; done",
@@ -64,7 +84,19 @@
         "echo '# TSC clocksource'",
         "sudo mv /tmp/tsc-clocksource.service /etc/systemd/system/",
         "sudo systemctl daemon-reload",
-        "sudo systemctl enable tsc-clocksource.service"
+        "sudo systemctl enable tsc-clocksource.service",
+
+        "echo '# Set up docker-swapoff'",
+        "sudo mv {/home/ec2-user,/usr/local/bin}/docker-swapoff",
+        "sudo chmod 0755 /usr/local/bin/docker-swapoff",
+        "sudo mv /home/ec2-user/docker-swapoff.crontab /etc/cron.d/docker-swapoff",
+        "sudo chown root:root /etc/cron.d/docker-swapoff",
+
+        "echo '# Set up docker-reaper'",
+        "sudo mv {/home/ec2-user,/usr/local/bin}/docker-reaper",
+        "sudo chmod 0755 /usr/local/bin/docker-reaper",
+        "sudo mv /home/ec2-user/docker-reaper.crontab /etc/cron.d/docker-reaper",
+        "sudo chown root:root /etc/cron.d/docker-reaper"
       ]
     }
   ]

@@ -1,0 +1,2 @@
+# reap MPF-heavy containers every minute
+* * * * * root /usr/bin/flock -n /var/lock/docker-reaper.lock /usr/local/bin/docker-reaper

@@ -1,0 +1,2 @@
+# disable docker swap every minute
+* * * * * root /usr/bin/flock -n /var/lock/docker-swapoff.lock /usr/local/bin/docker-swapoff
