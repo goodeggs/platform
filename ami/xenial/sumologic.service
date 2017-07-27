@@ -20,7 +20,7 @@ ExecStart=/usr/bin/docker run --name sumologic \
   --env "SUMO_ACCESS_KEY=${SUMO_ACCESS_KEY}" \
   --env "SUMO_COLLECTOR_NAME=%H" \
   --env LOGSPOUT=ignore \
-  -v /etc/sumo_sources.json:/etc/sumo_sources.json \
+  -v /etc/sumo-sources.json:/etc/sumo-sources.json \
   -v /var/log:/host/var/log \
   ${SUMOLOGIC_IMAGE}
 ExecStop=/usr/bin/docker stop sumologic

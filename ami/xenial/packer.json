@@ -34,8 +34,8 @@
     },
     {
       "type": "file",
-      "source": "sumo_sources.json",
-      "destination": "/tmp/sumo_sources.json"
+      "source": "sumo-sources.json",
+      "destination": "/tmp/sumo-sources.json"
     },
     {
       "type": "file",
@@ -92,7 +92,7 @@
         "sudo systemctl enable logspout.service",
 
         "echo '# Sumo Logic Collector'",
-        "sudo mv /tmp/sumo_sources.json /etc/sumo_sources.json",
+        "sudo mv /tmp/sumo-sources.json /etc/sumo-sources.json",
         "sudo mv /tmp/sumologic.service /etc/systemd/system/",
         "sudo systemctl daemon-reload",
         "sudo systemctl enable sumologic.service",
