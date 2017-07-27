@@ -45,22 +45,22 @@
     {
       "type": "file",
       "source": "docker-swapoff",
-      "destination": "/home/ec2-user/docker-swapoff"
+      "destination": "/tmp/docker-swapoff"
     },
     {
       "type": "file",
       "source": "docker-swapoff.crontab",
-      "destination": "/home/ec2-user/docker-swapoff.crontab"
+      "destination": "/tmp/docker-swapoff.crontab"
     },
     {
       "type": "file",
       "source": "docker-reaper",
-      "destination": "/home/ec2-user/docker-reaper"
+      "destination": "/tmp/docker-reaper"
     },
     {
       "type": "file",
       "source": "docker-reaper.crontab",
-      "destination": "/home/ec2-user/docker-reaper.crontab"
+      "destination": "/tmp/docker-reaper.crontab"
     },
     {
       "type": "shell",
@@ -97,15 +97,15 @@
         "sudo systemctl enable tsc-clocksource.service",
 
         "echo '# Set up docker-swapoff'",
-        "sudo mv {/home/ec2-user,/usr/local/bin}/docker-swapoff",
+        "sudo mv {/tmp,/usr/local/bin}/docker-swapoff",
         "sudo chmod 0755 /usr/local/bin/docker-swapoff",
-        "sudo mv /home/ec2-user/docker-swapoff.crontab /etc/cron.d/docker-swapoff",
+        "sudo mv /tmp/docker-swapoff.crontab /etc/cron.d/docker-swapoff",
         "sudo chown root:root /etc/cron.d/docker-swapoff",
 
         "echo '# Set up docker-reaper'",
-        "sudo mv {/home/ec2-user,/usr/local/bin}/docker-reaper",
+        "sudo mv {/tmp,/usr/local/bin}/docker-reaper",
         "sudo chmod 0755 /usr/local/bin/docker-reaper",
-        "sudo mv /home/ec2-user/docker-reaper.crontab /etc/cron.d/docker-reaper",
+        "sudo mv /tmp/docker-reaper.crontab /etc/cron.d/docker-reaper",
         "sudo chown root:root /etc/cron.d/docker-reaper"
       ]
     }
