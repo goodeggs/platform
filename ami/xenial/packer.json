@@ -75,8 +75,14 @@
         "echo '# key-pository'",
         "curl -sSL https://github.com/goodeggs/key-pository/raw/master/bin/standalone_key_sync.sh | sudo -u ubuntu sh",
 
+        "echo '# apt dist-upgrade'",
         "sudo apt-get -y update",
         "sudo apt-get -y dist-upgrade",
+
+        "echo '# enable cgroup memory accounting (so we can limit swap usage)'",
+        "sudo sed -i \"s/GRUB_CMDLINE_LINUX=\\\"\\(.*\\)\\\"/GRUB_CMDLINE_LINUX=\\\"\\1 cgroup_enable=memory swapaccount=1\\\"/\" /etc/default/grub",
+        "sudo update-grub",
+
         "echo '# Setting Swappiness to avoide swap usage unless out of memory condition exists'",
         "echo 'vm.swappiness=0' | sudo tee -a /etc/sysctl.conf",
         "echo '# Docker'",

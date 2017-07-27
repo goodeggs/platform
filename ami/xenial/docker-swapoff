@@ -24,19 +24,19 @@ EOF
 TARGETS=$(docker ps --no-trunc --format '{{.ID}} {{.Image}}' | grep -Ev "$EXCLUDES_PATTERN" | awk '{ print $1; }' | xargs)
 
 # Apply Modifications
-for a in $TARGETS; do
+for target in $TARGETS; do
 
   # Disable swap (set memory and swap to same size)
-  pushd "/cgroup/memory/docker/${a}"
+  pushd "/sys/fs/cgroup/memory/docker/$target"
   cat "./memory.limit_in_bytes" > "./memory.memsw.limit_in_bytes"
   popd
 
   # Limit IOPS for all devices (150 IOPS/Sec to prevent thrashing, reads and writes)
-  pushd "/cgroup/blkio/docker/$a"
-  DEVICES="$(awk '{print $1;}' ./blkio.throttle.io_service_bytes | uniq | grep -v Total)"
-  for b in $DEVICES; do
-    echo "${b} 150" > ./blkio.throttle.write_iops_device
-    echo "${b} 150" > ./blkio.throttle.read_iops_device
+  pushd "/sys/fs/cgroup/blkio/docker/$target"
+  devices="$(awk '{print $1;}' ./blkio.throttle.io_service_bytes | uniq | grep -v Total)"
+  for device in $devices; do
+    echo "$device 150" > ./blkio.throttle.write_iops_device
+    echo "$device 150" > ./blkio.throttle.read_iops_device
   done
   popd
 done
