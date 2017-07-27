@@ -97,13 +97,13 @@
         "sudo systemctl enable tsc-clocksource.service",
 
         "echo '# Set up docker-swapoff'",
-        "sudo mv {/tmp,/usr/local/bin}/docker-swapoff",
+        "sudo mv /tmp/docker-swapoff /usr/local/bin/docker-swapoff",
         "sudo chmod 0755 /usr/local/bin/docker-swapoff",
         "sudo mv /tmp/docker-swapoff.crontab /etc/cron.d/docker-swapoff",
         "sudo chown root:root /etc/cron.d/docker-swapoff",
 
         "echo '# Set up docker-reaper'",
-        "sudo mv {/tmp,/usr/local/bin}/docker-reaper",
+        "sudo mv /tmp/docker-reaper /usr/local/bin/docker-reaper",
         "sudo chmod 0755 /usr/local/bin/docker-reaper",
         "sudo mv /tmp/docker-reaper.crontab /etc/cron.d/docker-reaper",
         "sudo chown root:root /etc/cron.d/docker-reaper"
