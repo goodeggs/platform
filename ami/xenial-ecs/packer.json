@@ -13,7 +13,7 @@
       "secret_key": "{{user `aws_secret_key`}}",
       "token": "{{user `aws_security_token`}}",
       "region": "{{user `aws_region`}}",
-      "source_ami": "ami-77540b0c",
+      "source_ami": "ami-8a0856f1",
       "instance_type": "t2.micro",
       "ssh_username": "ubuntu",
       "communicator": "ssh",
