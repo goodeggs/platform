@@ -8,7 +8,7 @@ WantedBy=multi-user.target
 
 [Service]
 Environment="ECS_LOGLEVEL=info"
-Environment="ECS_VERSION=v1.14.0"
+Environment="ECS_VERSION=v1.14.3"
 Environment="ECS_ENGINE_AUTH_TYPE=dockercfg"
 Environment="ECS_UPDATES_ENABLED=false"
 EnvironmentFile=/etc/goodeggs-environment
