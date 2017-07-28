@@ -11,9 +11,9 @@ popd () {
 
 # Exclude containers we don't want effected by limits
 EXCLUDES_PATTERN=$(cat <<'EOF' | xargs | sed 's/ /|/g'
+sumologic/collector
 amazon/amazon-ecs-agent
 goodeggs/logspout-goodeggs
-yelp/docker-custodian
 convox/api
 convox/agent
 goodeggs/ranch-api
