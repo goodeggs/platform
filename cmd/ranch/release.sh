@@ -11,8 +11,9 @@ minorver=$(echo $version | awk -F. '{print $1 "." $2}')
 
 make
 
-go get github.com/mitchellh/gox
-go get github.com/tcnksm/ghr
+go get -u github.com/mitchellh/gox
+go get -u github.com/tcnksm/ghr
+go get -u github.com/sanbornm/go-selfupdate
 
 gox -osarch "darwin/amd64 linux/amd64" -ldflags "-X main.VERSION=$version" -output "releases/$version/{{.OS}}_{{.Arch}}/ranch"
 
