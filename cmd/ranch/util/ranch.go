@@ -573,6 +573,7 @@ func RanchDeploy(appDir string, config *RanchConfig, appSha, codeSha string, nob
 
 		if currentRelease != releaseId {
 			if err = ConvoxPromote(config.AppName, releaseId); err != nil {
+				fmt.Errorf("There was an error promoting your release, please check the application logs for more information")
 				return err
 			}
 		} else {
