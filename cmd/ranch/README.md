@@ -53,3 +53,5 @@ Then update the blessed version in [goodeggs/travis-utils/install-ci-tools.sh](h
 
 Then update the blessed version in [goodeggs/ecru/bin/onbuild](https://github.com/goodeggs/ecru/blob/master/bin/onbuild)
 
+Then update the blessed version in [goodeggs/mk/bin/onbuild](https://github.com/goodeggs/mk/blob/master/bin/onbuild)
+
