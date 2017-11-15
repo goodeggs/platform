@@ -57,6 +57,11 @@ var dockerComposeTemplate = template.Must(template.New("docker-compose").Funcs(f
     - convox.port.443.protocol=https
     - convox.idle.timeout=60
     - convox.draining.timeout=30
+    {{ if $process.HealthPath -}}
+    - convox.health.path={{ $process.HealthPath }}
+    - convox.health.timeout=3
+    - convox.health.port=3000
+		{{ end }}
     {{ if $process.DowntimeDeploy -}}
     - convox.deployment.minimum=0
     - convox.deployment.maximum=200
@@ -163,6 +168,7 @@ type RanchConfigProcess struct {
 	Instances      int    `json:"instances"` // deprecated
 	Memory         int    `json:"memory"`
 	DowntimeDeploy bool   `json:"downtime_deploy"`
+	HealthPath     string `json:"health_path"`
 }
 
 type RanchFormationEntry struct {
