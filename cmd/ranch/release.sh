@@ -9,21 +9,21 @@ indent() {
 version=$(cat ../../VERSION)
 minorver=$(echo $version | awk -F. '{print $1 "." $2}')
 
-#make
-#
-#go get -u github.com/mitchellh/gox
-#go get -u github.com/tcnksm/ghr
-#go get -u github.com/sanbornm/go-selfupdate
-#
-#gox -osarch "darwin/amd64 linux/amd64" -ldflags "-X main.VERSION=$version" -output "releases/$version/{{.OS}}_{{.Arch}}/ranch"
-#
-#rm -rf "releases/$version/dist" && mkdir -p "releases/$version/dist"
-#cp "releases/$version/darwin_amd64/ranch" "releases/$version/dist/ranch-Darwin-x86_64"
-#cp "releases/$version/linux_amd64/ranch" "releases/$version/dist/ranch-Linux-x86_64"
-#
-#echo "releasing v${version}..."
-#
-#ghr -t "$GITHUB_TOKEN" -u goodeggs -r platform --replace "v$version" "releases/$version/dist/"
+make
+
+go get -u github.com/mitchellh/gox
+go get -u github.com/tcnksm/ghr
+go get -u github.com/sanbornm/go-selfupdate
+
+gox -osarch "darwin/amd64 linux/amd64" -ldflags "-X main.VERSION=$version" -output "releases/$version/{{.OS}}_{{.Arch}}/ranch"
+
+rm -rf "releases/$version/dist" && mkdir -p "releases/$version/dist"
+cp "releases/$version/darwin_amd64/ranch" "releases/$version/dist/ranch-Darwin-x86_64"
+cp "releases/$version/linux_amd64/ranch" "releases/$version/dist/ranch-Linux-x86_64"
+
+echo "releasing v${version}..."
+
+ghr -t "$GITHUB_TOKEN" -u goodeggs -r platform --replace "v$version" "releases/$version/dist/"
 
 echo "syncing ranch-updates S3 bucket"
 mkdir -p public
