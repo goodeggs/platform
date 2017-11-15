@@ -61,7 +61,7 @@ var dockerComposeTemplate = template.Must(template.New("docker-compose").Funcs(f
     - convox.health.path={{ $process.HealthPath }}
     - convox.health.timeout=3
     - convox.health.port=3000
-		{{ end }}
+    {{ end }}
     {{ if $process.DowntimeDeploy -}}
     - convox.deployment.minimum=0
     - convox.deployment.maximum=200
