@@ -113,6 +113,25 @@ func (suite *RanchTestSuite) TestLinterUrl() {
 	assert.Equal(LinterUrl("foobar"), "https://github.com/goodeggs/platform/blob/v1.0.0/cmd/ranch/LINT_RULES.md#foobar")
 }
 
+func (suite *RanchTestSuite) TestRanchLoadRanchConfigLogging() {
+	assert := assert.New(suite.T())
+
+	file, err := ioutil.TempFile(os.TempDir(), "ranch_test")
+	defer os.Remove(file.Name())
+
+	content := `
+name: myapp
+logging: edge
+`
+	if _, err := file.Write([]byte(content)); err != nil {
+		assert.Nil(err)
+	}
+
+	config, err := LoadRanchConfig(file.Name())
+	assert.Nil(err)
+	assert.Equal(config.Logging, "edge")
+}
+
 func TestRanchTestSuite(t *testing.T) {
 	suite.Run(t, new(RanchTestSuite))
 }
