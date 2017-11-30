@@ -59,7 +59,7 @@ var dockerComposeTemplate = template.Must(template.New("docker-compose").Funcs(f
 {{ $name }}:
   image: {{ $.ImageName }}
   command: {{ $process.Command | convoxQuote }}
-	{{ template "logging" $ }}
+  {{ template "logging" $ }}
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
 {{ range $v := $.Config.Volumes }}{{ printf "    - %s\n" $v | convoxQuote }}{{ end }}
@@ -88,7 +88,7 @@ var dockerComposeTemplate = template.Must(template.New("docker-compose").Funcs(f
 run:
   image: {{ $.ImageName }}
   command: sh -c 'while true; do echo this process should not be running; sleep 300; done'
-	{{ template "logging" $ }}
+  {{ template "logging" $ }}
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
 {{ range $v := $.Config.Volumes }}{{ printf "    - %s\n" $v | convoxQuote }}{{ end }}
