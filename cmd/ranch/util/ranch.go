@@ -56,7 +56,7 @@ services:
     command: {{ $process.Command | convoxQuote }}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-  {{ range $v := $.Config.Volumes }}{{ printf "    - %s\n" $v | convoxQuote }}{{ end }}
+{{- range $v := $.Config.Volumes }}{{ printf "\n      - %s" $v | convoxQuote }}{{ end }}
     {{ if eq $name "web" }}
     labels:
       - convox.port.443.protocol=https
@@ -66,17 +66,17 @@ services:
       - convox.health.path={{ $process.HealthPath }}
       - convox.health.timeout=3
       - convox.health.port=3000
-      {{ end }}
+      {{- end }}
       {{ if $process.DowntimeDeploy -}}
       - convox.deployment.minimum=0
       - convox.deployment.maximum=200
-      {{ end }}
+      {{- end }}
     ports:
       - 443:3000
     {{ end }}
     environment:
-  {{ if eq $name "web" }}{{printf "    - PORT=3000\n" }}{{ end }}
-  {{ range $k, $v := $.Environment }}{{ printf "    - %s=%s\n" $k $v | convoxQuote }}{{ end }}
+{{- if eq $name "web" }}{{printf "\n      - PORT=3000" }}{{ end }}
+{{- range $k, $v := $.Environment }}{{ printf "\n      - %s=%s" $k $v | convoxQuote }}{{ end }}
   {{ end }}
   
   run:
@@ -84,11 +84,11 @@ services:
     command: sh -c 'while true; do echo this process should not be running; sleep 300; done'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-  {{ range $v := $.Config.Volumes }}{{ printf "    - %s\n" $v | convoxQuote }}{{ end }}
+{{ range $v := $.Config.Volumes }}{{ printf "      - %s\n" $v | convoxQuote }}{{ end }}
     labels:
-  {{ range $k, $v := $.Config.Cron }}{{ printf "    - convox.cron.%s=%s\n" $k $v | convoxQuote }}{{ end }}
+{{ range $k, $v := $.Config.Cron }}{{ printf "      - convox.cron.%s=%s\n" $k $v | convoxQuote }}{{ end }}
     environment:
-  {{ range $k, $v := $.Environment }}{{ printf "    - %s=%s\n" $k $v | convoxQuote }}{{ end }}
+{{ range $k, $v := $.Environment }}{{ printf "      - %s=%s\n" $k $v | convoxQuote }}{{ end }}
 `))
 
 type RanchApiError struct {
