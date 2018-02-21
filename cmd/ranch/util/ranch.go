@@ -470,6 +470,50 @@ func RanchReleases(appName string) ([]RanchApiRelease, error) {
 	return ranchReleases, nil
 }
 
+type runIsolatedRequest struct {
+	InstanceType string `json:"instanceType"`
+	Command      string `json:"command"`
+}
+
+func RanchRunIsolated(appName, instanceType, command string) error {
+
+	client := ranchClient()
+
+	pathname := fmt.Sprintf("/v1/apps/%s/run_isolated", appName)
+
+	req := runIsolatedRequest{
+		InstanceType: instanceType,
+		Command:      command,
+	}
+	reqBody, err := json.Marshal(req)
+	if err != nil {
+		return err
+	}
+
+	resp, body, errs := client.Post(ranchUrl(pathname)).Send(string(reqBody)).End()
+
+	if len(errs) > 0 {
+		return errs[0]
+	}
+
+	makeError := func(statusCode int, message string) error {
+		return fmt.Errorf("Error starting Ranch isolated run [HTTP %d]: %s", statusCode, message)
+	}
+
+	switch resp.StatusCode {
+	case 201:
+		return nil
+	case 400:
+		var ranchError RanchApiError
+		err := json.Unmarshal([]byte(body), &ranchError)
+		if err == nil {
+			return makeError(resp.StatusCode, ranchError.Message)
+		}
+	}
+
+	return makeError(resp.StatusCode, body)
+}
+
 func RanchCreateSecret(appName, plaintext string) (secretId string, err error) {
 
 	client := ranchClient()
