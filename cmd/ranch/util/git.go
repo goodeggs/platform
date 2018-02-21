@@ -46,7 +46,7 @@ func GitCurrentSha(appDir string) (string, error) {
 }
 
 func GitFileIsClean(appDir, file string) (bool, error) {
-	git := exec.Command("git", "status", "--porcelain", file)
+	git := exec.Command("bash", "-c", "'[[ $(git diff --shortstat 2> /dev/null | tail -n 1) != \\'\\' ]] && false'", file)
 	git.Dir = appDir
 	var out bytes.Buffer
 	git.Stdout = &out
