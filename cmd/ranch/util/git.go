@@ -73,5 +73,5 @@ func GitFileIsClean(appDir, file string) (bool, error) {
 }
 
 func GitIsClean(appDir string) (bool, error) {
-	return GitFileIsClean(appDir, "") // "" checks the whole repo
+	return GitFileIsClean(appDir, ".") // check the whole repo
 }
