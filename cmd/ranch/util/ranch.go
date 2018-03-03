@@ -315,6 +315,10 @@ func RanchLoadSettings() (err error) {
 }
 
 func RanchCreateApp(appName string) (err error) {
+	if !ValidAppName.MatchString(appName) {
+		return fmt.Errorf("app name '%s' is invalid: must match %s", appName, ValidAppName.String())
+	}
+
 	client := ranchClient()
 
 	pathname := "/v1/apps"
