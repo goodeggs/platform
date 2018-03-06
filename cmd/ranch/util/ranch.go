@@ -479,7 +479,11 @@ type runIsolatedRequest struct {
 	Command      string `json:"command"`
 }
 
-func RanchRunIsolated(appName, instanceType, command string) error {
+type runIsolatedResponse struct {
+	InstanceId string `json:"instanceId"`
+}
+
+func RanchRunIsolated(appName, instanceType, command string) (string, error) {
 
 	client := ranchClient()
 
@@ -491,13 +495,13 @@ func RanchRunIsolated(appName, instanceType, command string) error {
 	}
 	reqBody, err := json.Marshal(req)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	resp, body, errs := client.Post(ranchUrl(pathname)).Send(string(reqBody)).End()
 
 	if len(errs) > 0 {
-		return errs[0]
+		return "", errs[0]
 	}
 
 	makeError := func(statusCode int, message string) error {
@@ -506,16 +510,21 @@ func RanchRunIsolated(appName, instanceType, command string) error {
 
 	switch resp.StatusCode {
 	case 201:
-		return nil
+		var resBody runIsolatedResponse
+		err := json.Unmarshal([]byte(body), &resBody)
+		if err != nil {
+			return "", err
+		}
+		return resBody.InstanceId, nil
 	case 400:
 		var ranchError RanchApiError
 		err := json.Unmarshal([]byte(body), &ranchError)
 		if err == nil {
-			return makeError(resp.StatusCode, ranchError.Message)
+			return "", makeError(resp.StatusCode, ranchError.Message)
 		}
 	}
 
-	return makeError(resp.StatusCode, body)
+	return "", makeError(resp.StatusCode, body)
 }
 
 func RanchCreateSecret(appName, plaintext string) (secretId string, err error) {

@@ -31,7 +31,13 @@ var runIsolatedCmd = &cobra.Command{
 
 		command := strings.Join(args, " ")
 
-		return util.RanchRunIsolated(appName, instanceType, command)
+		instanceId, err := util.RanchRunIsolated(appName, instanceType, command)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(instanceId)
+		return nil
 	},
 }
 
