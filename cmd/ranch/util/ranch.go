@@ -477,13 +477,14 @@ func RanchReleases(appName string) ([]RanchApiRelease, error) {
 type runIsolatedRequest struct {
 	InstanceType string `json:"instanceType"`
 	Command      string `json:"command"`
+	Debug        bool   `json:"debug"`
 }
 
 type runIsolatedResponse struct {
 	InstanceId string `json:"instanceId"`
 }
 
-func RanchRunIsolated(appName, instanceType, command string) (string, error) {
+func RanchRunIsolated(appName, instanceType string, debug bool, command string) (string, error) {
 
 	client := ranchClient()
 
@@ -492,6 +493,7 @@ func RanchRunIsolated(appName, instanceType, command string) (string, error) {
 	req := runIsolatedRequest{
 		InstanceType: instanceType,
 		Command:      command,
+		Debug:        debug,
 	}
 	reqBody, err := json.Marshal(req)
 	if err != nil {

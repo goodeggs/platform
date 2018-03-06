@@ -9,6 +9,7 @@ import (
 )
 
 var instanceType string
+var debug bool
 
 var runIsolatedCmd = &cobra.Command{
 	Use:   "run:isolated -t <instance type> <command>",
@@ -31,7 +32,7 @@ var runIsolatedCmd = &cobra.Command{
 
 		command := strings.Join(args, " ")
 
-		instanceId, err := util.RanchRunIsolated(appName, instanceType, command)
+		instanceId, err := util.RanchRunIsolated(appName, instanceType, debug, command)
 		if err != nil {
 			return err
 		}
@@ -43,5 +44,6 @@ var runIsolatedCmd = &cobra.Command{
 
 func init() {
 	runIsolatedCmd.Flags().StringVarP(&instanceType, "instance-type", "t", "", "EC2 Instance Type")
+	runIsolatedCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Debug (leave instance running)")
 	RootCmd.AddCommand(runIsolatedCmd)
 }
