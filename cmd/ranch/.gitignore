@@ -2,3 +2,4 @@
 /releases
 /public
 .workspace/
+vendor/

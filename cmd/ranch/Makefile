@@ -6,11 +6,8 @@ export PATH := $(GOPATH)/bin:$(PATH)
 
 all: test
 
-test:
+test: build_deps
 	go test -v ./cmd ./util
-
-vendor:
-	godep save -r ./...
 
 build: build_deps
 	go build -o .workspace/bin/ranch
@@ -22,8 +19,8 @@ build_deps:
 	go get -u github.com/tcnksm/ghr
 	go get -u github.com/sanbornm/go-selfupdate
 	go get -u github.com/golang/dep/cmd/dep
-	go get -u github.com/tools/godep
 	go get -u github.com/Clever/gitsem
+	dep ensure
 	@echo 'Ready to build!'
 
 clean:
