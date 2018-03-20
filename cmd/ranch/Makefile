@@ -3,8 +3,9 @@
 SHELL=/bin/bash -o pipefail
 export GOPATH=$(shell pwd)/.workspace
 export PATH := $(GOPATH)/bin:$(PATH)
+export DEPNOLOCK=1
 
-all: test
+all: build_deps test build
 
 test:
 	@pushd .workspace/src/github.com/goodeggs/platform/cmd/ranch > /dev/null && \
@@ -12,12 +13,13 @@ test:
 		popd > /dev/null
 
 build:
-	go build
+	go build -a -ldflags '-extldflags "-static"' .
 
 install:
-	go build -o .workspace/bin/ranch
+	go build -a -ldflags '-extldflags "-static"' -o .workspace/bin/ranch .
 
-build_deps: clean
+build_deps:
+	@rm -fR ./vendor.orig
 	@mkdir -p ./.workspace/src/github.com/goodeggs/platform/cmd
 	@[ -s .workspace/src/github.com/goodeggs/platform/cmd/ranch ] || ln -s $$(pwd) .workspace/src/github.com/goodeggs/platform/cmd/ranch
 	go get -u github.com/mitchellh/gox
@@ -26,7 +28,7 @@ build_deps: clean
 	go get -u github.com/golang/dep/cmd/dep
 	go get -u github.com/Clever/gitsem
 	@pushd .workspace/src/github.com/goodeggs/platform/cmd/ranch > /dev/null && \
-		dep ensure && \
+		dep ensure -v && \
 		popd > /dev/null
 	@echo 'Ready to build!'
 
