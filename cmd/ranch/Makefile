@@ -4,6 +4,9 @@ SHELL=/bin/bash -o pipefail
 export GOPATH=$(shell pwd)/.workspace
 export PATH := $(GOPATH)/bin:$(PATH)
 
+export VERSION=$(shell cat ../../VERSION)
+export MINORVER=$(shell echo '$(VERSION)'| awk -F. '{print $$1 "." $$2}')
+
 all: build_deps test build
 
 test:
@@ -13,6 +16,14 @@ test:
 
 build:
 	go build -a -ldflags '-extldflags "-static"' .
+
+release: build_deps test build_release release_github update_bindiffs
+
+build_release: build_deps test
+	gox -osarch "darwin/amd64 linux/amd64" -ldflags '-X main.VERSION=$${VERSION} -extldflags "-static"' -output "releases/$${VERSION}/{{.OS}}_{{.Arch}}/ranch"
+	rm -rf "releases/$$VERSION/dist" && mkdir -p "releases/$$VERSION/dist"
+	cp "releases/$$VERSION/darwin_amd64/ranch" "releases/$$VERSION/dist/ranch-Darwin-x86_64"
+	cp "releases/$$VERSION/linux_amd64/ranch" "releases/$$VERSION/dist/ranch-Linux-x86_64"
 
 install:
 	go build -a -ldflags '-extldflags "-static"' -o .workspace/bin/ranch .
@@ -31,7 +42,32 @@ build_deps:
 		popd > /dev/null
 	@echo 'Ready to build!'
 
+release_github:
+	# Github Release
+	echo "releasing v$${VERSION} to github ..."
+	ghr -t "$${GITHUB_TOKEN}" -u goodeggs -r platform --replace "v$${VERSION}" "releases/$${VERSION}/dist/"
+
+update_bindiffs:
+	# Releasing to S3
+	echo "syncing ranch-updates S3 bucket"
+	mkdir -p public
+	( ls -d public/*/ | grep -v "^public/${MINORVER}." | xargs rm -rf ) || true
+	aws s3 sync --exclude "*" --include "${MINORVER}.*" --include "darwin-amd64.json" --include "linux-amd64.json" s3://ranch-updates.goodeggs.com/stable/ranch/ public/
+
+	# Generating bindiffs for binary
+	echo "go-selfupdate generating bindiffs"
+	mkdir releases/$${VERSION}/bins
+	cp releases/$${VERSION}/darwin_amd64/ranch releases/$${VERSION}/bins/darwin-amd64
+	cp releases/$${VERSION}/linux_amd64/ranch releases/$${VERSION}/bins/linux-amd64
+	go-selfupdate releases/$${VERSION}/bins/ $${VERSION}
+
+	# Sync bindiffs to s3
+	echo "syncing ranch-updates S3 bucket"
+	aws s3 sync --acl public-read public/ s3://ranch-updates.goodeggs.com/stable/ranch/
+
 clean:
 	rm -fR ./vendor
 	rm -fR ./vendor.orig
 	rm -fR ./.workspace
+	rm -fR ./releases
+	rm -fR ./public
