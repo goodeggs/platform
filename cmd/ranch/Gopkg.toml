@@ -27,11 +27,11 @@
 
 [[constraint]]
   name = "github.com/cheggaaa/pb"
-  version = "2.0.6"
+  version = "1.0.13"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/convox/rack"
+  revision = "b1a8884d129111a894e8f493a4aef51dbaca9b2f"
 
 [[constraint]]
   branch = "master"
