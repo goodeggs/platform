@@ -12,6 +12,9 @@ test:
 		popd > /dev/null
 
 build:
+	go build
+
+install:
 	go build -o .workspace/bin/ranch
 
 build_deps: clean
