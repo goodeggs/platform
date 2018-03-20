@@ -65,6 +65,14 @@ update_bindiffs:
 	echo "syncing ranch-updates S3 bucket"
 	aws s3 sync --acl public-read public/ s3://ranch-updates.goodeggs.com/stable/ranch/
 
+generate_brew_formula:
+	@export SHA=$$(shasum -a 256 releases/$${VERSION}/dist/ranch-Darwin-x86_64 | awk '{print $$1}'); \
+	/bin/echo -e "ranch v${VERSION} released. \\n\
+NOTE: you must go update the homebrew formula manually.\\n\
+  source:  https://github.com/goodeggs/homebrew-delivery-eng/tree/master/Formula/ranch.rb \\n\
+  version: $${VERSION} \\n\
+  sha256:  $${SHA}"
+
 clean:
 	rm -fR ./vendor
 	rm -fR ./vendor.orig
