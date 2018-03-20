@@ -20,7 +20,7 @@ build:
 release: build_deps test build_release release_github update_bindiffs generate_brew_formula
 
 build_release: build_deps test
-	gox -osarch "darwin/amd64 linux/amd64" -ldflags '-X main.VERSION=$${VERSION} -extldflags "-static"' -output "releases/$${VERSION}/{{.OS}}_{{.Arch}}/ranch"
+	gox -osarch "darwin/amd64 linux/amd64" -ldflags "-X main.VERSION=$${VERSION} -extldflags '-static'" -output "releases/$${VERSION}/{{.OS}}_{{.Arch}}/ranch"
 	rm -rf "releases/$$VERSION/dist" && mkdir -p "releases/$$VERSION/dist"
 	cp "releases/$$VERSION/darwin_amd64/ranch" "releases/$$VERSION/dist/ranch-Darwin-x86_64"
 	cp "releases/$$VERSION/linux_amd64/ranch" "releases/$$VERSION/dist/ranch-Linux-x86_64"
