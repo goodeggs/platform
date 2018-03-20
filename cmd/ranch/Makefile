@@ -79,4 +79,5 @@ clean:
 	rm -fR ./.workspace
 	rm -fR ./releases
 	rm -fR ./public
+	rm -f ./ranch
 
