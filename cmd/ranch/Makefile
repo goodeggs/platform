@@ -7,7 +7,7 @@ export PATH := $(GOPATH)/bin:$(PATH)
 export VERSION=$(shell cat ../../VERSION)
 export MINORVER=$(shell echo '$(VERSION)'| awk -F. '{print $$1 "." $$2}')
 
-all: build_deps test build
+all: build_deps test
 
 test:
 	@pushd .workspace/src/github.com/goodeggs/platform/cmd/ranch > /dev/null && \
@@ -17,7 +17,7 @@ test:
 build:
 	go build -a -ldflags '-extldflags "-static"' .
 
-release: build_deps test build_release release_github update_bindiffs
+release: build_deps test build_release release_github update_bindiffs generate_brew_formula
 
 build_release: build_deps test
 	gox -osarch "darwin/amd64 linux/amd64" -ldflags '-X main.VERSION=$${VERSION} -extldflags "-static"' -output "releases/$${VERSION}/{{.OS}}_{{.Arch}}/ranch"
@@ -79,3 +79,4 @@ clean:
 	rm -fR ./.workspace
 	rm -fR ./releases
 	rm -fR ./public
+
