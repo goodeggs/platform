@@ -3,7 +3,6 @@
 SHELL=/bin/bash -o pipefail
 export GOPATH=$(shell pwd)/.workspace
 export PATH := $(GOPATH)/bin:$(PATH)
-export DEPNOLOCK=1
 
 all: build_deps test build
 
