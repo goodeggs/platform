@@ -10,7 +10,7 @@ export MINORVER=$(shell echo '$(VERSION)'| awk -F. '{print $$1 "." $$2}')
 all: build_deps test
 
 test:
-	go test -v ./cmd ./util
+	go test -v ./util
 
 build:
 	go build -a -ldflags '-extldflags "-static"' .
