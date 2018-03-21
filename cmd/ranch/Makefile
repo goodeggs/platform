@@ -1,7 +1,7 @@
 .PHONY: all test
 
 SHELL=/bin/bash -o pipefail
-export GOPATH=$(shell pwd)/.workspace
+export GOPATH=$(shell pwd)/.workspace:$(shell pwd)/vendor
 export PATH := $(GOPATH)/bin:$(PATH)
 
 export VERSION=$(shell cat ../../VERSION)
