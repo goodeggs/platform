@@ -10,9 +10,7 @@ export MINORVER=$(shell echo '$(VERSION)'| awk -F. '{print $$1 "." $$2}')
 all: build_deps test
 
 test:
-	@pushd .workspace/src/github.com/goodeggs/platform/cmd/ranch > /dev/null && \
-		go test -v ./cmd ./util && \
-		popd > /dev/null
+	go test -v ./cmd ./util
 
 build:
 	go build -a -ldflags '-extldflags "-static"' .
@@ -42,6 +40,7 @@ build_deps:
 	@pushd .workspace/src/github.com/goodeggs/platform/cmd/ranch > /dev/null && \
 		dep ensure -v && \
 		popd > /dev/null
+	rsync -a vendor/ .workspace/src/
 	@echo 'Ready to build!'
 
 release_github:
