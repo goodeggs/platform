@@ -37,8 +37,8 @@ build_deps:
 	go get -u github.com/sanbornm/go-selfupdate
 	go get -u github.com/golang/dep/cmd/dep
 	go get -u github.com/Clever/gitsem
-	go get -u gopkg.in/alecthomas/gometalinter.v2
-	gometalinter.v2 --install
+	go get -u github.com/alecthomas/gometalinter
+	gometalinter --install
 	@pushd .workspace/src/github.com/goodeggs/platform/cmd/ranch > /dev/null && \
 		dep ensure -v && \
 		popd > /dev/null
