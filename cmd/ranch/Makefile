@@ -7,7 +7,13 @@ export PATH := $(GOPATH)/bin:$(PATH)
 export VERSION=$(shell cat ../../VERSION)
 export MINORVER=$(shell echo '$(VERSION)'| awk -F. '{print $$1 "." $$2}')
 
-all: build_deps test
+all: env build_deps test
+
+env:
+	@echo $(GOPATH)
+	@echo $(PATH)
+	@echo $(VERSION)
+	@echo $(MINORVER)
 
 test:
 	go test -v ./util
