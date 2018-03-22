@@ -36,7 +36,7 @@ build_deps:
 	go get -u github.com/golang/dep/cmd/dep
 	go get -u github.com/Clever/gitsem
 	go get -u github.com/alecthomas/gometalinter
-	gometalinter --install
+	.workspace/bin/gometalinter/gometalinter --install
 	@pushd .workspace/src/github.com/goodeggs/platform/cmd/ranch > /dev/null && \
 		dep ensure -v && \
 		popd > /dev/null
