@@ -2,12 +2,12 @@
 
 SHELL=/bin/bash -o pipefail
 export GOPATH=$(shell pwd)/.workspace:$(shell pwd)/vendor
-export PATH := $(GOPATH)/bin:$(PATH)
+export PATH := $(shell pwd)/.workspace/bin:$(PATH)
 
 export VERSION=$(shell cat ../../VERSION)
 export MINORVER=$(shell echo '$(VERSION)'| awk -F. '{print $$1 "." $$2}')
 
-all: env build_deps test
+all: build_deps test
 
 env:
 	@echo $(GOPATH)
@@ -42,7 +42,7 @@ build_deps:
 	go get -u github.com/golang/dep/cmd/dep
 	go get -u github.com/Clever/gitsem
 	go get -u github.com/alecthomas/gometalinter
-	.workspace/bin/gometalinter --install
+	gometalinter --install
 	@pushd .workspace/src/github.com/goodeggs/platform/cmd/ranch > /dev/null && \
 		dep ensure -v && \
 		popd > /dev/null
