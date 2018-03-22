@@ -17,13 +17,9 @@ Development
 
 ```
 $ brew install golang direnv
-$ mkdir -p platform/src/github.com/goodeggs
-$ cd platform
-$ echo 'layout "go"' > .envrc
-$ cd src/github.com/goodeggs
 $ git clone https://github.com/goodeggs/platform.git
 $ cd platform/cmd/ranch
-$ make
+$ make build_deps && make build
 ```
 
 Testing
@@ -41,10 +37,9 @@ Releasing
 To create a release:
 
 ```
-$ go get github.com/Clever/gitsem
 $ gitsem {major,minor,patch}
 $ git push
-$ GITHUB_TOKEN=xxx ./release.sh
+$ GITHUB_TOKEN=xxx prod make release
 ```
 
 Then update the [ranch homebrew formula](https://github.com/goodeggs/homebrew-delivery-eng/blob/master/Formula/ranch.rb) with the new `version` and `sha256`.
