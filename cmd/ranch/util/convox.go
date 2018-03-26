@@ -296,6 +296,16 @@ func ConvoxPromote(appName string, ranchReleaseID string) error {
 	return ConvoxWaitForStatusWithMessage(appName, "running", fmt.Sprintf("🐮  Waiting for release %s to roll out... ", ranchReleaseID))
 }
 
+func ConvoxCancel(appName string) error {
+	c, err := convoxClient()
+
+	if err != nil {
+		return err
+	}
+
+	return c.CancelApp(appName)
+}
+
 // ConvoxDeploy creates a new Convox release given an app and build directory.
 func ConvoxDeploy(appName string, buildDir string) (string, error) {
 	c, err := convoxClient()
