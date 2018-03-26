@@ -1,3 +1,7 @@
 /.goxc.local.json
 /releases
 /public
+.workspace/
+vendor/
+ranch
+vendor.orig/
