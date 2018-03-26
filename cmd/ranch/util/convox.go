@@ -303,8 +303,7 @@ func ConvoxCancel(appName string) error {
 		return err
 	}
 
-	err = c.CancelApp(appName)
-	return err
+	return c.CancelApp(appName)
 }
 
 // ConvoxDeploy creates a new Convox release given an app and build directory.
