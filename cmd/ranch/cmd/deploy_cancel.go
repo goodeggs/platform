@@ -9,15 +9,14 @@ import (
 )
 
 var cancelCmd = &cobra.Command{
-	Use:   "cancel <app name>",
+	Use:   "deploy:cancel",
 	Short: "Cancel a change to an app",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		if len(args) != 1 {
-			cmd.Usage()
-			return fmt.Errorf("expected 1 argument (app name)")
-		}
 
-		appName := args[0]
+		appName, err := util.AppName(cmd)
+		if err != nil {
+			return err
+		}
 
 		if err = util.ConvoxCancel(appName); err != nil {
 			return err
