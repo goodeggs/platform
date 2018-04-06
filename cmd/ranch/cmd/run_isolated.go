@@ -32,12 +32,16 @@ var runIsolatedCmd = &cobra.Command{
 
 		command := strings.Join(args, " ")
 
-		instanceId, err := util.RanchRunIsolated(appName, instanceType, debug, command)
+		res, err := util.RanchRunIsolated(appName, instanceType, debug, command)
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(instanceId)
+		fmt.Printf("Instance Type: %s\n", res.InstanceType)
+		fmt.Printf("      Command: %s\n", res.Command)
+		fmt.Printf("  Instance ID: %s\n", res.InstanceId)
+		fmt.Printf("   Private IP: %s\n", res.PrivateIpAddress)
+
 		return nil
 	},
 }
