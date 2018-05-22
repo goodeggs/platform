@@ -2,7 +2,7 @@
 
 SHELL=/bin/bash -o pipefail
 
-export VERSION=$(shell cat ../../VERSION)
+export VERSION=$(shell cat ../../../../../../VERSION)
 export MINORVER=$(shell echo '$(VERSION)'| awk -F. '{print $$1 "." $$2}')
 
 all: build_deps test

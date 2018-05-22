@@ -1,0 +1,11 @@
+#!/bin/bash
+set -ev
+set -o pipefail
+
+if ! git show --name-only --pretty=format: "$TRAVIS_COMMIT_RANGE" | grep "^src/github.com/goodeggs/platform/cmd/ranch/"; then
+  echo "skipping cmd/ranch, no changes."
+  exit 0
+fi
+
+make
+
