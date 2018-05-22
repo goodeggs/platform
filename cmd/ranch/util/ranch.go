@@ -255,12 +255,15 @@ func RanchValidateConfig(config *RanchConfig) (errors []error) {
 		errors = append(errors, fmt.Errorf("image name '%s' is invalid: must match %s", config.ImageName, ValidAppName.String()))
 	}
 
-	for name, _ := range config.Processes {
+	for name, process := range config.Processes {
 		if !ValidProcessName.MatchString(name) {
 			errors = append(errors, fmt.Errorf("process name '%s' is invalid: must match %s", name, ValidProcessName.String()))
 		}
 		if name == "run" {
 			errors = append(errors, fmt.Errorf("process name 'run' is invalid: 'run' is a reserved process name"))
+		}
+		if process.Command == "" {
+			errors = append(errors, fmt.Errorf("process '%s' is invalid: missing 'command'", name))
 		}
 	}
 
