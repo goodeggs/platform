@@ -1,1 +1,9 @@
 git-crypt.key
+bin/
+pkg/
+src/*
+!src/github.com/
+src/github.com/*
+!src/github.com/goodeggs/
+src/github.com/goodeggs/*
+!src/github.com/goodeggs/platform
