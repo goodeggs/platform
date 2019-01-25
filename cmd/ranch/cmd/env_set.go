@@ -12,7 +12,7 @@ import (
 )
 
 var envSetCmd = &cobra.Command{
-	Use:   "env:set",
+	Use:   "env:set KEY=VALUE KEY2='VALUE 2'",
 	Short: "Set environment variables",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		appDir, err := util.AppDir(cmd)
