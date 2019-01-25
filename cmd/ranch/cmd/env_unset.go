@@ -12,7 +12,7 @@ import (
 )
 
 var envUnsetCmd = &cobra.Command{
-	Use:   "env:unset",
+	Use:   "env:unset KEY KEY2",
 	Short: "Un-set environment variables",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		appDir, err := util.AppDir(cmd)
