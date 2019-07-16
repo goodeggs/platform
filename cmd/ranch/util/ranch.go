@@ -60,6 +60,7 @@ services:
     {{ if eq $name "web" }}
     labels:
       - convox.port.443.protocol=https
+      - convox.port.443.public={{ $process.IsPublic }}
       - convox.idle.timeout=60
       - convox.draining.timeout=30
       {{ if $process.HealthPath -}}
@@ -78,7 +79,6 @@ services:
 {{- if eq $name "web" }}{{printf "\n      - PORT=3000" }}{{ end }}
 {{- range $k, $v := $.Environment }}{{ printf "\n      - %s=%s" $k $v | convoxQuote }}{{ end }}
   {{ end }}
-  
   run:
     image: {{ $.ImageName }}
     command: sh -c 'while true; do echo this process should not be running; sleep 300; done'
@@ -149,13 +149,13 @@ func LoadRanchConfig(filename string) (*RanchConfig, error) {
 		config.ImageName = config.AppName
 	}
 
-	// fix up deprecations
+	// fix up defaults & deprecations
 	for name, proc := range config.Processes {
 		if proc.Instances > 0 && proc.Count == 0 {
 			fmt.Printf("deprecated: rename `instances` to `count` in your .ranch.yaml for app '%s'\n", name)
 			proc.Count = proc.Instances
-			config.Processes[name] = proc // write it back to the map
 		}
+		config.Processes[name] = proc // write it back to the map
 	}
 
 	if errors := RanchValidateConfig(config); len(errors) > 0 {
@@ -175,6 +175,15 @@ type RanchConfigProcess struct {
 	Memory         int    `json:"memory"`
 	DowntimeDeploy bool   `json:"downtime_deploy"`
 	HealthPath     string `json:"health_path"`
+	Public         *bool  `json:"public"`
+}
+
+// A helper to convert our sometimes-nil pointer to a bool
+func (p RanchConfigProcess) IsPublic() bool {
+	if p.Public == nil {
+		return true
+	}
+	return *p.Public
 }
 
 type RanchFormationEntry struct {
@@ -264,6 +273,9 @@ func RanchValidateConfig(config *RanchConfig) (errors []error) {
 		}
 		if process.Command == "" {
 			errors = append(errors, fmt.Errorf("process '%s' is invalid: missing 'command'", name))
+		}
+		if name != "web" && process.Public != nil {
+			errors = append(errors, fmt.Errorf("process '%s' is invalid: only 'web' process should specify 'public'", name))
 		}
 	}
 
