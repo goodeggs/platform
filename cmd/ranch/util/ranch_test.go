@@ -132,6 +132,53 @@ logging: edge
 	assert.Equal(config.Logging, "edge")
 }
 
+func (suite *RanchTestSuite) TestRanchLoadRanchConfigPrivate() {
+	assert := assert.New(suite.T())
+
+	file, err := ioutil.TempFile(os.TempDir(), "ranch_test")
+	defer os.Remove(file.Name())
+
+	content := `
+name: myapp
+processes:
+  web:
+    count: 1
+    memory: 256
+    command: bash
+    public: false
+`
+	if _, err := file.Write([]byte(content)); err != nil {
+		assert.Nil(err)
+	}
+
+	config, err := LoadRanchConfig(file.Name())
+	assert.Nil(err)
+	assert.False(config.Processes["web"].IsPublic())
+}
+
+func (suite *RanchTestSuite) TestRanchLoadRanchConfigPublicByDefault() {
+	assert := assert.New(suite.T())
+
+	file, err := ioutil.TempFile(os.TempDir(), "ranch_test")
+	defer os.Remove(file.Name())
+
+	content := `
+name: myapp
+processes:
+  web:
+    count: 1
+    memory: 256
+    command: bash
+`
+	if _, err := file.Write([]byte(content)); err != nil {
+		assert.Nil(err)
+	}
+
+	config, err := LoadRanchConfig(file.Name())
+	assert.Nil(err)
+	assert.True(config.Processes["web"].IsPublic())
+}
+
 func TestRanchTestSuite(t *testing.T) {
 	suite.Run(t, new(RanchTestSuite))
 }
