@@ -38,7 +38,7 @@ build_deps:
 	@[ -s .workspace/src/github.com/goodeggs/platform/cmd/ranch ] || ln -s $$(pwd) .workspace/src/github.com/goodeggs/platform/cmd/ranch
 	go get -u github.com/mitchellh/gox
 	go get -u github.com/tcnksm/ghr
-	go get -u github.com/sanbornm/go-selfupdate
+	go get -u github.com/sanbornm/go-selfupdate/...
 	go get -u github.com/golang/dep/cmd/dep
 	go get -u github.com/Clever/gitsem
 	go get -u github.com/alecthomas/gometalinter
@@ -87,4 +87,3 @@ clean:
 	rm -fR ./releases
 	rm -fR ./public
 	rm -f ./ranch
-
