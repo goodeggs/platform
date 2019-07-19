@@ -179,6 +179,53 @@ processes:
 	assert.True(config.Processes["web"].IsPublic())
 }
 
+func (suite *RanchTestSuite) TestRanchLoadRanchConfigPrivileged() {
+	assert := assert.New(suite.T())
+
+	file, err := ioutil.TempFile(os.TempDir(), "ranch_test")
+	defer os.Remove(file.Name())
+
+	content := `
+name: myapp
+processes:
+  web:
+    count: 1
+    memory: 256
+    command: bash
+    privileged: true
+`
+	if _, err := file.Write([]byte(content)); err != nil {
+		assert.Nil(err)
+	}
+
+	config, err := LoadRanchConfig(file.Name())
+	assert.Nil(err)
+	assert.True(config.Processes["web"].IsPrivileged())
+}
+
+func (suite *RanchTestSuite) TestRanchLoadRanchConfigPrivilegedByDefault() {
+	assert := assert.New(suite.T())
+
+	file, err := ioutil.TempFile(os.TempDir(), "ranch_test")
+	defer os.Remove(file.Name())
+
+	content := `
+name: myapp
+processes:
+  web:
+    count: 1
+    memory: 256
+    command: bash
+`
+	if _, err := file.Write([]byte(content)); err != nil {
+		assert.Nil(err)
+	}
+
+	config, err := LoadRanchConfig(file.Name())
+	assert.Nil(err)
+	assert.False(config.Processes["web"].IsPrivileged())
+}
+
 func TestRanchTestSuite(t *testing.T) {
 	suite.Run(t, new(RanchTestSuite))
 }
