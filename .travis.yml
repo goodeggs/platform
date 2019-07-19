@@ -1,17 +1,15 @@
-sudo: required
-dist: trusty
-
-language: go
-go:
-  - 1.12.7
+language: bash
 
 env:
+  global:
+    - PATH="/tmp/ci-tools:$PATH"
   matrix:
     - COMMAND="cd ami && ./.travis/script"
     - COMMAND="cd cmd/ranch && ./.travis/script"
 
 install:
-  - ./.travis/install-git-crypt
+  - curl -sSL https://github.com/goodeggs/travis-utils/raw/master/install-ci-tools.sh | CACHE_DIR=/tmp/ci-tools sh -s -- go=1.12.7 git-crypt
+  - git-crypt-unlock
   - echo $TRAVIS_COMMIT_RANGE
 
 script: eval "$COMMAND"
