@@ -4,14 +4,10 @@ env:
   global:
     - PATH="/tmp/ci-tools:$PATH"
     - secure: "qJOV7yFi6wgywSMO+t9FSi0eOhR272DtjYYJ0bJS8UMW2fdkM4hJhHRWJlKFtq3hPd+nW2sBu/ljfwhe+V4s1H/sfTyajhmc07TJTIDGaOCsuqmDVL0WFHHQOHlBZJjt5RrfLoKQ86pXIsJP6eR+g5lgqKPUnzzS0NpeuozOFFLF806UAc6Jm7JhCvs1satxokVUmN+ppg+qy4+yIwbIxOn+xykknDlpUgqgMvrNi43USqjl9yfefI3BV2HzXUkSlzPuNVPaMso+57RzR6tqNNuB/FFvC9UiieHQAccPHFxYZ5piPbjfUcS4pxlKZB98clFGc/7/K1H/+O6KI9NZp1AB921aqd9a5VEHF1SheAn/JhlVkyp9Aya89gHV7+to4FPpZtA/ilUbS7dweiG2yx4OZY9bg6hfTnkIzYu6PmHkfIOIf1t9LAcNgeZy6bMOz3qzZNbE3nO9/+caC0r+fLh9DLIPJyub2IxXK7+YkupvgsRB1tWIhvQJd0tkmoj0gqLTgOwIk2nr7dHUH4bIEmmQZXJBmn7PqCROTEJqrIc/9c09AUBy/qxZ4fEYYke+WOWkZ8ufQQn/II5ReM4Zx1fyt9SBZPRO2jk8I/FyJ5gD75tHo9juE6iH3fqx7oqjfN5Sno5bz3FwpridikuLGb6rOeNIymr3fQT0+czoJ2U=" # GITCRYPT_PASS
-  matrix:
-    - COMMAND="cd ami && ./.travis/script"
-    - COMMAND="cd cmd/ranch && ./.travis/script"
 
 install:
   - curl -sSL https://github.com/goodeggs/travis-utils/raw/master/install-ci-tools.sh | CACHE_DIR=/tmp/ci-tools sh -s -- go=1.12.7 git-crypt
   - git-crypt-unlock
-  - echo $TRAVIS_COMMIT_RANGE
 
-script: eval "$COMMAND"
+script: cd cmd/ranch && make
 
