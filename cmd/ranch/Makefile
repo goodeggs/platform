@@ -1,8 +1,6 @@
 .PHONY: all test
 
 SHELL=/bin/bash -o pipefail
-export GOPATH=$(shell pwd)/.workspace:$(shell pwd)/vendor
-export PATH := $(shell pwd)/.workspace/bin:$(PATH)
 
 export VERSION=$(shell cat ../../VERSION)
 export MINORVER=$(shell echo '$(VERSION)'| awk -F. '{print $$1 "." $$2}')
@@ -30,23 +28,14 @@ build_release: build_deps test
 	cp "releases/$$VERSION/linux_amd64/ranch" "releases/$$VERSION/dist/ranch-Linux-x86_64"
 
 install:
-	go build -a -ldflags '-extldflags "-static"' -o .workspace/bin/ranch .
+	go build -a -ldflags '-extldflags "-static"' -o ranch .
 
 build_deps:
 	@rm -fR ./vendor.orig
-	@mkdir -p ./.workspace/src/github.com/goodeggs/platform/cmd
-	@[ -s .workspace/src/github.com/goodeggs/platform/cmd/ranch ] || ln -s $$(pwd) .workspace/src/github.com/goodeggs/platform/cmd/ranch
 	go get -u github.com/mitchellh/gox
 	go get -u github.com/tcnksm/ghr
 	go get -u github.com/sanbornm/go-selfupdate/...
-	go get -u github.com/golang/dep/cmd/dep
 	go get -u github.com/Clever/gitsem
-	go get -u github.com/alecthomas/gometalinter
-	gometalinter --install
-	@pushd .workspace/src/github.com/goodeggs/platform/cmd/ranch > /dev/null && \
-		dep ensure -v && \
-		popd > /dev/null
-	rsync -a vendor/ .workspace/src/
 	@echo 'Ready to build!'
 
 release_github:
@@ -82,8 +71,6 @@ NOTE: you must go update the homebrew formula manually.\\n\
 
 clean:
 	rm -fR ./vendor
-	rm -fR ./vendor.orig
-	rm -fR ./.workspace
 	rm -fR ./releases
 	rm -fR ./public
 	rm -f ./ranch

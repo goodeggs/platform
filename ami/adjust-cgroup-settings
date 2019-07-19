@@ -1,2 +1,0 @@
-# disable docker swap every minute
-* * * * * root /usr/bin/flock -n /tmp/cgroup-cron.lock /usr/local/bin/adjust-cgroup-settings.sh

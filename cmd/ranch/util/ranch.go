@@ -53,6 +53,7 @@ services:
   {{ range $name, $process := .Config.Processes }}
   {{ $name }}:
     image: {{ $.ImageName }}
+    privileged: {{ $process.IsPrivileged }}
     command: {{ $process.Command | convoxQuote }}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -176,6 +177,7 @@ type RanchConfigProcess struct {
 	DowntimeDeploy bool   `json:"downtime_deploy"`
 	HealthPath     string `json:"health_path"`
 	Public         *bool  `json:"public"`
+	Privileged     *bool  `json:"privileged"`
 }
 
 // A helper to convert our sometimes-nil pointer to a bool
@@ -184,6 +186,14 @@ func (p RanchConfigProcess) IsPublic() bool {
 		return true
 	}
 	return *p.Public
+}
+
+// A helper to convert our sometimes-nil pointer to a bool
+func (p RanchConfigProcess) IsPrivileged() bool {
+	if p.Privileged == nil {
+		return false
+	}
+	return *p.Privileged
 }
 
 type RanchFormationEntry struct {
